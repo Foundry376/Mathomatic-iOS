@@ -1,0 +1,8 @@
+; Electrical formulas:
+
+watts=volts*amps ; Power Law
+volts=amps*ohms ; Ohm's Law, commonly solved for resistance (ohms) or current (amps).
+1/r=1/r1+1/r2 ; Resistance (r) of 2 resistors (r1 and r2) wired in parallel.
+1/r=1/r1+1/r2+1/r3 ; Resistance (r) of 3 resistors wired in parallel.
+frequency=1/(2*pi*(L*C)^.5) ; resonant frequency of an LC circuit in hertz.
+; L is the inductance in henries, and C is the capacitance in farads.

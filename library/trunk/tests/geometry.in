@@ -1,0 +1,27 @@
+; Commonly used standard (Euclidean) geometric formulas
+
+; Triangle area:
+triangle_area = base*height/2
+
+; Rectangle of length "l" and width "w":
+rectangle_area = l*w
+rectangle_perimeter = 2*l + 2*w
+
+; Trapezoid of parallel sides "a" and "b", and "d" distance between them:
+trapezoid_area = d*(a + b)/2
+
+; Circle of radius "r":
+circle_area = pi*r^2
+circle_perimeter = 2*pi*r
+
+; Rectangular solid of length "l", width "w", and height "h":
+brick_volume = l*w*h
+brick_surface_area = 2*l*w + 2*l*h + 2*w*h
+
+; Sphere of radius "r":
+sphere_volume = 4/3*pi*r^3
+sphere_surface_area = 4*pi*r^2
+
+; Convex polygon of "n" sides, sum of all interior angles formula:
+sum_degrees = (n - 2)*180
+sum_radians = (n - 2)*pi

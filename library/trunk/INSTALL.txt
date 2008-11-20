@@ -1,0 +1,43 @@
+                      Mathomatic Installation Instructions
+                      ------------------------------------
+
+The requirements for easy installation from this source code are: a make
+utility and the gcc C compiler.  Other C compilers may be used, but may
+require small changes to the makefile and sources.  You will need to open a
+shell window to compile and run Mathomatic.  Under Mac OS X, the required
+compilation software is included in Xcode Tools on your installation discs.
+Mathomatic has been tested and easily installs under Unix, Linux, Mac OS X,
+and Cygwin for MS-Windows.
+
+Root (super-user) or administrator permissions are needed to install
+Mathomatic, because write permission is needed to copy files into the
+directories in "/usr/local".
+
+A typical installation is done by typing the following at the shell prompt:
+
+	make READLINE=1
+	make test
+	sudo make install
+
+This will compile, test, and install the Mathomatic executable and docs in
+"/usr/local" in less than a minute.  After this, typing "man mathomatic"
+should bring up the man page, and typing "mathomatic" should run Mathomatic.
+If Mathomatic doesn't run, check that the shell PATH environment variable
+includes "/usr/local/bin" with the command "echo $PATH".
+
+To install in "/usr" instead of "/usr/local", type:
+
+	sudo make prefix=/usr install
+
+If sudo doesn't work, login as root or type:
+
+	su -c "make install"
+
+and enter the root password to install as the super-user.
+
+To install the Mathomatic GNU m4 script that allows math functions as macros,
+use "make m4install" instead of "make install".
+
+To undo the installation and remove Mathomatic from the local computer, type:
+
+	sudo make uninstall

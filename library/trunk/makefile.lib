@@ -1,0 +1,41 @@
+# Makefile for the Mathomatic symbolic math library and library test.
+# Be sure to "make clean" between using different makefiles.
+
+VERSION		= `cat VERSION`
+CFLAGS		+= -O2 -DLIBRARY -DUNIX -DVERSION=\"$(VERSION)\" # C compiler flags
+LIBS		+= -lm # libraries to link
+
+prefix		?= /usr/local
+
+AOUT		= mathomatic # The name of the library test executable file to create.
+LIB		= libmathomatic.a # The name of the symbolic math library file to create.
+HEADERS		= lib/mathomatic.h
+
+OBJECTS		= lib/lib.o globals.o am.o solve.o help.o parse.o cmds.o simplify.o \
+		  factor.o super.o unfactor.o poly.o diff.o integrate.o \
+		  complex.o complex_lib.o list.o gcd.o factor_int.o
+
+all: $(AOUT)
+	@echo Make completed.
+
+lib $(LIB): $(OBJECTS)
+	ar cr $(LIB) $(OBJECTS)
+	ranlib $(LIB)
+
+$(OBJECTS): $(HEADERS) includes.h am.h externs.h complex.h proto.h VERSION
+
+$(AOUT): lib/test.o $(LIB)
+	$(CC) $(LDFLAGS) lib/test.o $(LIB) $(LIBS) -o $(AOUT)
+
+install:
+	install -m 0644 $(LIB) $(prefix)/lib
+	install -m 0644 $(HEADERS) $(prefix)/include
+
+clean:
+	rm -f *.o
+	rm -f lib/*.o
+
+flush: clean
+	rm -f $(AOUT)
+	rm -f *.a
+	rm -f lib/*.a

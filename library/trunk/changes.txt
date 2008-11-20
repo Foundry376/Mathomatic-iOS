@@ -1,0 +1,257 @@
+                        VERSION HISTORY OF MATHOMATIC
+                        -----------------------------
+                This list is entirely in chronological order.
+               The latest changes are at the end of this file.
+              This file may be obtained at "www.mathomatic.org".
+                 All changes were made by George Gesslein II.
+              --------------------------------------------------
+
+CHANGES MADE TO MATHOMATIC V12.8.9 TO BRING IT UP TO VERSION 12.9.0:
+
+Documentation and code cleanup.
+
+3/6/08 - Added demo "tests/circles.in", completes in 1 second!
+
+3/7/08 - Made all error text the color red when color mode is enabled.
+
+3/8/08 - Made "set true_modulus" the default.
+
+3/13/08 - Implemented integral divide operator "//" which divides and truncates result to an integer.
+          This operator is handy for doing integer arithmetic.
+
+3/16/08 - Made all warning text the color yellow.
+
+CHANGES MADE TO MATHOMATIC V12.9.0:
+
+3/27/08 - Deleted outdated "doc/notes.html".
+
+3/29/08 - Set command allows the following option prefix words: no, not, off, false, yes, on, true.
+
+3/30/08 - Updated matho-primes to work with architectures that don't support long double.
+
+CHANGES MADE TO MATHOMATIC V12.9.1:
+
+Some minor corrections were made.
+
+4/5/08 - Turned off readline file name completion, tab is now just a tab.
+
+CHANGES MADE TO MATHOMATIC V12.9.2:
+
+4/20/08 - Read set options in either "~/.mathomaticrc" or "mathomatic.rc" when starting up under Cygwin.
+
+4/23/08 - A major fix was made to the simplify command, it was not expanding fractions enough.
+          *Note that this simplify fix was done wrong and is now corrected in version 14.1.4
+
+CHANGES MADE TO MATHOMATIC V14.0.0:
+
+Code and documentation cleanup.
+
+Disallow variable name "all" in expressions.  "all" means all normal variables and is a reserved word now.
+
+4/25/08 - Set command parser now reports errors properly.
+
+4/28/08 - More correct simplification restriction added: (x^n)^m remains unsimplified unless "symbolic" option is used.
+          This was documented but not fully implemented.  You need to use "simplify symbolic" to simplify like before.
+
+CHANGES MADE TO MATHOMATIC V14.0.1:
+
+4/30/08 - The calculate command user interface was corrected.
+
+5/4/08 - Added "simplify sign" command option, which conveniently expands all "sign" variables and simplifies.
+
+CHANGES MADE TO MATHOMATIC V14.0.2:
+
+Code and comments cleanup.
+
+5/16/08 - Added "derivative nosimplify" command option, which does no simplification after differentiating.
+          Fixed the taylor command to work with larger expressions with more derivatives by simplifying better.
+
+CHANGES MADE TO MATHOMATIC V14.0.3:
+
+Cleanup.
+
+5/19/08 - Fixed for less floating point round-off error.
+
+5/27/08 - Author's email address changed to "georgegesslein@gmail.com".
+
+5/31/08 - Fixed to simplify sign variables better, sign^(1/3) now simplifies to sign.
+          Added "solve verify" command option, which verifies the results of the solve command.
+
+CHANGES MADE TO MATHOMATIC V14.0.4:
+
+Cleanup.
+
+Improved the "solve verify" command option by simplifying more and used it in the tests and demos.
+
+6/14/08 - Added "Divide by zero" warning message whenever that happens.  Result still generates infinity.
+
+CHANGES MADE TO MATHOMATIC V14.0.5:
+
+6/18/08 - Improved divide command and verification of floating point GCDs.
+
+6/19/08 - Improved "solve verify" even more, displaying a warning if verification is not needed.
+
+CHANGES MADE TO MATHOMATIC V14.0.6:
+
+Cleanup and added some options to make reading the source code more rewarding.
+
+6/26/08 - The "set finance" option now parenthesizes negative numbers to give them emphasis.
+
+7/2/08 - Bug fix: code command now parenthesizes negative numbers so that -2**x works the same with Python.
+
+7/5/08 - Readline history file enabled as "~/.history", and fixed possible bug in readline initialization.
+
+Mathomatic version 14.0.7 released 2008-07-06
+
+CHANGES MADE TO MATHOMATIC V14.0.7:
+
+Documentation and code cleanup.
+
+7/8/08 - Optimize more by changing gcc option "-O" to "-O2" for all builds.
+
+7/11/08 - Fixed inconsistent evaluation in the "derivative nosimplify" command.
+
+Mathomatic version 14.0.8 released 2008-07-18
+
+CHANGES MADE TO MATHOMATIC V14.0.8:
+
+Code cleanup.
+
+7/20/08 - Added optional installation of a shell script that allows using trig functions: "make m4install".
+          Limit command no longer substitutes, it now uses only one method (solve) for teaching purposes;
+          see "tests/how_limit_works.in" for the current method of finding limits.
+
+7/21/08 - The "set special_variable_character" option was changed to allow multiple characters.  These
+          characters can be used in any variable name, unless they have other meanings.
+          Disallowed [] as parentheses characters, so that they can be used in variable names to make arrays.
+
+7/23/08 - "solve verify" was sometimes saying nothing when the solve failed, fixed to say "Solve failed.".
+
+7/27/08 - Fixed some critical command output redirection bugs and made read input bold in HTML mode.
+
+Mathomatic version 14.1.0 released 2008-07-27
+
+CHANGES MADE TO MATHOMATIC V14.1.0:
+
+More tidying up of everything.
+
+Improved readline history storage and limited it to 500 entries, previously it was unlimited.
+Fixed a bug in the push command when pushing multiple expressions and improved error messages.
+
+Mathomatic version 14.1.1 released 2008-07-30
+
+CHANGES MADE TO MATHOMATIC V14.1.1:
+
+Documentation improvements.
+
+8/5/08 - Added optional exit-value argument to quit command.
+
+8/8/08 - Fixed a bug in the fraction command: the resulting algebraic fraction was not being fully reduced.
+
+8/9/08 - Removed all of C type "long long" arithmetic from the main Mathomatic program,
+         resulting in smaller executable.  "long long" types are only supported in C99.
+         Tweaked startup messages and made quadratic solving consistent with other solving.
+         Solving only unfactors as much as it needs to.
+
+8/10/08 - Added "unfactor quick" command option.
+
+Mathomatic version 14.1.2 released 2008-08-10
+
+CHANGES MADE TO MATHOMATIC V14.1.2:
+
+Documentation improvements and bug fixes.
+
+8/10/08 - Fixed a very old endless loop bug that occurred while simplifying.
+
+8/11/08 - A few tweaks to factor the proper amount and made the fraction command work perfectly.
+
+8/12/08 - Made bold_colors flag affect HTML color mode.
+
+Mathomatic version 14.1.3 released 2008-08-13
+
+CHANGES MADE TO MATHOMATIC V14.1.3:
+
+8/13/08 - The calculate command now reports the number of solutions.
+
+8/14/08 - Made some big improvements and bug fixes to simplification, if only someone had reported bugs earlier!
+          A major, long-standing simplify command malfunction has been fixed, but it runs a little slower.
+          The simplify command is now logically correct and appears to work nicely now, please tell me if not.
+
+Mathomatic version 14.1.4 released 2008-08-14
+
+CHANGES MADE TO MATHOMATIC V14.1.4:
+
+Cleanup and beautification.
+
+8/19/08 - Added "HANDHELD" C preprocessor define for when compiling for hand-helds, like the Nintendo DS.
+
+8/21/08 - Fixed redirected debug output.
+          Tuned up simplify command to work with larger expressions by automatically reducing the expansion if needed.
+
+Mathomatic version 14.1.5 released 2008-08-24
+
+CHANGES MADE TO MATHOMATIC V14.1.5:
+
+8/25/08 - Added "tests/electronics.in" Mathomatic input file; contains simple electrical formulas.
+          When using m4, corrected ceil(x) function and added cbrt(x) (cube root function) in "m4/functions.m4".
+
+9/02/08 - General internal routine get_constant() in "complex.c" was finished perfectly,
+          making less need to ever approximate constants.
+          Some corrections to the makefile were made, "make install" and "make m4install" were improved.
+
+9/06/08 - Optimized "tests/linear.in" and "tests/poly.in" to make "make test" run in half the time.
+
+Mathomatic version 14.1.6 released 2008-09-06
+
+CHANGES MADE TO MATHOMATIC V14.1.6:
+
+General cleanup.
+
+9/11/08 - Fixed solving things like 2^(1/2) = e#^x for x, they failed before.
+
+9/13/08 - The m4 "math" script now allows files to be read in by specifying them on the command line.
+
+9/25/08 - 0 to the power of a negative number now consistently returns infinity with a divide by zero warning.
+
+Mathomatic version 14.2.0 released 2008-09-25
+
+CHANGES MADE TO MATHOMATIC V14.2.0:
+
+Documentation improvements: nintegrate command doc made sensible, etc.
+
+10/4/08 - Moved icons and "mathomatic.desktop" to new directory "icons" in source distribution.
+
+10/7/08 - Improved compare command while adding a new "symbolic" option to it.
+
+10/12/08 - Added "set prompt" option, allowing you to turn on and off Mathomatic prompt output like the "-q" option.
+
+Mathomatic version 14.2.1 released 2008-10-15
+
+CHANGES MADE TO MATHOMATIC V14.2.1:
+
+General cleanup and minor improvements.
+
+10/29/08 - Added display of related commands to help command.
+
+11/1/08 - Fixed a serious failure of simplifying things like (x^n)^3 after unfactoring.
+
+Mathomatic version 14.2.2 released 2008-11-02
+
+CHANGES MADE TO MATHOMATIC V14.2.2:
+
+Documentation tweaks and simplified the simplification routines.
+
+11/9/08 - Moved "help geometry" to "tests/geometry.in" so the formulas can be easily loaded with the read command.
+
+11/10/08 - Improved display command by allowing multiple equation numbers and ranges, fixed bug in library.
+
+11/15/08 - Added "set precision" option, sets the display precision, default is the maximum of 14 digits.
+           Bold improvements were made to polynomial factoring and simplification.
+
+11/16/08 - Fixed two more bugs in simplification.
+
+Mathomatic version 14.2.3 released 2008-11-16
+
+CHANGES MADE TO MATHOMATIC V14.2.3:
+
+11/18/08 - All C functions that do not return anything now properly declared "void".

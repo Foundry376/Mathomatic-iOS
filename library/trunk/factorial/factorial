@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+# Program to display factorials and test "fact.py".
+
+from fact import fact
+import sys
+import os
+import string
+
+def usage():
+	print "This program calculates factorials."
+	print
+	print "Usage: %s expression or numbers" % os.path.basename(sys.argv[0])
+	print
+	print "Factorials are the product of all positive integers <= a given number."
+	sys.exit(2)
+
+args = sys.argv[1:]
+if (args == []):
+	usage()
+else:
+	try:
+		num = eval(string.join(args))
+		print "fact(", num, ") =", fact(num)
+	except:
+		for arg in args:
+			num = eval(arg)
+			print "fact(", num, ") =", fact(num)

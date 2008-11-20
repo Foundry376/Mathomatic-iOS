@@ -1,0 +1,537 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1D3623260D0F684500981E51 /* mathomaticAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* mathomaticAppDelegate.m */; };
+		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
+		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
+		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
+		2899E5220DE3E06400AC0155 /* mathomaticViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2899E5210DE3E06400AC0155 /* mathomaticViewController.xib */; };
+		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
+		28D7ACF80DDB3853001CB0EB /* MathomaticViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28D7ACF70DDB3853001CB0EB /* MathomaticViewController.m */; };
+		430A05610ED4CAA9009B13F2 /* libmathomatic_simulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 430A05600ED4CAA9009B13F2 /* libmathomatic_simulator.a */; };
+		432ECA990ECF8FF10079AD0E /* EquationTypingBoxView.m in Sources */ = {isa = PBXBuildFile; fileRef = 432ECA980ECF8FF10079AD0E /* EquationTypingBoxView.m */; };
+		4343A4850EB38CE900B48276 /* keyboardBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4840EB38CE900B48276 /* keyboardBackground.png */; };
+		4343A4A70EB38F7800B48276 /* buttonVarZ.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A48B0EB38F7800B48276 /* buttonVarZ.png */; };
+		4343A4A80EB38F7800B48276 /* button0.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A48C0EB38F7800B48276 /* button0.png */; };
+		4343A4A90EB38F7800B48276 /* button1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A48D0EB38F7800B48276 /* button1.png */; };
+		4343A4AA0EB38F7800B48276 /* button2.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A48E0EB38F7800B48276 /* button2.png */; };
+		4343A4AB0EB38F7800B48276 /* button3.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A48F0EB38F7800B48276 /* button3.png */; };
+		4343A4AC0EB38F7800B48276 /* button4.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4900EB38F7800B48276 /* button4.png */; };
+		4343A4AD0EB38F7800B48276 /* button5.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4910EB38F7800B48276 /* button5.png */; };
+		4343A4AE0EB38F7800B48276 /* button6.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4920EB38F7800B48276 /* button6.png */; };
+		4343A4AF0EB38F7800B48276 /* button7.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4930EB38F7800B48276 /* button7.png */; };
+		4343A4B00EB38F7800B48276 /* button8.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4940EB38F7800B48276 /* button8.png */; };
+		4343A4B10EB38F7800B48276 /* button9.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4950EB38F7800B48276 /* button9.png */; };
+		4343A4B20EB38F7800B48276 /* buttonClear.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4960EB38F7800B48276 /* buttonClear.png */; };
+		4343A4B30EB38F7800B48276 /* buttonDelete.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4970EB38F7800B48276 /* buttonDelete.png */; };
+		4343A4B40EB38F7800B48276 /* buttonDivide.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4980EB38F7800B48276 /* buttonDivide.png */; };
+		4343A4B50EB38F7800B48276 /* buttonE.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4990EB38F7800B48276 /* buttonE.png */; };
+		4343A4B60EB38F7800B48276 /* buttonEnter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49A0EB38F7800B48276 /* buttonEnter.png */; };
+		4343A4B70EB38F7800B48276 /* buttonEquals.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49B0EB38F7800B48276 /* buttonEquals.png */; };
+		4343A4B80EB38F7800B48276 /* buttonMath.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49C0EB38F7800B48276 /* buttonMath.png */; };
+		4343A4B90EB38F7800B48276 /* buttonMinus.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49D0EB38F7800B48276 /* buttonMinus.png */; };
+		4343A4BA0EB38F7800B48276 /* buttonMultiply.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49E0EB38F7800B48276 /* buttonMultiply.png */; };
+		4343A4BB0EB38F7800B48276 /* buttonParenClose.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A49F0EB38F7800B48276 /* buttonParenClose.png */; };
+		4343A4BC0EB38F7800B48276 /* buttonParenOpen.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A00EB38F7800B48276 /* buttonParenOpen.png */; };
+		4343A4BD0EB38F7800B48276 /* buttonPeriod.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A10EB38F7800B48276 /* buttonPeriod.png */; };
+		4343A4BE0EB38F7800B48276 /* buttonPI.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A20EB38F7800B48276 /* buttonPI.png */; };
+		4343A4BF0EB38F7800B48276 /* buttonPlus.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A30EB38F7800B48276 /* buttonPlus.png */; };
+		4343A4C00EB38F7800B48276 /* buttonPower.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A40EB38F7800B48276 /* buttonPower.png */; };
+		4343A4C10EB38F7800B48276 /* buttonVarX.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A50EB38F7800B48276 /* buttonVarX.png */; };
+		4343A4C20EB38F7800B48276 /* buttonVarY.png in Resources */ = {isa = PBXBuildFile; fileRef = 4343A4A60EB38F7800B48276 /* buttonVarY.png */; };
+		435172380EB22CFE007DDE2A /* libmathomatic_iphone.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 435172360EB22CFE007DDE2A /* libmathomatic_iphone.a */; };
+		435553B30ECCE0B5008A58C2 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 435553B20ECCE0B5008A58C2 /* icon.png */; };
+		435553C20ECCE248008A58C2 /* buttonPower.png in Resources */ = {isa = PBXBuildFile; fileRef = 435553C10ECCE248008A58C2 /* buttonPower.png */; };
+		435555D00ECCF582008A58C2 /* EquationSelectController.m in Sources */ = {isa = PBXBuildFile; fileRef = 435555CF0ECCF582008A58C2 /* EquationSelectController.m */; };
+		435558060ECD41AA008A58C2 /* EquationView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435558050ECD41AA008A58C2 /* EquationView.m */; };
+		4355580E0ECDDF65008A58C2 /* EquationTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4355580D0ECDDF65008A58C2 /* EquationTableViewCell.m */; };
+		435558A90ECDF071008A58C2 /* EquationDivisionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435558A80ECDF071008A58C2 /* EquationDivisionView.m */; };
+		435558B10ECDF08C008A58C2 /* EquationExponentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435558B00ECDF08C008A58C2 /* EquationExponentView.m */; };
+		435558B60ECDF0BC008A58C2 /* EquationTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435558B50ECDF0BC008A58C2 /* EquationTextView.m */; };
+		435558F90ECE1B88008A58C2 /* EquationContainerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435558F80ECE1B88008A58C2 /* EquationContainerView.m */; };
+		435559010ECE1D4E008A58C2 /* EquationAbstractView.m in Sources */ = {isa = PBXBuildFile; fileRef = 435559000ECE1D4E008A58C2 /* EquationAbstractView.m */; };
+		436470F00EB4036600F391B7 /* Operation.m in Sources */ = {isa = PBXBuildFile; fileRef = 436470EF0EB4036600F391B7 /* Operation.m */; };
+		4364712F0EB40AC900F391B7 /* OperationIntegrate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4364712E0EB40AC900F391B7 /* OperationIntegrate.m */; };
+		436471450EB40C8100F391B7 /* OperationDerivative.m in Sources */ = {isa = PBXBuildFile; fileRef = 436471430EB40C8100F391B7 /* OperationDerivative.m */; };
+		436471480EB40C9400F391B7 /* OperationSolve.m in Sources */ = {isa = PBXBuildFile; fileRef = 436471470EB40C9400F391B7 /* OperationSolve.m */; };
+		4364714B0EB40CA800F391B7 /* OperationLaplace.m in Sources */ = {isa = PBXBuildFile; fileRef = 4364714A0EB40CA800F391B7 /* OperationLaplace.m */; };
+		4364714E0EB40CB900F391B7 /* OperationFactor.m in Sources */ = {isa = PBXBuildFile; fileRef = 4364714C0EB40CB900F391B7 /* OperationFactor.m */; };
+		436471510EB40CCE00F391B7 /* OperationUnfactor.m in Sources */ = {isa = PBXBuildFile; fileRef = 436471500EB40CCE00F391B7 /* OperationUnfactor.m */; };
+		437F03A30EB2350800D0B40C /* MathCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 437F03A20EB2350800D0B40C /* MathCommand.m */; };
+		437F042C0EB265BA00D0B40C /* KeyboardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 437F042B0EB265BA00D0B40C /* KeyboardView.m */; };
+		438E42BD0ED5B54E007C9804 /* MathomaticOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 438E42BC0ED5B54E007C9804 /* MathomaticOperation.m */; };
+		438E42C20ED5B5EB007C9804 /* MathomaticExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 438E42C10ED5B5EB007C9804 /* MathomaticExpression.m */; };
+		4399A8570ED2019400894982 /* buttonPlusMinus.png in Resources */ = {isa = PBXBuildFile; fileRef = 4399A8540ED2019400894982 /* buttonPlusMinus.png */; };
+		4399A8580ED2019400894982 /* buttonI.png in Resources */ = {isa = PBXBuildFile; fileRef = 4399A8550ED2019400894982 /* buttonI.png */; };
+		4399A8590ED2019400894982 /* about.png in Resources */ = {isa = PBXBuildFile; fileRef = 4399A8560ED2019400894982 /* about.png */; };
+		4399A9C60ED2210E00894982 /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4399A9C50ED2210E00894982 /* AboutViewController.m */; };
+		4399A9CC0ED2212E00894982 /* AboutViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4399A9CB0ED2212E00894982 /* AboutViewController.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1D3623240D0F684500981E51 /* mathomaticAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mathomaticAppDelegate.h; sourceTree = "<group>"; };
+		1D3623250D0F684500981E51 /* mathomaticAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = mathomaticAppDelegate.m; sourceTree = "<group>"; };
+		1D6058910D05DD3D006BFB54 /* mathomatic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mathomatic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		2899E5210DE3E06400AC0155 /* mathomaticViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = mathomaticViewController.xib; sourceTree = "<group>"; };
+		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
+		28D7ACF60DDB3853001CB0EB /* MathomaticViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathomaticViewController.h; sourceTree = "<group>"; };
+		28D7ACF70DDB3853001CB0EB /* MathomaticViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathomaticViewController.m; sourceTree = "<group>"; };
+		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		32CA4F630368D1EE00C91783 /* mathomatic_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mathomatic_Prefix.pch; sourceTree = "<group>"; };
+		430A05600ED4CAA9009B13F2 /* libmathomatic_simulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmathomatic_simulator.a; path = ../../../Desktop/mathomatic/libmathomatic_simulator.a; sourceTree = SOURCE_ROOT; };
+		432ECA970ECF8FF10079AD0E /* EquationTypingBoxView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationTypingBoxView.h; sourceTree = "<group>"; };
+		432ECA980ECF8FF10079AD0E /* EquationTypingBoxView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationTypingBoxView.m; sourceTree = "<group>"; };
+		4343A4840EB38CE900B48276 /* keyboardBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = keyboardBackground.png; path = images/keyboardBackground.png; sourceTree = "<group>"; };
+		4343A48B0EB38F7800B48276 /* buttonVarZ.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonVarZ.png; path = images/buttonVarZ.png; sourceTree = "<group>"; };
+		4343A48C0EB38F7800B48276 /* button0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button0.png; path = images/button0.png; sourceTree = "<group>"; };
+		4343A48D0EB38F7800B48276 /* button1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button1.png; path = images/button1.png; sourceTree = "<group>"; };
+		4343A48E0EB38F7800B48276 /* button2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button2.png; path = images/button2.png; sourceTree = "<group>"; };
+		4343A48F0EB38F7800B48276 /* button3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button3.png; path = images/button3.png; sourceTree = "<group>"; };
+		4343A4900EB38F7800B48276 /* button4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button4.png; path = images/button4.png; sourceTree = "<group>"; };
+		4343A4910EB38F7800B48276 /* button5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button5.png; path = images/button5.png; sourceTree = "<group>"; };
+		4343A4920EB38F7800B48276 /* button6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button6.png; path = images/button6.png; sourceTree = "<group>"; };
+		4343A4930EB38F7800B48276 /* button7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button7.png; path = images/button7.png; sourceTree = "<group>"; };
+		4343A4940EB38F7800B48276 /* button8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button8.png; path = images/button8.png; sourceTree = "<group>"; };
+		4343A4950EB38F7800B48276 /* button9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = button9.png; path = images/button9.png; sourceTree = "<group>"; };
+		4343A4960EB38F7800B48276 /* buttonClear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonClear.png; path = images/buttonClear.png; sourceTree = "<group>"; };
+		4343A4970EB38F7800B48276 /* buttonDelete.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonDelete.png; path = images/buttonDelete.png; sourceTree = "<group>"; };
+		4343A4980EB38F7800B48276 /* buttonDivide.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonDivide.png; path = images/buttonDivide.png; sourceTree = "<group>"; };
+		4343A4990EB38F7800B48276 /* buttonE.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonE.png; path = images/buttonE.png; sourceTree = "<group>"; };
+		4343A49A0EB38F7800B48276 /* buttonEnter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonEnter.png; path = images/buttonEnter.png; sourceTree = "<group>"; };
+		4343A49B0EB38F7800B48276 /* buttonEquals.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonEquals.png; path = images/buttonEquals.png; sourceTree = "<group>"; };
+		4343A49C0EB38F7800B48276 /* buttonMath.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonMath.png; path = images/buttonMath.png; sourceTree = "<group>"; };
+		4343A49D0EB38F7800B48276 /* buttonMinus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonMinus.png; path = images/buttonMinus.png; sourceTree = "<group>"; };
+		4343A49E0EB38F7800B48276 /* buttonMultiply.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonMultiply.png; path = images/buttonMultiply.png; sourceTree = "<group>"; };
+		4343A49F0EB38F7800B48276 /* buttonParenClose.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonParenClose.png; path = images/buttonParenClose.png; sourceTree = "<group>"; };
+		4343A4A00EB38F7800B48276 /* buttonParenOpen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonParenOpen.png; path = images/buttonParenOpen.png; sourceTree = "<group>"; };
+		4343A4A10EB38F7800B48276 /* buttonPeriod.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPeriod.png; path = images/buttonPeriod.png; sourceTree = "<group>"; };
+		4343A4A20EB38F7800B48276 /* buttonPI.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPI.png; path = images/buttonPI.png; sourceTree = "<group>"; };
+		4343A4A30EB38F7800B48276 /* buttonPlus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPlus.png; path = images/buttonPlus.png; sourceTree = "<group>"; };
+		4343A4A40EB38F7800B48276 /* buttonPower.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPower.png; path = images/buttonPower.png; sourceTree = "<group>"; };
+		4343A4A50EB38F7800B48276 /* buttonVarX.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonVarX.png; path = images/buttonVarX.png; sourceTree = "<group>"; };
+		4343A4A60EB38F7800B48276 /* buttonVarY.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonVarY.png; path = images/buttonVarY.png; sourceTree = "<group>"; };
+		435172360EB22CFE007DDE2A /* libmathomatic_iphone.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmathomatic_iphone.a; sourceTree = "<group>"; };
+		435172390EB22D0E007DDE2A /* mathomatic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mathomatic.h; sourceTree = "<group>"; };
+		435553B20ECCE0B5008A58C2 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		435553C10ECCE248008A58C2 /* buttonPower.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPower.png; path = images/buttonPower.png; sourceTree = "<group>"; };
+		435555CE0ECCF582008A58C2 /* EquationSelectController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EquationSelectController.h; path = ../EquationSelectController.h; sourceTree = "<group>"; };
+		435555CF0ECCF582008A58C2 /* EquationSelectController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EquationSelectController.m; path = ../EquationSelectController.m; sourceTree = "<group>"; };
+		435558040ECD41AA008A58C2 /* EquationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationView.h; sourceTree = "<group>"; };
+		435558050ECD41AA008A58C2 /* EquationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationView.m; sourceTree = "<group>"; };
+		4355580C0ECDDF65008A58C2 /* EquationTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationTableViewCell.h; sourceTree = "<group>"; };
+		4355580D0ECDDF65008A58C2 /* EquationTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationTableViewCell.m; sourceTree = "<group>"; };
+		435558A70ECDF071008A58C2 /* EquationDivisionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationDivisionView.h; sourceTree = "<group>"; };
+		435558A80ECDF071008A58C2 /* EquationDivisionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationDivisionView.m; sourceTree = "<group>"; };
+		435558AF0ECDF08C008A58C2 /* EquationExponentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationExponentView.h; sourceTree = "<group>"; };
+		435558B00ECDF08C008A58C2 /* EquationExponentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationExponentView.m; sourceTree = "<group>"; };
+		435558B40ECDF0BC008A58C2 /* EquationTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationTextView.h; sourceTree = "<group>"; };
+		435558B50ECDF0BC008A58C2 /* EquationTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationTextView.m; sourceTree = "<group>"; };
+		435558F70ECE1B88008A58C2 /* EquationContainerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationContainerView.h; sourceTree = "<group>"; };
+		435558F80ECE1B88008A58C2 /* EquationContainerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationContainerView.m; sourceTree = "<group>"; };
+		435558FF0ECE1D4E008A58C2 /* EquationAbstractView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EquationAbstractView.h; sourceTree = "<group>"; };
+		435559000ECE1D4E008A58C2 /* EquationAbstractView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EquationAbstractView.m; sourceTree = "<group>"; };
+		436470EE0EB4036600F391B7 /* Operation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Operation.h; sourceTree = "<group>"; };
+		436470EF0EB4036600F391B7 /* Operation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Operation.m; sourceTree = "<group>"; };
+		4364712D0EB40AC900F391B7 /* OperationIntegrate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationIntegrate.h; sourceTree = "<group>"; };
+		4364712E0EB40AC900F391B7 /* OperationIntegrate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationIntegrate.m; sourceTree = "<group>"; };
+		436471430EB40C8100F391B7 /* OperationDerivative.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationDerivative.m; sourceTree = "<group>"; };
+		436471440EB40C8100F391B7 /* OperationDerivative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationDerivative.h; sourceTree = "<group>"; };
+		436471460EB40C9400F391B7 /* OperationSolve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationSolve.h; sourceTree = "<group>"; };
+		436471470EB40C9400F391B7 /* OperationSolve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationSolve.m; sourceTree = "<group>"; };
+		436471490EB40CA800F391B7 /* OperationLaplace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationLaplace.h; sourceTree = "<group>"; };
+		4364714A0EB40CA800F391B7 /* OperationLaplace.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationLaplace.m; sourceTree = "<group>"; };
+		4364714C0EB40CB900F391B7 /* OperationFactor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationFactor.m; sourceTree = "<group>"; };
+		4364714D0EB40CB900F391B7 /* OperationFactor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationFactor.h; sourceTree = "<group>"; };
+		4364714F0EB40CCE00F391B7 /* OperationUnfactor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OperationUnfactor.h; sourceTree = "<group>"; };
+		436471500EB40CCE00F391B7 /* OperationUnfactor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OperationUnfactor.m; sourceTree = "<group>"; };
+		437F03A10EB2350800D0B40C /* MathCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathCommand.h; sourceTree = "<group>"; };
+		437F03A20EB2350800D0B40C /* MathCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathCommand.m; sourceTree = "<group>"; };
+		437F042A0EB265BA00D0B40C /* KeyboardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardView.h; sourceTree = "<group>"; };
+		437F042B0EB265BA00D0B40C /* KeyboardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyboardView.m; sourceTree = "<group>"; };
+		438E42BB0ED5B54E007C9804 /* MathomaticOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathomaticOperation.h; sourceTree = "<group>"; };
+		438E42BC0ED5B54E007C9804 /* MathomaticOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathomaticOperation.m; sourceTree = "<group>"; };
+		438E42C00ED5B5EB007C9804 /* MathomaticExpression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathomaticExpression.h; sourceTree = "<group>"; };
+		438E42C10ED5B5EB007C9804 /* MathomaticExpression.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathomaticExpression.m; sourceTree = "<group>"; };
+		4399A8540ED2019400894982 /* buttonPlusMinus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonPlusMinus.png; path = images/buttonPlusMinus.png; sourceTree = "<group>"; };
+		4399A8550ED2019400894982 /* buttonI.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = buttonI.png; path = images/buttonI.png; sourceTree = "<group>"; };
+		4399A8560ED2019400894982 /* about.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = about.png; path = images/about.png; sourceTree = "<group>"; };
+		4399A9C40ED2210E00894982 /* AboutViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AboutViewController.h; sourceTree = "<group>"; };
+		4399A9C50ED2210E00894982 /* AboutViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
+		4399A9CB0ED2212E00894982 /* AboutViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AboutViewController.xib; path = Classes/AboutViewController.xib; sourceTree = "<group>"; };
+		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1D60588F0D05DD3D006BFB54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
+				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
+				288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */,
+				435172380EB22CFE007DDE2A /* libmathomatic_iphone.a in Frameworks */,
+				430A05610ED4CAA9009B13F2 /* libmathomatic_simulator.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		080E96DDFE201D6D7F000001 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				432ECA970ECF8FF10079AD0E /* EquationTypingBoxView.h */,
+				432ECA980ECF8FF10079AD0E /* EquationTypingBoxView.m */,
+				435558FF0ECE1D4E008A58C2 /* EquationAbstractView.h */,
+				435559000ECE1D4E008A58C2 /* EquationAbstractView.m */,
+				435558F70ECE1B88008A58C2 /* EquationContainerView.h */,
+				435558F80ECE1B88008A58C2 /* EquationContainerView.m */,
+				435558B40ECDF0BC008A58C2 /* EquationTextView.h */,
+				435558B50ECDF0BC008A58C2 /* EquationTextView.m */,
+				435558A70ECDF071008A58C2 /* EquationDivisionView.h */,
+				435558A80ECDF071008A58C2 /* EquationDivisionView.m */,
+				435558AF0ECDF08C008A58C2 /* EquationExponentView.h */,
+				435558B00ECDF08C008A58C2 /* EquationExponentView.m */,
+				435558040ECD41AA008A58C2 /* EquationView.h */,
+				435558050ECD41AA008A58C2 /* EquationView.m */,
+				438E42BB0ED5B54E007C9804 /* MathomaticOperation.h */,
+				438E42BC0ED5B54E007C9804 /* MathomaticOperation.m */,
+				438E42C00ED5B5EB007C9804 /* MathomaticExpression.h */,
+				438E42C10ED5B5EB007C9804 /* MathomaticExpression.m */,
+				437F03A10EB2350800D0B40C /* MathCommand.h */,
+				437F03A20EB2350800D0B40C /* MathCommand.m */,
+				4355580C0ECDDF65008A58C2 /* EquationTableViewCell.h */,
+				4355580D0ECDDF65008A58C2 /* EquationTableViewCell.m */,
+				436470EE0EB4036600F391B7 /* Operation.h */,
+				436470EF0EB4036600F391B7 /* Operation.m */,
+				4364712D0EB40AC900F391B7 /* OperationIntegrate.h */,
+				4364712E0EB40AC900F391B7 /* OperationIntegrate.m */,
+				436471440EB40C8100F391B7 /* OperationDerivative.h */,
+				436471430EB40C8100F391B7 /* OperationDerivative.m */,
+				436471460EB40C9400F391B7 /* OperationSolve.h */,
+				436471470EB40C9400F391B7 /* OperationSolve.m */,
+				4364714F0EB40CCE00F391B7 /* OperationUnfactor.h */,
+				436471500EB40CCE00F391B7 /* OperationUnfactor.m */,
+				4364714D0EB40CB900F391B7 /* OperationFactor.h */,
+				4364714C0EB40CB900F391B7 /* OperationFactor.m */,
+				436471490EB40CA800F391B7 /* OperationLaplace.h */,
+				4364714A0EB40CA800F391B7 /* OperationLaplace.m */,
+				1D3623240D0F684500981E51 /* mathomaticAppDelegate.h */,
+				1D3623250D0F684500981E51 /* mathomaticAppDelegate.m */,
+				28D7ACF60DDB3853001CB0EB /* MathomaticViewController.h */,
+				28D7ACF70DDB3853001CB0EB /* MathomaticViewController.m */,
+				4399A9C40ED2210E00894982 /* AboutViewController.h */,
+				4399A9C50ED2210E00894982 /* AboutViewController.m */,
+				435555CE0ECCF582008A58C2 /* EquationSelectController.h */,
+				435555CF0ECCF582008A58C2 /* EquationSelectController.m */,
+				437F042A0EB265BA00D0B40C /* KeyboardView.h */,
+				437F042B0EB265BA00D0B40C /* KeyboardView.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1D6058910D05DD3D006BFB54 /* mathomatic.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
+			isa = PBXGroup;
+			children = (
+				080E96DDFE201D6D7F000001 /* Classes */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			name = CustomTemplate;
+			sourceTree = "<group>";
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				32CA4F630368D1EE00C91783 /* mathomatic_Prefix.pch */,
+				29B97316FDCFA39411CA2CEA /* main.m */,
+				435172390EB22D0E007DDE2A /* mathomatic.h */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				435553B20ECCE0B5008A58C2 /* icon.png */,
+				4343A48B0EB38F7800B48276 /* buttonVarZ.png */,
+				4343A48C0EB38F7800B48276 /* button0.png */,
+				4343A48D0EB38F7800B48276 /* button1.png */,
+				4343A48E0EB38F7800B48276 /* button2.png */,
+				4343A48F0EB38F7800B48276 /* button3.png */,
+				4343A4900EB38F7800B48276 /* button4.png */,
+				4343A4910EB38F7800B48276 /* button5.png */,
+				4343A4920EB38F7800B48276 /* button6.png */,
+				4343A4930EB38F7800B48276 /* button7.png */,
+				4343A4940EB38F7800B48276 /* button8.png */,
+				4343A4950EB38F7800B48276 /* button9.png */,
+				4343A4960EB38F7800B48276 /* buttonClear.png */,
+				4343A4970EB38F7800B48276 /* buttonDelete.png */,
+				4343A4980EB38F7800B48276 /* buttonDivide.png */,
+				4343A4990EB38F7800B48276 /* buttonE.png */,
+				4343A49A0EB38F7800B48276 /* buttonEnter.png */,
+				4343A49B0EB38F7800B48276 /* buttonEquals.png */,
+				4343A49C0EB38F7800B48276 /* buttonMath.png */,
+				4343A49D0EB38F7800B48276 /* buttonMinus.png */,
+				4343A49E0EB38F7800B48276 /* buttonMultiply.png */,
+				4343A49F0EB38F7800B48276 /* buttonParenClose.png */,
+				4343A4A00EB38F7800B48276 /* buttonParenOpen.png */,
+				4343A4A10EB38F7800B48276 /* buttonPeriod.png */,
+				4343A4A20EB38F7800B48276 /* buttonPI.png */,
+				4343A4A30EB38F7800B48276 /* buttonPlus.png */,
+				4343A4A40EB38F7800B48276 /* buttonPower.png */,
+				4343A4A50EB38F7800B48276 /* buttonVarX.png */,
+				4343A4A60EB38F7800B48276 /* buttonVarY.png */,
+				435553C10ECCE248008A58C2 /* buttonPower.png */,
+				4399A8540ED2019400894982 /* buttonPlusMinus.png */,
+				4399A8550ED2019400894982 /* buttonI.png */,
+				4399A8560ED2019400894982 /* about.png */,
+				4343A4840EB38CE900B48276 /* keyboardBackground.png */,
+				435172360EB22CFE007DDE2A /* libmathomatic_iphone.a */,
+				430A05600ED4CAA9009B13F2 /* libmathomatic_simulator.a */,
+				2899E5210DE3E06400AC0155 /* mathomaticViewController.xib */,
+				4399A9CB0ED2212E00894982 /* AboutViewController.xib */,
+				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
+				8D1107310486CEB800E47090 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
+				1D30AB110D05D00D00671497 /* Foundation.framework */,
+				288765A40DF7441C002DB57D /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1D6058900D05DD3D006BFB54 /* mathomatic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "mathomatic" */;
+			buildPhases = (
+				1D60588D0D05DD3D006BFB54 /* Resources */,
+				1D60588E0D05DD3D006BFB54 /* Sources */,
+				1D60588F0D05DD3D006BFB54 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = mathomatic;
+			productName = mathomatic;
+			productReference = 1D6058910D05DD3D006BFB54 /* mathomatic.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "mathomatic" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1D6058900D05DD3D006BFB54 /* mathomatic */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1D60588D0D05DD3D006BFB54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
+				2899E5220DE3E06400AC0155 /* mathomaticViewController.xib in Resources */,
+				4343A4850EB38CE900B48276 /* keyboardBackground.png in Resources */,
+				4343A4A70EB38F7800B48276 /* buttonVarZ.png in Resources */,
+				4343A4A80EB38F7800B48276 /* button0.png in Resources */,
+				4343A4A90EB38F7800B48276 /* button1.png in Resources */,
+				4343A4AA0EB38F7800B48276 /* button2.png in Resources */,
+				4343A4AB0EB38F7800B48276 /* button3.png in Resources */,
+				4343A4AC0EB38F7800B48276 /* button4.png in Resources */,
+				4343A4AD0EB38F7800B48276 /* button5.png in Resources */,
+				4343A4AE0EB38F7800B48276 /* button6.png in Resources */,
+				4343A4AF0EB38F7800B48276 /* button7.png in Resources */,
+				4343A4B00EB38F7800B48276 /* button8.png in Resources */,
+				4343A4B10EB38F7800B48276 /* button9.png in Resources */,
+				4343A4B20EB38F7800B48276 /* buttonClear.png in Resources */,
+				4343A4B30EB38F7800B48276 /* buttonDelete.png in Resources */,
+				4343A4B40EB38F7800B48276 /* buttonDivide.png in Resources */,
+				4343A4B50EB38F7800B48276 /* buttonE.png in Resources */,
+				4343A4B60EB38F7800B48276 /* buttonEnter.png in Resources */,
+				4343A4B70EB38F7800B48276 /* buttonEquals.png in Resources */,
+				4343A4B80EB38F7800B48276 /* buttonMath.png in Resources */,
+				4343A4B90EB38F7800B48276 /* buttonMinus.png in Resources */,
+				4343A4BA0EB38F7800B48276 /* buttonMultiply.png in Resources */,
+				4343A4BB0EB38F7800B48276 /* buttonParenClose.png in Resources */,
+				4343A4BC0EB38F7800B48276 /* buttonParenOpen.png in Resources */,
+				4343A4BD0EB38F7800B48276 /* buttonPeriod.png in Resources */,
+				4343A4BE0EB38F7800B48276 /* buttonPI.png in Resources */,
+				4343A4BF0EB38F7800B48276 /* buttonPlus.png in Resources */,
+				4343A4C00EB38F7800B48276 /* buttonPower.png in Resources */,
+				4343A4C10EB38F7800B48276 /* buttonVarX.png in Resources */,
+				4343A4C20EB38F7800B48276 /* buttonVarY.png in Resources */,
+				435553B30ECCE0B5008A58C2 /* icon.png in Resources */,
+				435553C20ECCE248008A58C2 /* buttonPower.png in Resources */,
+				4399A8570ED2019400894982 /* buttonPlusMinus.png in Resources */,
+				4399A8580ED2019400894982 /* buttonI.png in Resources */,
+				4399A8590ED2019400894982 /* about.png in Resources */,
+				4399A9CC0ED2212E00894982 /* AboutViewController.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1D60588E0D05DD3D006BFB54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
+				1D3623260D0F684500981E51 /* mathomaticAppDelegate.m in Sources */,
+				28D7ACF80DDB3853001CB0EB /* MathomaticViewController.m in Sources */,
+				437F03A30EB2350800D0B40C /* MathCommand.m in Sources */,
+				437F042C0EB265BA00D0B40C /* KeyboardView.m in Sources */,
+				436470F00EB4036600F391B7 /* Operation.m in Sources */,
+				4364712F0EB40AC900F391B7 /* OperationIntegrate.m in Sources */,
+				436471450EB40C8100F391B7 /* OperationDerivative.m in Sources */,
+				436471480EB40C9400F391B7 /* OperationSolve.m in Sources */,
+				4364714B0EB40CA800F391B7 /* OperationLaplace.m in Sources */,
+				4364714E0EB40CB900F391B7 /* OperationFactor.m in Sources */,
+				436471510EB40CCE00F391B7 /* OperationUnfactor.m in Sources */,
+				435555D00ECCF582008A58C2 /* EquationSelectController.m in Sources */,
+				435558060ECD41AA008A58C2 /* EquationView.m in Sources */,
+				4355580E0ECDDF65008A58C2 /* EquationTableViewCell.m in Sources */,
+				435558A90ECDF071008A58C2 /* EquationDivisionView.m in Sources */,
+				435558B10ECDF08C008A58C2 /* EquationExponentView.m in Sources */,
+				435558B60ECDF0BC008A58C2 /* EquationTextView.m in Sources */,
+				435558F90ECE1B88008A58C2 /* EquationContainerView.m in Sources */,
+				435559010ECE1D4E008A58C2 /* EquationAbstractView.m in Sources */,
+				432ECA990ECF8FF10079AD0E /* EquationTypingBoxView.m in Sources */,
+				4399A9C60ED2210E00894982 /* AboutViewController.m in Sources */,
+				438E42BD0ED5B54E007C9804 /* MathomaticOperation.m in Sources */,
+				438E42C20ED5B5EB007C9804 /* MathomaticExpression.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1D6058940D05DD3E006BFB54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = mathomatic_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/mathomatic\"",
+				);
+				PRODUCT_NAME = mathomatic;
+			};
+			name = Debug;
+		};
+		1D6058950D05DD3E006BFB54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = mathomatic_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../../../Desktop/mathomatic\"",
+				);
+				PRODUCT_NAME = mathomatic;
+			};
+			name = Release;
+		};
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Ben Gotow";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				PROVISIONING_PROFILE = DefaultProfileUuid;
+				SDKROOT = iphoneos2.1;
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = iphoneos2.1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "mathomatic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1D6058940D05DD3E006BFB54 /* Debug */,
+				1D6058950D05DD3E006BFB54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "mathomatic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}

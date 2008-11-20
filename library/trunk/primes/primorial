@@ -1,0 +1,32 @@
+#!/usr/bin/python
+
+# Program to display primorials.
+# Uses the programs "matho-primes" and "./multiply".
+
+import os
+import sys
+
+def usage():
+	print "This program calculates large primorials."
+	print
+	print "Usage: %s integers" % os.path.basename(sys.argv[0])
+	print
+	print "Primorials are the product of all primes up to the given number."
+	sys.exit(2)
+
+args = sys.argv[1:]
+if (args == []):
+	usage()
+else:
+	for arg in args:
+		try:
+			if (int(arg) < 2):
+				print >>sys.stderr, "Number too small."
+				sys.exit(1)
+		except:
+			print >>sys.stderr, "Positive integer required."
+			sys.exit(1)
+		sys.stdout.write(arg + "# = ")
+		sys.stdout.flush()
+		if (os.system("matho-primes 0 " + arg + "|./multiply") != 0):
+			sys.exit(1)

@@ -1,0 +1,5 @@
+; This is the formula to calculate the nth Fibonacci number.
+phi = (1 + (5^(1/2)))/2 ; the golden ratio
+((phi^n) - ((1 - phi)^n))/(5^(1/2))
+eliminate phi
+simplify ; Note that Mathomatic rationalizes the denominator here.

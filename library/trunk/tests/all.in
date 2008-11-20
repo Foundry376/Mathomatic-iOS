@@ -1,0 +1,41 @@
+read how_limit_works
+clear all
+read finance
+simplify
+solve verify pv
+simplify
+clear all
+read fibonacci
+read test.in
+clear all
+read fraction.in
+clear all
+read pie.in
+read demo.in
+read limits.in
+read poly.in
+read linear.in
+clear all
+read examples.in
+read test1.in
+read test2.in
+read test3.in
+clear all
+read simplify.in
+read heron.in
+clear all
+read radius.in
+clear all
+read trig.in
+simplify all
+clear all
+read pyth3d.in
+clear all
+read distance.in
+clear all
+read ellipse.in
+y
+simplify
+1
+y
+simplify

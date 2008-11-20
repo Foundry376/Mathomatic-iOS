@@ -1,0 +1,12 @@
+; Mathomatic configuration file for MS-Windows only.
+; Other systems use "~/.mathomaticrc".
+; This file belongs in the same directory as "mathomatic.exe".
+
+; You can use this file to permanently configure "set" variables, like:
+
+bold ; sets bold_colors on
+
+; To see the current configuration when using Mathomatic type
+; "set" at the command prompt (without double quotes).
+
+; PS. Lines starting with ; are treated as comments :)

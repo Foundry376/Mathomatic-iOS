@@ -1,0 +1,17 @@
+; Here are 3 related financial formulas that can be "read" into Mathomatic:
+
+; Compound Interest Future Value Formula:
+fv1 = pv*(1+interest_rate)^n
+
+; Annuity Formula:
+fv2 = payment*(((1+interest_rate)^n-1)/interest_rate)
+; Next we will combine these to produce that Amortized Loan Formula.
+pause
+; Amortized Loan Formula (Mortgage Formula):
+fv1 = fv2
+eliminate all
+solve verify payment ; solve for payment per period
+; pv = present value
+; fv = future value (maturity value)
+; interest_rate = interest rate per period (1 = 100%)
+; n = number of periods

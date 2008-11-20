@@ -1,0 +1,18 @@
+                         Ideas to code in Mathomatic
+                         ---------------------------
+
+Simplify nested radicals like ((9 + 4*(2^.5))^.5) to (1 + 2*(2^.5)).  This
+may be difficult, I don't know how this is generally done.  Heuristics are
+not acceptable for this.  Test expression:
+
+  ((2+(3^.5))/((2^.5)+(2+(3^.5))^.5)+(2-(3^.5))/((2^.5)-(2-(3^.5))^.5))^2
+
+should simplify to 2.
+
+Use the GNU Scientific Library (GSL) to automatically numerically solve any
+degree numeric polynomial equation, like "polyroots.c" does, when symbolic
+solving fails.  Unfortunately, this will make Mathomatic dependent on the
+GSL, so I may not do this.
+
+Implement complex number factorials, when an accurate floating point complex
+number gamma calculating function is found.  The GSL does this.

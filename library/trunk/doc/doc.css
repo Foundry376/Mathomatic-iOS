@@ -1,0 +1,17 @@
+/* George Gesslein II's CSS for HTML documentation */
+
+/* Commonly used classes: */
+.clear { clear: both; }
+.right { float: right; }
+.left { float: left; }
+.indent { margin-left: 2em; margin-right: 2em; }
+
+.sample { border-style: dotted; border-width: 1px; color: green; background-color: white; padding: 10px; }
+a:hover { color: green; } /* when cursor is over a link, change the link text color to green */
+a img { border: none; } /* don't draw borders around images that are links */
+
+@media print
+{
+a { text-decoration: none; } /* no underlined links when printing */
+/* h2 { page-break-before: always; } Uncomment this to page break at the beginning of every section. */
+}
