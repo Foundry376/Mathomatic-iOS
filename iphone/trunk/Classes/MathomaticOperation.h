@@ -7,26 +7,35 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "MathomaticExpression.h"
+#import "MathomaticViewController.h"
 
 @interface MathomaticOperation : NSObject {
     
     NSMutableArray * inputs;
     NSMutableArray * steps;
     NSMutableArray * stepNames;
-    NSMutableArray * outputs;
-
+    MathomaticViewController * controller;
     NSString * name;
 }
 
 @property (nonatomic, retain) NSMutableArray * inputs;
 @property (nonatomic, retain) NSMutableArray * steps;
 @property (nonatomic, retain) NSMutableArray * stepNames;
-@property (nonatomic, retain) NSMutableArray * outputs;
 @property (nonatomic, retain) NSString * name;
 
 - (id)init;
+
 - (void)addInput:(MathomaticExpression*)expression;
-- (void)addStep:(NSString*)command withName:(NSString*)n;
+- (void)addInputMathomaticString:(NSString*)s;
+- (void)addStep:(MathomaticExpression*)expression withName:(NSString*)n;
+- (void)addStepMathomaticString:(NSString*)mathomaticText withName:(NSString*)n;
+
+- (NSString*)evaluateExpression:(MathomaticExpression*)i;
+- (NSString*)evaluateMathomaticString:(NSString*)i;
+
+- (NSString*)perform;
+- (void)performMathomaticSetup;
+- (NSString*)prepareWithDelegate:(MathomaticViewController*)controller;
 
 @end

@@ -7,42 +7,35 @@
 //
 
 #import "EquationSelectController.h"
-#import "EquationTableViewCell.h"
-#import "MathCommand.h"
+#import "MathomaticExpressionTableViewCell.h"
 
 @implementation EquationSelectController
 
 @synthesize delegate;
+@synthesize equations;
 
-- (id)initWithEquations:(NSArray*)commandHistory andOperation:(OperationSolve*)d
+- (id)initWithEquations:(NSArray*)e andOperation:(id<EquationSelectDelegate>)d
 {
     if (self = [super initWithStyle:UITableViewStyleGrouped]) {
     
         self.delegate = d;
         
         equations = [[NSMutableArray alloc] init];
-        int count = [commandHistory count];
-        for (int ii = count-1; ii >= fmax(0, count - 8); ii--){
-            MathCommand * c = [commandHistory objectAtIndex: ii];
-            [equations addObjectsFromArray: [c outputEquations]];
-        }
-        
-        if ([equations count] == 0)
+        equationCells = [[NSMutableArray alloc] init];
+        for (MathomaticExpression * expression in e)
         {
-            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Cannot Solve" message:@"Please enter one or more equations before attempting to solve." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-            return nil;
+            MathomaticExpressionTableViewCell * cell = [[MathomaticExpressionTableViewCell alloc] initWithFrame:CGRectMake(0,0,320,0) reuseIdentifier:@"mathomatic_cell"];
+            [cell setExpression: expression];
+            [equations addObject: expression];
+            [equationCells addObject: cell];
+            [cell release];
         }
         
-        possibleVariables = [[NSArray alloc] initWithObjects: @"x", @"y", @"z", nil];
-        visibleVariables = [[NSMutableArray alloc] init];
-        activeVariables = [[NSMutableArray alloc] init];
         activeEquations = [[NSMutableArray alloc] init];
-        
         [activeEquations addObject: [equations objectAtIndex: 0]];
+        
+        variables = [[NSMutableArray alloc] init];
         [self reloadVariables];
-        [activeVariables addObject: [visibleVariables objectAtIndex: 0]];
     }
     return self;
 }
@@ -69,16 +62,67 @@
 }
 
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+- (void)reloadVariables
+{
+    [variables removeAllObjects];
+    activeVariable = -1;
+    
+    for (MathomaticExpression * c in activeEquations)
+        for (NSString * var in [c equationVariables])
+            if (![variables containsObject: var])
+                [variables addObject: var];
+                
+    
+    if ([variables count] > 0)
+        activeVariable = 0;
+}
+
+- (void)cancel
+{
+    [self.parentViewController dismissModalViewControllerAnimated:YES];
+}
+
+- (void)solve
+{
+    if (activeVariable == -1){
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Please select a variable to solve for." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alert show];
+        [alert release];
+    } else {
+        [delegate equationsSelected: activeEquations solveVariable: [variables objectAtIndex: activeVariable]];
+        [self.parentViewController dismissModalViewControllerAnimated:YES];
+    }
+}
+
+- (void)dealloc {
+    [equations release];
+    [activeEquations release];
+    [variables release];
+    
+    [super dealloc];
+}
+
+#pragma mark Table View Data Source / Delegate Functions
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView 
+{
     return 2;
 }
 
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section 
+{
     if (section == 0)
         return [equations count];
     else
-        return [visibleVariables count];
+        return [variables count];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if ([indexPath indexAtPosition: 0] == 0)
+        return [[equationCells objectAtIndex: [indexPath indexAtPosition: 1]] height];
+    else
+        return 38;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
@@ -89,47 +133,51 @@
         return @"Solve for:";
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath 
+{
+    int index = [indexPath indexAtPosition: 1];
     
-    static NSString *CellIdentifier = @"Cell";
-    
-    EquationTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[EquationTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:CellIdentifier] autorelease];
-    }
-    
-    [cell setAccessoryType: UITableViewCellAccessoryNone];
-    [cell setSelectionStyle: UITableViewCellSelectionStyleNone];
     if ([indexPath indexAtPosition: 0] == 0)
     {
-        EquationView * c = [equations objectAtIndex: [indexPath indexAtPosition:1]];
-        [cell setEquation: c];
-        if ([activeEquations containsObject: c])
+        MathomaticExpressionTableViewCell * cell = [equationCells objectAtIndex: index];
+        if ([activeEquations containsObject: [equations objectAtIndex: index]])
             [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
+        else
+            [cell setAccessoryType: UITableViewCellAccessoryNone];
+        return cell;
     }
     else
     {
-        NSString * c = [visibleVariables objectAtIndex: [indexPath indexAtPosition: 1]];
-        [cell setEquationText: c];
-        if ([activeVariables containsObject: c])
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"variable_cell"];
+        if (cell == nil)
+            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"variable_cell"] autorelease];
+    
+        NSString * c = [variables objectAtIndex: index];
+        if (activeVariable == index)
             [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
+        else
+            [cell setAccessoryType: UITableViewCellAccessoryNone];
+        [cell setText: c];
+        return cell;
     }
     
-    return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 
     UITableViewCell * cell = [tableView cellForRowAtIndexPath: indexPath];
+    int section = [indexPath indexAtPosition: 0];
+    int index = [indexPath indexAtPosition: 1];
+    [cell setSelected: NO];
     
-    if ([indexPath indexAtPosition: 0] == 0)
+    if (section == 0)
     {
         if ([cell accessoryType] == UITableViewCellAccessoryNone){
             [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
-            [activeEquations addObject: [equations objectAtIndex: [indexPath indexAtPosition: 1]]];
+            [activeEquations addObject: [equations objectAtIndex: index]];
         }else{
             [cell setAccessoryType: UITableViewCellAccessoryNone];
-            [activeEquations removeObject: [equations objectAtIndex: [indexPath indexAtPosition: 1]]];
+            [activeEquations removeObject: [equations objectAtIndex: index]];
         }
         
         [self reloadVariables];
@@ -137,48 +185,11 @@
     }
     else
     {
-        if ([cell accessoryType] == UITableViewCellAccessoryNone){
-            [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
-            [activeVariables addObject: [visibleVariables objectAtIndex: [indexPath indexAtPosition: 1]]];
-        }else{
-            [cell setAccessoryType: UITableViewCellAccessoryNone];
-            [activeVariables removeObject: [visibleVariables objectAtIndex: [indexPath indexAtPosition: 1]]];
-        }
+        [[tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:activeVariable inSection:1]] setAccessoryType: UITableViewCellAccessoryNone];
+        
+        activeVariable = index;
+        [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
     }
-}
-
-- (void)reloadVariables
-{
-    NSMutableArray * remaningVariables = [NSMutableArray arrayWithArray: possibleVariables];
-    [visibleVariables removeAllObjects];
-    for (EquationView * c in activeEquations){
-        for (int x = [remaningVariables count] - 1; x >= 0; x--){
-            NSString * var = [remaningVariables objectAtIndex: x];
-            if ([[c equation] rangeOfString: var].location != NSNotFound){
-                [visibleVariables addObject: var];
-                [remaningVariables removeObject: var];
-            }
-        }
-    }
-    [activeVariables removeObjectsInArray: remaningVariables];
-}
-
-- (void)cancel
-{
-    [self.parentViewController dismissModalViewControllerAnimated:YES];
-}
-
-- (void)solve
-{
-    [delegate equationsSelected: activeEquations solveVariables: activeVariables fromVariables: visibleVariables];
-    [self.parentViewController dismissModalViewControllerAnimated:YES];
-}
-
-- (void)dealloc {
-    [equations release];
-    [possibleVariables release];
-    [visibleVariables release];
-    [super dealloc];
 }
 
 

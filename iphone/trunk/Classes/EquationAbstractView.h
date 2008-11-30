@@ -13,12 +13,14 @@
 
 
 @interface EquationAbstractView : UIView {
-    int alignmentMethod;
+    int         alignmentMethod;
 }
 
 @property (nonatomic, assign) int alignmentMethod;
 
-- (void)finalizeEquationHierarchy;
-- (void)finalizeTextSize;
+- (void)finalizeEquationTree:(BOOL)clean;
+- (void)finalizeTextSize:(int)parentTextSize;
+
+- (BOOL)isTreeLegal;
 
 @end

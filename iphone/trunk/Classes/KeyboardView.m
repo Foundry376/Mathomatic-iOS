@@ -11,37 +11,79 @@
 
 @implementation KeyboardView
 
+@synthesize fieldString;
+
 - (IBAction)buttonPressed:(UIButton*)button
 {
-    if (button == buttonMath){
-    [delegate keyboardEntryPerform: [field equation]];
-    } else if (button == buttonEnter){
-        [delegate keyboardEntryComplete: [field equation]];
-    }else if (button == buttonClear)
-        [field setEquation: @""];
-    else if (button == buttonDelete){
-        if ([[field equation] length] > 0)
-            [field setEquation: [[field equation] substringToIndex: [[field equation] length] - 1]];
-    }else{
-        NSString * c = [button titleForState: UIControlStateNormal];
-        BOOL isVariable = ([c rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπe"]].location == 0);
-        BOOL isOperator = ([c rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"()+-/*^="]].location == 0);
+    BOOL fieldChanged = NO;
+    
+    if (fieldString == nil)
+        fieldString = [[NSMutableString alloc] init];
         
-        if ((lastButtonWasVariable && !isOperator) && ([[field equation] length] > 0))
-            [field setEquation: [[field equation] stringByAppendingFormat: @"*%@", c]];
+    if (button == buttonMath){
+        [delegate keyboardEntryPerform];
+    
+    } else if (button == buttonEnter){
+        [delegate keyboardEntryComplete];
+    
+    } else if (button == buttonClear){
+        [self clear];
+    
+    } else if (button == buttonDelete){
+        if ([fieldString length] > 0){
+            [fieldString deleteCharactersInRange: NSMakeRange([fieldString length]-1, 1)];
+            fieldChanged = YES;
+        }
+        
+    } else {
+        BOOL previousIsVariable;
+        BOOL typedIsVariable;
+        
+        NSString * typed = [button titleForState: UIControlStateNormal];
+        typedIsVariable = ([typed rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+        
+        if ([fieldString length] > 0){
+            NSString * previous = [fieldString substringFromIndex: [fieldString length] - 1];
+            previousIsVariable = ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+        } else {
+            previousIsVariable = NO;
+        }
+        
+        if (previousIsVariable && typedIsVariable)
+            [fieldString appendFormat: @"*%@", typed];
         else
-            [field setEquation: [[field equation] stringByAppendingString: c]];
-            
-        lastButtonWasVariable = isVariable;
+            [fieldString appendString: typed];
+        fieldChanged = YES;
     }
+    
+    if (fieldChanged)
+        [fieldScrollView setExpression: [MathomaticExpression expressionWithEquationText: [fieldString stringByAppendingString: @"•"]]];
 }
 
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
+- (void)clear
+{
+    [fieldScrollView setExpression: nil];
+    [fieldString setString: @""];
 }
 
+- (BOOL)fieldIsBlank
+{
+    return ([fieldString length] == 0);
+}
+
+- (NSMutableString*)field
+{
+    return [NSMutableString stringWithString: fieldString];
+}
+
+- (void)setField:(NSString*)str
+{
+    [fieldString setString: str];
+    [fieldScrollView setExpression: [MathomaticExpression expressionWithEquationText: [fieldString stringByAppendingString: @"•"]]];
+}
 
 - (void)dealloc {
+    [fieldString release];
     [super dealloc];
 }
 

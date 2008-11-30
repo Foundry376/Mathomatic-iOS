@@ -7,11 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EquationContainerView.h"
+#import "EquationTwoPartView.h"
 
-@interface EquationExponentView : EquationContainerView {
+@interface EquationExponentView : EquationTwoPartView {
 }
 
-- (void)finalizeEquationHierarchy;
+- (id)initWithParent:(EquationContainerView*)p;
+- (void)finalizeTextSize:(int)parentTextSize;
+- (void)finalizeFrame;
+- (NSString*)description;
+- (void)dealloc;
 
 @end

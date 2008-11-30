@@ -7,7 +7,7 @@
 //
 
 #import "EquationExponentView.h"
-
+#import "EquationTextView.h"
 
 @implementation EquationExponentView
 
@@ -18,23 +18,6 @@
         [self setBackgroundColor: [UIColor clearColor]];
     }
     return self;
-}
-
-- (void)finalizeEquationHierarchy
-{
-    for (int ii = [self.innerEquations count] - 1; ii >= 0; ii --)
-        [[innerEquations objectAtIndex: ii] finalizeEquationHierarchy];
-
-    EquationAbstractView * next;
-    int index = [parent.innerEquations indexOfObjectIdenticalTo: self];
-    
-    if (index + 1 < [parent.innerEquations count]){
-        next = [parent.innerEquations objectAtIndex: index + 1];
-        if (next != nil){
-            [self addInnerEquation: next];
-            [parent.innerEquations removeObjectIdenticalTo: next];
-        }
-    }
 }
 
 - (void)finalizeTextSize:(int)parentTextSize
@@ -48,8 +31,11 @@
 
 - (void)finalizeFrame
 {
+    // tell our children to finalize their frames so we have accurate width/height measurements
+    // for them before continuing.
     [innerEquations makeObjectsPerformSelector:@selector(finalizeFrame)];
  
+    // if the container is full, we want to organize the subviews to put the B view in the exponent location.
     if ([innerEquations count] == 2){
         EquationAbstractView * a = [innerEquations objectAtIndex: 0];
         EquationAbstractView * b = [innerEquations objectAtIndex: 1];
@@ -70,7 +56,7 @@
         return [NSString stringWithFormat:@"%@^%@", [[self.innerEquations objectAtIndex: 0] description]
                                                     , [[self.innerEquations objectAtIndex: 1] description]];
     else 
-        return @"Incomplete Exponent";
+        return @"^!";
 }
 
 - (void)dealloc {

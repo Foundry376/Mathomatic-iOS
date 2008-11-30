@@ -7,12 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EquationContainerView.h"
+#import "EquationTwoPartView.h"
 
-@interface EquationDivisionView : EquationContainerView {
+@interface EquationDivisionView : EquationTwoPartView {
 
 }
 
-- (void)finalizeEquationHierarchy;
+- (void)finalizeFrame;
 
 @end

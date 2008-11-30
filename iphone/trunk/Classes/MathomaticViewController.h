@@ -8,31 +8,35 @@
 
 #import <UIKit/UIKit.h>
 #import "KeyboardView.h"
-#import "Operation.h"
-#import "OperationIntegrate.h"
-#import "OperationDerivative.h"
-#import "OperationSolve.h"
-#import "OperationLaplace.h"
-#import "OperationFactor.h"
-#import "OperationUnfactor.h"
-#import "MathCommand.h"
-#import "EquationView.h"
+#import "ExpressionButtonView.h"
+#import "ExpressionScrollView.h"
+#import "MathomaticExpression.h"
+
+@class MathomaticOperation;
 
 @interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
-    IBOutlet EquationView    *commandField;
-    IBOutlet UITableView    *commandHistory;
-    IBOutlet KeyboardView   *keyboard;
+    IBOutlet KeyboardView           *keyboard;
+    IBOutlet UIButton               *keyboardSlideButton;
+    IBOutlet UITableView            *commandHistory;
+    NSMutableArray                  *commandStack;
+    NSMutableArray                  *commandStackCells;
     
-    NSMutableArray          *commandStack;
+    BOOL                             keyboardVisible;
 }
 
 @property (nonatomic, retain) NSMutableArray * commandStack;
 
-- (void)performString:(NSString*)entry;
-- (void)performCommand:(MathCommand*)c;
-- (void)addCommand:(MathCommand*)c;
-- (void)keyboardEntryPerform:(NSString*)entry;
-- (void)keyboardEntryComplete:(NSString*)entry;
+- (IBAction)aboutPressed:(id)sender;
+- (IBAction)keyboardSlideToggle:(id)sender;
+
+- (void)performCommand:(MathomaticOperation*)c;
+- (void)addCommand:(MathomaticOperation*)c;
+- (BOOL)addKeyboardEntry;
+- (MathomaticExpression*)lastExpression;
+- (NSArray*)recentExpressions:(BOOL)equationsOnly unique:(BOOL)unique;
+
+- (void)keyboardEntryPerform;
+- (void)keyboardEntryComplete;
 
 @end
 

@@ -7,7 +7,7 @@
 //
 
 #import "EquationDivisionView.h"
-
+#import "EquationTextView.h"
 
 @implementation EquationDivisionView
 
@@ -20,6 +20,7 @@
 }
 
 - (void)drawRect:(CGRect)rect {
+    // draw the horizontal line across the view, just beneath the first view
     if ([innerEquations count] > 0){
         CGRect          r = [[innerEquations objectAtIndex: 0] frame];
         CGContextRef    c = UIGraphicsGetCurrentContext();
@@ -28,27 +29,13 @@
     }
 }
 
-- (void)finalizeEquationHierarchy
-{
-    for (int ii = [self.innerEquations count] - 1; ii >= 0; ii --)
-        [[innerEquations objectAtIndex: ii] finalizeEquationHierarchy];
-
-    EquationAbstractView * next;
-    int index = [parent.innerEquations indexOfObjectIdenticalTo: self];
-    
-    if (index + 1 < [parent.innerEquations count]){
-        next = [parent.innerEquations objectAtIndex: index + 1];
-        if (next){
-            [self addInnerEquation: next];
-            [parent.innerEquations removeObjectIdenticalTo: next];
-        }
-    }
-}
-
 - (void)finalizeFrame
 {
+    // tell our children to finalize their frames so we have accurate width/height measurements
+    // for them before continuing.
     [innerEquations makeObjectsPerformSelector:@selector(finalizeFrame)];
     
+    // If the division view is complete, then we place the views on top of each other.
     if ([innerEquations count] == 2){
         EquationAbstractView * a = [innerEquations objectAtIndex: 0];
         EquationAbstractView * b = [innerEquations objectAtIndex: 1];
@@ -62,6 +49,7 @@
         
         [self setFrame: CGRectMake(0,0, width, aFrame.size.height + bFrame.size.height)];
     } else {
+        // if not, treat this as a regular container
         [super finalizeFrame];
     }
 }
@@ -69,14 +57,10 @@
 - (NSString*)description
 {
     if ([innerEquations count] == 2)
-        return [NSString stringWithFormat:@"%@/%@ [frame=%f,%f,%f,%f]", [[self.innerEquations objectAtIndex: 0] description]
-                                                  , [[self.innerEquations objectAtIndex: 1] description]
-                                                  , [self frame].origin.x
-                                                  , [self frame].origin.y
-                                                  , [self frame].size.width
-                                                  , [self frame].size.height];
+        return [NSString stringWithFormat:@"%@/%@", [[self.innerEquations objectAtIndex: 0] description]
+                                                  , [[self.innerEquations objectAtIndex: 1] description]];
     else
-        return @"Incomplete Division";
+        return @"/!";
 }
 
 - (void)dealloc {

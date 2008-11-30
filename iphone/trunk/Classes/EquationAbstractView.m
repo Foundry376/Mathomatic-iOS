@@ -22,12 +22,17 @@
     return self;
 }
 
-- (void)finalizeEquationHierarchy
+- (void)finalizeEquationTree:(BOOL)clean
 {
 }
 
-- (void)finalizeTextSize
+- (void)finalizeTextSize:(int)parentTextSize
 {
+}
+
+- (BOOL)isTreeLegal
+{
+    return YES;
 }
 
 - (void)dealloc {

@@ -7,17 +7,29 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EquationView.h"
 
 @interface MathomaticExpression : NSObject {
 
     NSString        * mathomaticText;
     NSString        * equationText;
-    EquationView    * equation;
+    UIImage         * equationImage;
+    
+    BOOL              optimizeEquationImageParenthesis;
 }
 
-@synthesize (nonatomic, retain) NSString * mathomaticText;
-@synthesize (nonatomic, retain) NSString * equationText;
-@synthesize (nonatomic, retain) EquationView * equation;
+@property (nonatomic, retain, setter=setMathomaticText:) NSString * mathomaticText;
+@property (nonatomic, retain, setter=setEquationText:) NSString * equationText;
+@property (nonatomic, retain, readonly, getter=equationImage) UIImage * equationImage;
 
++ expressionWithMathomaticText:(NSString*)text;
++ expressionWithEquationText:(NSString*)text;
+- (void)setMathomaticText:(NSString*)t;
+- (void)setEquationText:(NSString*)t;
+- (BOOL)isEquation;
+- (BOOL)isValidExpression;
+- (NSArray*)equationVariables;
+- (UIImage*)equationImage;
+
+- (MathomaticExpression*)lhs;
+- (MathomaticExpression*)rhs;
 @end

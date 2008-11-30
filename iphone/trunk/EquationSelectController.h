@@ -7,22 +7,30 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "OperationSolve.h"
+#import "MathomaticOperation.h"
+
+@protocol EquationSelectDelegate
+- (void)equationsSelected:(NSArray*)equations solveVariable:(NSString*)var;
+@end
 
 @interface EquationSelectController : UITableViewController {
-    NSMutableArray      * equations;
-    NSMutableArray      * activeEquations;
     
-    NSMutableArray      * possibleVariables;
-    NSMutableArray      * visibleVariables;
-    NSMutableArray      * activeVariables;
+    NSMutableArray              * equations;
+    NSMutableArray              * equationCells;
+    NSMutableArray              * activeEquations;
     
-    OperationSolve      * delegate;
+    NSMutableArray              * variables;
+    int                           activeVariable;
+    
+    id<EquationSelectDelegate>    delegate;
+    
+    NSMutableArray              * cells;
 }
 
-@property (nonatomic, retain) OperationSolve * delegate;
+@property (nonatomic, retain) NSArray * equations;
+@property (nonatomic, retain) id<EquationSelectDelegate> delegate;
 
-- (id)initWithEquations:(NSArray*)commandHistory andOperation:(OperationSolve*)d;
+- (id)initWithEquations:(NSArray*)commandHistory andOperation:(id<EquationSelectDelegate>)d;
 - (void)reloadVariables;
 
 @end

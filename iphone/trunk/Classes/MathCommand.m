@@ -69,24 +69,11 @@
         NSString * eq = [self outputCleanup: [output objectAtIndex: ii]];
         
         [output replaceObjectAtIndex:ii withObject: eq];
-        [outputEquations addObject: [[[EquationView alloc] initWithEquation:eq andFrame:CGRectMake(0, 0, 320, 0) andFontSize:18] autorelease]];
+        [outputEquations addObject: ] autorelease]];
     }
     return YES;
 }
 
-- (NSString*)outputCleanup:(NSString*)result
-{
-    result = [result stringByReplacingOccurrencesOfString:@"pi#" withString:@"π"];
-    result = [result stringByReplacingOccurrencesOfString:@"e#" withString:@"e"];
-    result = [result stringByReplacingOccurrencesOfString:@"i#" withString:@"i"];
-    result = [result stringByReplacingOccurrencesOfString:@"sign" withString:@"±1"];
-    result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
-    
-    if ([result isEqualToString: @"Syntaxerror."])
-        result = @"Invalid expression! Please check what you entered.";
-        
-    return result;
-}
 
 - (NSArray*)outputEquations
 {

@@ -26,7 +26,9 @@
 - (EquationAbstractView*)popInnerEquation;
 - (BOOL)addInnerEquation:(EquationAbstractView*)equation;
 - (BOOL)innerEquationIsFull;
-- (void)finalizeEquationHierarchy;
+- (EquationAbstractView *)innerEquationAtOffset:(int)offset from:(EquationAbstractView*)v;
+- (void)finalizeEquationTree:(BOOL)clean;
+- (BOOL)finalizeEquationTreeForClass:(Class)c cleanParenthesis:(BOOL)clean;
 - (void)finalizeTextSize:(int)parentTextSize;
 - (void)finalizeFrame;
 

@@ -23,7 +23,12 @@
     return self;
 }
 
-- (void)finalizeEquationHierarchy
+- (NSString*)text
+{
+    return [text text];
+}
+
+- (void)finalizeEquationTree:(BOOL)clean
 {
 
 }
@@ -39,6 +44,21 @@
     CGRect frame = CGRectMake(0,0, textSize.width, textSize.height);
     [self setFrame: frame];
     [text setFrame: frame];
+}
+
+- (BOOL)isTreeLegal
+{
+    return YES;
+}
+
+- (BOOL)isNumeric
+{
+    return ([[text text] rangeOfCharacterFromSet: [NSCharacterSet characterSetWithCharactersInString:@"1234567890eπi"]].location != NSNotFound);
+}
+
+- (BOOL)isVariable
+{
+    return ([[text text] rangeOfCharacterFromSet: [NSCharacterSet characterSetWithCharactersInString:@"xyz"]].location != NSNotFound);
 }
 
 - (NSString*)description

@@ -7,14 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EquationView.h"
+#import "ExpressionScrollView.h"
 
 @class MathomaticViewController;
 
 @interface KeyboardView : UIView {
     IBOutlet MathomaticViewController * delegate;
-    IBOutlet EquationView *field;
-
+    IBOutlet ExpressionScrollView * fieldScrollView;
+    
     IBOutlet UIButton *button0;
     IBOutlet UIButton *button1;
     IBOutlet UIButton *button2;
@@ -50,9 +50,16 @@
     
     IBOutlet UIButton *buttonEnter;
     
-    BOOL    lastButtonWasVariable;
+    NSMutableString * fieldString;
 }
 
+@property (nonatomic, retain, getter=field) NSMutableString * fieldString;
+
 - (IBAction)buttonPressed:(UIButton*)button;
+- (void)clear;
+
+- (BOOL)fieldIsBlank;
+- (NSMutableString*)field;
+- (void)setField:(NSString*)str;
 
 @end

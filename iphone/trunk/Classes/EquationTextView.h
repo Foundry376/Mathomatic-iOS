@@ -16,5 +16,13 @@
 }
 
 - (id)initWithText:(NSString*)t;
+- (NSString*)text;
+
+- (void)finalizeEquationTree:(BOOL)clean;
+- (void)finalizeTextSize:(int)parentTextSize;
+- (void)finalizeFrame;
+- (BOOL)isTreeLegal;
+- (BOOL)isNumeric;
+- (BOOL)isVariable;
 
 @end

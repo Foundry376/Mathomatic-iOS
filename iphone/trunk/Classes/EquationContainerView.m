@@ -8,6 +8,7 @@
 
 #import "EquationContainerView.h"
 #import "EquationDivisionView.h"
+#import "EquationExponentView.h"
 
 @implementation EquationContainerView
 
@@ -71,8 +72,10 @@
     if ((innerEquationsMax == -1) || ([self.innerEquations count] < innerEquationsMax)){
         [self.innerEquations addObject: equation];
         [self addSubview: equation];
-    }else
+    }else{
+        NSLog(@"Attempt to attach %@ to full container", [equation description]);
         return NO;
+    }
     return YES;
 }
 
@@ -84,21 +87,49 @@
         return YES;
 }
 
-- (void)finalizeEquationHierarchy
+- (EquationAbstractView *)innerEquationAtOffset:(int)offset from:(EquationAbstractView*)v
 {
-    BOOL containsDivision = NO;
-    for (int ii = [self.innerEquations count] - 1; ii >= 0; ii --){
-        if ([[[innerEquations objectAtIndex: ii] class] isEqual: [EquationDivisionView class]])
-            containsDivision = YES;
-        [[innerEquations objectAtIndex: ii] finalizeEquationHierarchy];
-    }
-        
-    if (containsDivision)
+    int ii = [innerEquations indexOfObject: v];
+    if ((ii+offset < [innerEquations count]) && (ii+offset >= 0))
+        return [innerEquations objectAtIndex: ii + offset];
+    else
+        return nil;
+}
+
+- (void)finalizeEquationTree:(BOOL)clean
+{
+    [self finalizeEquationTreeForClass: [EquationContainerView class] cleanParenthesis:clean];
+    [self finalizeEquationTreeForClass: [EquationExponentView class] cleanParenthesis:clean];
+
+    if ([self finalizeEquationTreeForClass: [EquationDivisionView class] cleanParenthesis: clean])
         alignmentMethod = kAlignmentMethodCentered;
     else if ([innerEquations count] == 1)
         alignmentMethod = [[innerEquations lastObject] alignmentMethod];
     else
         alignmentMethod = kAlignmentMethodBottom;
+        
+    if (([innerEquations count] < 2) && (clean)){
+        [self setShowOpenParenthesis: NO];
+        [self setShowCloseParenthesis: NO];
+    }
+}
+
+- (BOOL)finalizeEquationTreeForClass:(Class)c cleanParenthesis:(BOOL)clean
+{
+    BOOL found = NO;
+    int ii = [innerEquations count] - 1;
+
+    while (ii >= 0){
+        EquationAbstractView * v = [innerEquations objectAtIndex: ii];
+        if ([v isMemberOfClass: c]){
+            [v finalizeEquationTree: clean];
+            ii = [innerEquations indexOfObject: v];
+            
+            found = YES;
+        }
+        ii--;
+    }
+    return found;
 }
 
 - (void)finalizeTextSize:(int)parentTextSize
@@ -130,6 +161,9 @@
     CGSize openSize = [[openParen text] sizeWithFont: [openParen font]];
     CGSize closeSize = [[closeParen text] sizeWithFont: [closeParen font]];
     
+    if ([innerEquations count] == 0)
+        heightAboveBaseline = openSize.height;
+        
     x = openSize.width;
     
     for (EquationAbstractView * v in self.innerEquations){
@@ -149,12 +183,22 @@
     [self setFrame: CGRectMake(0,0, x + closeSize.width, height)];
 }
 
+- (BOOL)isTreeLegal
+{
+    for (EquationAbstractView * view in self.innerEquations){
+        if (![view isTreeLegal])
+            return NO;
+    }
+    return YES;
+}
+
+
 - (NSString*)description
 {
     NSMutableString * description = [NSMutableString stringWithString: @"("];
     for (EquationAbstractView * view in self.innerEquations)
         [description appendString: [view description]];
-    [description appendFormat: @") [frame=%f,%f,%f,%f]", [self frame].origin.x, [self frame].origin.y, [self frame].size.width, [self frame].size.height];
+    [description appendFormat: @")"];
     return description;
 }
 

@@ -20,7 +20,7 @@
 }
 
 
-- (void)finalizeEquationHierarchy
+- (void)finalizeEquationTree
 {
 
 }
@@ -36,6 +36,11 @@
     CGSize textSize = [[NSString stringWithString:@"0"] sizeWithFont: font];
     CGRect frame = CGRectMake(0,0, textSize.width, textSize.height);
     [self setFrame: frame];
+}
+
+- (NSString*)description
+{
+    return @"•";
 }
 
 - (void)dealloc {
