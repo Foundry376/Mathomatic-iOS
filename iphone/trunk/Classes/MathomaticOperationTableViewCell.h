@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MathomaticOperation.h"
 #import "MathomaticExpression.h"
+
+@class MathomaticOperation;
 
 @protocol MathomaticOperationTableViewCellDelegate
 - (void)mathomaticOperationTableViewCellClicked:(MathomaticExpression*)expression;

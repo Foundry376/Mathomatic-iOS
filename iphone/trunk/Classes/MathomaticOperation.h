@@ -10,7 +10,7 @@
 #import "MathomaticExpression.h"
 #import "MathomaticViewController.h"
 
-@interface MathomaticOperation : NSObject {
+@interface MathomaticOperation : NSObject <NSCoding> {
     
     NSMutableArray * inputs;
     NSMutableArray * steps;
@@ -25,6 +25,9 @@
 @property (nonatomic, retain) NSString * name;
 
 - (id)init;
+
+- (id)initWithCoder:(NSCoder *)decoder;
+- (void)encodeWithCoder:(NSCoder *)encoder;
 
 - (void)addInput:(MathomaticExpression*)expression;
 - (void)addInputMathomaticString:(NSString*)s;

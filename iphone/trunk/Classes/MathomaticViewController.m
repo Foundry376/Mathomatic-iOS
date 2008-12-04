@@ -11,14 +11,15 @@
 
 #import "MathomaticExpression.h"
 #import "MathomaticOperation.h"
-#import "MathomaticOperationTableViewCell.h"
-#import "MathomaticOperationDerivative.h";
-#import "MathomaticOperationFactor.h";
-#import "MathomaticOperationUnfactor.h";
-#import "MathomaticOperationLaplace.h";
-#import "MathomaticOperationIntegral.h";
-#import "MathomaticOperationSolve.h";
-#import "MathomaticOperationSimplify.h";
+#import "MathomaticOperationDerivative.h"
+#import "MathomaticOperationFactor.h"
+#import "MathomaticOperationUnfactor.h"
+#import "MathomaticOperationLaplace.h"
+#import "MathomaticOperationIntegral.h"
+#import "MathomaticOperationSolve.h"
+#import "MathomaticOperationSimplify.h"
+
+#define kMaxStackLength 20
 
 @implementation MathomaticViewController
 
@@ -57,7 +58,7 @@
 
 - (void)keyboardSlideUpComplete
 {
-    [commandHistory setFrame: CGRectMake(0,0, 320, 128)];
+    [commandHistory setFrame: CGRectMake(0,0, 320, 126)];
 }
 
 - (void)viewDidLoad 
@@ -67,9 +68,36 @@
     keyboardVisible = YES;
     [keyboardSlideButton setFrame: CGRectMake([keyboardSlideButton frame].origin.x, 417, [keyboardSlideButton frame].size.width, [keyboardSlideButton frame].size.height)];
 
-    commandStack = [[NSMutableArray alloc] init];
+    // load the command stack from the saved archive, if one exists
+    commandStack = [[NSKeyedUnarchiver unarchiveObjectWithFile: @"commandStack.nsarchive"] retain];
+    if (!commandStack)
+        commandStack = [[NSMutableArray alloc] init];
+
+    // create command stack cells for each existing item in the commandStack
     commandStackCells = [[NSMutableArray alloc] init];
+    for (MathomaticOperation * operation in commandStack){
+        MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"command" delegate: self] autorelease];
+        [row setOperation: operation];
+        [commandStackCells addObject: row];
+    }
+    
     [commandHistory setSeparatorStyle: UITableViewCellSeparatorStyleNone];
+    
+    // if there are items in the stack, make sure we load them into the table 
+    // and scroll to the bottom.
+    if ([commandStack count] > 0){
+        [commandHistory reloadData];
+        NSIndexPath * path = [NSIndexPath indexPathForRow: [commandStack count]-1 inSection:0];
+        [commandHistory scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:NO];   
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{   
+    // if we are not just showing a sheet, the application is probably closing.
+    // save all the items in the commandStack
+    if (self.modalViewController == nil)
+        [NSKeyedArchiver archiveRootObject:commandStack toFile:@"commandStack.nsarchive"];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
@@ -105,14 +133,24 @@
 
 - (void)addCommand:(MathomaticOperation*)c
 {
+    // add the command to the command stack and remove the first object if there are more than kMaxStackLength
     [commandStack addObject: c];
-    
+    if ([commandStack count] > kMaxStackLength)
+        [commandStack removeObjectAtIndex: 0];
+        
+    // create a new row to represent the operation and keep it cached for future use. We need to keep
+    // this array ourselves (and not just let the TableView manage it as usual) so that we can respond to
+    // heightForRowAtIndexPath without calling cellForIndexPath (which causes an infinite loop... apparently.)
     MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"command" delegate: self] autorelease];
     [row setOperation: c];
     
+    // add the item. If there are more than kMaxStackLength, remove the first object 
     [commandStackCells addObject: row];
+    if ([commandStackCells count] > kMaxStackLength)
+        [commandStackCells removeObjectAtIndex: 0];
     [commandHistory reloadData];
     
+    // scroll to the new item in the tableView
     NSIndexPath * path = [NSIndexPath indexPathForRow: [commandStack count]-1 inSection:0];
     [commandHistory scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
@@ -120,7 +158,6 @@
 
 - (BOOL)addKeyboardEntry
 {
-// check the input and make sure parenthesis are balanced
     int               location = 0;
     int               depth = 0;
     NSMutableString * str = [keyboard field];
@@ -128,6 +165,7 @@
     if ([str length] == 0)
         return NO;
         
+    // count the number of parenthesis
     while (location < [str length]){
         if ([[str substringWithRange:NSMakeRange(location, 1)] isEqualToString: @"("])
             depth ++;
@@ -136,11 +174,14 @@
         location ++;
     }
     
+    // add as many close parenthesis as we need to make the expression balanced
     while (depth > 0){
         [str appendString:@")"];
         depth --;
     }
 
+    // crate the expression object and determine if it valid. If it is, perform it and clear
+    // the keyboard text. Otherwise, we'll display an error message.
     MathomaticExpression * expression = [MathomaticExpression expressionWithEquationText: str];
     if ([expression isValidExpression]){
         MathomaticOperation * operation = [[[MathomaticOperation alloc] init] autorelease];
@@ -156,11 +197,17 @@
     }
 }
 
+// fetches the last expression. This is called by operations when they are running
 - (MathomaticExpression*)lastExpression
 {
-    return [[[commandStack lastObject] inputs] lastObject];
+    if (([commandStack count] > 0) && ([[[commandStack lastObject] inputs] count] > 0))
+        return [[[commandStack lastObject] inputs] lastObject];
+    else
+        return nil;
 }
 
+// fetches 10 recent expressions. Right now, this is only used for the solve command, and
+// the options are always the same. They are just provided for future use.
 - (NSArray*)recentExpressions:(BOOL)equationsOnly unique:(BOOL)unique
 {
     NSMutableArray * recent = [[NSMutableArray alloc] init];
@@ -195,16 +242,19 @@
 
 - (void)keyboardEntryPerform
 {
+    // if there is text in the keyboard, attempt to add it to the commandHistory
     if (![keyboard fieldIsBlank])
         if (![self addKeyboardEntry])
             return;
         
+    // make sure you can't open the math sheet without entering an expression first. This would
+    // effectively do nothing, and none of the operations would actually work.
     if ([commandStack count] == 0){
         UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:@"Please enter one or more expressions first!" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
         [alert release];
     } else {
-        // setup the operations sheet
+        // display the operations sheet
         UIActionSheet * operationSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Integral...", @"Derivative...", @"Solve...", @"Laplace...", @"Factor", @"Unfactor", @"Simplify", nil];
         [operationSheet showInView: self.view];
         [operationSheet release];

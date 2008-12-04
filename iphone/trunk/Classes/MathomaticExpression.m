@@ -33,23 +33,35 @@
     return [e autorelease];
 }
 
+- (id)initWithCoder:(NSCoder *)decoder
+{
+    if (self = [super init]){
+        [self setEquationText: [decoder decodeObject]];
+        equationImage = [[UIImage imageWithData: [decoder decodeObject]] retain];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    [encoder encodeObject: equationText];
+    [encoder encodeObject: UIImagePNGRepresentation(equationImage)];
+}
+
 - (void)setMathomaticText:(NSString*)t
 {
     [mathomaticText release];
     mathomaticText = [t retain];
     optimizeEquationImageParenthesis = YES;
     
-    // Clean up some formatting on the equation text and makeit match the 
-    // raw text from Mathomatic
+    // Clean up some formatting so that the equation can be displayed nicely. This removes all of the 
+    // # symbols used to differentiate variables from constants and also cleans up pi.
     if (equationText) [equationText release];
     equationText = [mathomaticText stringByReplacingOccurrencesOfString:@"pi#" withString:@"π"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"e#" withString:@"e"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"i#" withString:@"i"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"sign" withString:@"±1"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@" " withString:@""];
-    
-    if ([equationText isEqualToString: @"Syntaxerror."])
-        equationText = @"Invalid expression! Please check what you entered.";
     [equationText retain];
     
 }
@@ -60,7 +72,7 @@
     equationText = [t retain];
     optimizeEquationImageParenthesis = NO;
     
-    // Clean up some formatting on the equation text and makeit match the 
+    // Clean up some formatting on the equation text and make it match the 
     // raw text from Mathomatic
     if (mathomaticText) [mathomaticText release];
     mathomaticText = [mathomaticText stringByReplacingOccurrencesOfString:@"i" withString:@"i#"];
@@ -77,31 +89,37 @@
 
 - (BOOL)isValidExpression
 {
+    // If the expression is an equation, we will call isValidExpression on each side of the equation.
+    // Otherwise, just look for illegial characters and combinations of characters.
     if (![self isEquation]){
-        // first look at the first and last characters
         NSString * illegialStartCharacters = @"*/)^=";
         NSString * illegialEndCharacters = @"*/^-+=";
         
+        // make sure the equation is not an empty string.
         if ([equationText length] == 0)
             return NO;
-            
+        
+        // check the first character of the string
         NSString * s = [equationText substringToIndex: 1];
         if ([s rangeOfCharacterFromSet: [NSCharacterSet characterSetWithCharactersInString: illegialStartCharacters]].location != NSNotFound)
             return NO;
         
+        // check the last character of the string. If it is a •, look at the second to last char.
         s = [equationText substringFromIndex: [equationText length] - 1];
         if ([s isEqualToString: @"•"])
             s = [equationText substringWithRange: NSMakeRange([equationText length] - 2, 1)];
         if ([s rangeOfCharacterFromSet: [NSCharacterSet characterSetWithCharactersInString: illegialEndCharacters]].location != NSNotFound)
             return NO;
             
-        
-        // now go through and look for illegial sets of characters
-        NSSet * illegialCombinations = [NSSet setWithObjects:   @"+/", @"+*", @"+^",
-                                                                @"-/", @"-*", @"-^",
-                                                                @"*/",        @"*^",
-                                                                @"^/", @"^*", @"^^",
-                                                                @"//", @"/*", @"/^", nil];
+        // now go through and look for illegial combinations of characters
+        NSSet * illegialCombinations = [NSSet setWithObjects:   @"+/", @"+*", @"+^", @"+)",
+                                                                @"-/", @"-*", @"-^", @"-)",
+                                                                @"*/",        @"*^", @"*)",
+                                                                @"^/", @"^*", @"^^", @"^)",
+                                                                @"//", @"/*", @"/^", @"/)",
+                                                                @"(/", @"(*", @"(^",
+                                           @"..", @".+", @".-", @"./", @".*", @".^", @".)", nil];
+                                           
         for (NSString * combination in illegialCombinations)
             if ([equationText rangeOfString: combination].location != NSNotFound)
                 return NO;
@@ -118,6 +136,7 @@
 
 - (NSArray*)equationVariables
 {
+    // return a sorted array of all of the variables used in the current expression.
     NSArray * possibleVariables = [NSArray arrayWithObjects:@"x",@"y",@"z", nil];
     NSMutableSet * variables = [NSMutableSet set];
     for (NSString * var in possibleVariables){
@@ -129,6 +148,7 @@
 
 - (UIImage*)equationImage
 {
+    // computing the image is expensive, so we only want to do it once.
     if (equationImage == nil)
     {
         NSMutableArray          * chunks = [NSMutableArray array];
@@ -138,9 +158,11 @@
         int                     location = 0;
         BOOL                    failed = NO;
         
+        // First, we want to break the equation string into chunks based on delimiters like +, -, and variables.
+        // The resulting array of chunks is used to create a tree of views that can be stacked and arranged.
         while (location < [equationText length]){
             NSString * c = [equationText substringWithRange: NSMakeRange(location, 1)];
-            BOOL isOperator = ([c rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"(xyz)+-/*^=•"]].location == 0);
+            BOOL isOperator = ([c rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"(xyzieπ)+-/*^=•"]].location == 0);
                 
             if (isOperator){
                 if ([openBuffer length] > 0){
@@ -156,16 +178,18 @@
             }
             location ++;
         }
+        // If there is a chunk remaining, add it before we analyze the result.
         if ([openBuffer length] > 0){
             [chunks addObject: openBuffer];
             [openBuffer release];
             openBuffer = nil;
         }
-
+    
+        // create a containerView to be the base of our expression
         root = [[[EquationContainerView alloc] initWithParent: nil] autorelease];
         EquationContainerView * current = root;
         
-        // create views representing the chunks
+        // create views for each of the chunks
         for (NSString * chunk in chunks)
         {
             if ([chunk isEqualToString: @"("]){
@@ -210,6 +234,11 @@
             // around for the division and exponent views. Each of these two container subclasses need to
             // "swallow" the views following them. This can't be done when they are created because 
             // the next views haven't been created yet. It's easier done all at once at the end.
+            
+            // The optimizeEquationImageParenthesis option allows you to remove the parenthesis from
+            // container views with only one subview. This isn't desirable if the user actually typed
+            // in the parenthesis, but it is good for auto-generated output from mathomatic, which contains
+            // a lot of extra parenthesis.
             [root finalizeEquationTree: optimizeEquationImageParenthesis];
             [root finalizeTextSize: 21];
             [root finalizeFrame];

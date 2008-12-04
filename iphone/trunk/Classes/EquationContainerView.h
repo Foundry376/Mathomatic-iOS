@@ -15,8 +15,9 @@
     int                       innerEquationsMax;
     EquationContainerView   * parent;
     
-    UILabel                 * openParen;
-    UILabel                 * closeParen;
+    BOOL                      openParen;
+    BOOL                      closeParen;
+    int                       minHeight;
 }
 
 @property (nonatomic, retain) NSMutableArray * innerEquations;

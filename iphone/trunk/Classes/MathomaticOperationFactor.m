@@ -19,6 +19,7 @@
     return self;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)perform
 {
     [self performMathomaticSetup];
@@ -37,6 +38,7 @@
     return nil;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)prepareWithDelegate:(MathomaticViewController*)c
 {
     controller = [c retain];

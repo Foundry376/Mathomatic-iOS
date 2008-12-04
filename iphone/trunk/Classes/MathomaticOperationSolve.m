@@ -18,6 +18,7 @@
     return self;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)perform
 {
     NSMutableArray * variables = [NSMutableArray array];
@@ -70,6 +71,7 @@
     return nil;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)prepareWithDelegate:(MathomaticViewController*)c
 {
     NSArray * recentExpressions = [c recentExpressions:YES unique: YES];

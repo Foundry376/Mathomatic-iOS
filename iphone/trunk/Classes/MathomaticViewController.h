@@ -11,10 +11,11 @@
 #import "ExpressionButtonView.h"
 #import "ExpressionScrollView.h"
 #import "MathomaticExpression.h"
+#import "MathomaticOperationTableViewCell.h"
 
 @class MathomaticOperation;
 
-@interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
+@interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MathomaticOperationTableViewCellDelegate> {
     IBOutlet KeyboardView           *keyboard;
     IBOutlet UIButton               *keyboardSlideButton;
     IBOutlet UITableView            *commandHistory;

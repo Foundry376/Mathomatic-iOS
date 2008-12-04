@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface MathomaticExpression : NSObject {
+@interface MathomaticExpression : NSObject <NSCoding> {
 
     NSString        * mathomaticText;
     NSString        * equationText;
@@ -23,6 +23,8 @@
 
 + expressionWithMathomaticText:(NSString*)text;
 + expressionWithEquationText:(NSString*)text;
+- (id)initWithCoder:(NSCoder *)decoder;
+- (void)encodeWithCoder:(NSCoder *)encoder;
 - (void)setMathomaticText:(NSString*)t;
 - (void)setEquationText:(NSString*)t;
 - (BOOL)isEquation;

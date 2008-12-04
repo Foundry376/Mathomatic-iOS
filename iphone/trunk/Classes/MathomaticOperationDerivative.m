@@ -19,6 +19,7 @@
     return self;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)perform
 {
     if (variable == nil){
@@ -64,12 +65,17 @@
     return nil;
 }
 
+// If a string is returned, it is displayed as an error
 - (NSString*)prepareWithDelegate:(MathomaticViewController*)c
 {
     controller = [c retain];
     
+    // determine which variables are in the current expression and build a sheet.
+    // Unlike the integrate and laplace transform commands, you can't take the derivative
+    // with respect to a variable that doesn't exist!
     NSArray * vars = [[c lastExpression] equationVariables];
     if ([vars count] > 1){
+        // If there's more than one variable, display the sheet
         UIActionSheet * sheet = [[UIActionSheet alloc] initWithTitle:@"With respect to:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
         for (NSString * var in vars)
             [sheet addButtonWithTitle: [var uppercaseString]];
@@ -79,10 +85,12 @@
         [sheet release];
         
     } else if ([vars count] > 0){
+        // if there's one variable, just use that one
         variable = [[vars lastObject] retain];
         [controller performCommand: self];
         
     } else {
+        // if there are no variables, run anyway. We'll just set the output to 0.
         variable = nil;
         [controller performCommand: self];
     }
@@ -91,6 +99,8 @@
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
 {
+    // If the user has selected a variable from the list, store their selection and 
+    // tell our controller to perform us.
     if (buttonIndex != [actionSheet cancelButtonIndex]){
         variable = [[[actionSheet buttonTitleAtIndex: buttonIndex] lowercaseString] retain];
         [controller performCommand: self];

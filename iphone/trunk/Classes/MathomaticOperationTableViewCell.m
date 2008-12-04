@@ -7,6 +7,7 @@
 //
 
 #import "MathomaticOperationTableViewCell.h"
+#import "MathomaticOperation.h"
 
 
 @implementation MathomaticOperationTableViewCell

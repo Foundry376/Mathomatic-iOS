@@ -78,6 +78,9 @@
 
 - (void)setField:(NSString*)str
 {
+    if (fieldString == nil)
+        fieldString = [[NSMutableString alloc] init];
+        
     [fieldString setString: str];
     [fieldScrollView setExpression: [MathomaticExpression expressionWithEquationText: [fieldString stringByAppendingString: @"•"]]];
 }

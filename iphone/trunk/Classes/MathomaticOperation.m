@@ -8,7 +8,7 @@
 
 #import "MathomaticOperation.h"
 #import "MathomaticExpression.h"
-#import "mathomatic.h"
+#import "Mathomatic.h"
 
 @implementation MathomaticOperation
 @synthesize inputs;
@@ -24,6 +24,25 @@
         stepNames = [[NSMutableArray alloc] init];
     }
     return self;
+}
+
+- (id)initWithCoder:(NSCoder *)decoder
+{
+    if (self = [super init]){
+        self.inputs = [decoder decodeObject];
+        self.steps = [decoder decodeObject];
+        self.stepNames = [decoder decodeObject];
+        self.name = [decoder decodeObject];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    [encoder encodeObject: inputs];
+    [encoder encodeObject: steps];
+    [encoder encodeObject: stepNames];
+    [encoder encodeObject: name];
 }
 
 - (void)performMathomaticSetup

@@ -15,6 +15,7 @@
 @synthesize innerEquations;
 @synthesize parent;
 
+#define kParenthesisPadding 3
 
 - (id)initWithParent:(EquationContainerView*)p
 {
@@ -23,6 +24,7 @@
         
         self.innerEquations = [NSMutableArray array];
         self.backgroundColor = [UIColor clearColor];
+        self.userInteractionEnabled = NO;
         self.clipsToBounds = YES;
         
         innerEquationsMax = -1;
@@ -31,32 +33,14 @@
     return self;
 }
 
-- (void)setShowOpenParenthesis:(BOOL)showOpen
+- (void)setShowOpenParenthesis:(BOOL)o
 {
-    if (showOpen){
-        openParen = [[UILabel alloc] initWithFrame: CGRectZero];
-        [openParen setBackgroundColor: [UIColor clearColor]];
-        [self addSubview: openParen];
-        [openParen setText: @"("];
-    }else{
-        [openParen removeFromSuperview];
-        [openParen release];
-        openParen = nil;
-    }
+    openParen = o;
 }
 
-- (void)setShowCloseParenthesis:(BOOL)showClose
+- (void)setShowCloseParenthesis:(BOOL)c
 {
-    if (showClose){
-        closeParen = [[UILabel alloc] initWithFrame: CGRectZero];
-        [closeParen setBackgroundColor: [UIColor clearColor]];
-        [self addSubview: closeParen];
-        [closeParen setText: @")"];
-    }else{
-        [closeParen removeFromSuperview];
-        [closeParen release];
-        closeParen = nil;
-    }
+    closeParen = c;
 }
 
 - (EquationAbstractView*)popInnerEquation
@@ -137,8 +121,7 @@
     for (EquationAbstractView * v in self.innerEquations)
         [v finalizeTextSize: parentTextSize];
     
-    [openParen setFont: [UIFont fontWithName:@"Courier" size:parentTextSize]];
-    [closeParen setFont: [UIFont fontWithName:@"Courier" size:parentTextSize]];
+    minHeight = parentTextSize+kParenthesisPadding*2;
 }
 
 - (void)finalizeFrame
@@ -158,14 +141,18 @@
         }
     }
     
-    CGSize openSize = [[openParen text] sizeWithFont: [openParen font]];
-    CGSize closeSize = [[closeParen text] sizeWithFont: [closeParen font]];
     
     if ([innerEquations count] == 0)
-        heightAboveBaseline = openSize.height;
-        
-    x = openSize.width;
+        heightAboveBaseline = minHeight;
+     
+    int height = fmax(heightAboveBaseline + heightBelowBaseline, minHeight);
+    int parenthesis_width = fmin((height-kParenthesisPadding*2)/20.0, 1)*8;
     
+    if (openParen)
+        x = parenthesis_width;
+    else
+        x = 0;
+        
     for (EquationAbstractView * v in self.innerEquations){
         int offset;
         if (v.alignmentMethod == kAlignmentMethodBottom)
@@ -176,11 +163,10 @@
         x += [v frame].size.width;
     }
     
-    int height = fmax(heightAboveBaseline + heightBelowBaseline, openSize.height);
-
-    [openParen setFrame: CGRectMake(0, (heightAboveBaseline + heightBelowBaseline - openSize.height)/2, openSize.width, openSize.height)];
-    [closeParen setFrame: CGRectMake(x, (heightAboveBaseline + heightBelowBaseline - closeSize.height)/2, closeSize.width, closeSize.height)];
-    [self setFrame: CGRectMake(0,0, x + closeSize.width, height)];
+    if (closeParen)
+        [self setFrame: CGRectMake(0,0, x + parenthesis_width, height)];
+    else
+        [self setFrame: CGRectMake(0,0, x, height)];
 }
 
 - (BOOL)isTreeLegal
@@ -192,6 +178,25 @@
     return YES;
 }
 
+- (void)drawRect:(CGRect)rect
+{
+    CGSize size = [self frame].size;
+    CGContextRef c = UIGraphicsGetCurrentContext();
+
+    float scale = fmin((size.height-kParenthesisPadding*2)/20.0, 1);
+    if (openParen){
+        CGContextDrawImage(c, CGRectMake(0,kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_bl.png"] CGImage]);
+        if (scale == 1)
+             CGContextFillRect(c, CGRectMake(2, 10+kParenthesisPadding, 2, size.height-20-kParenthesisPadding*2));
+        CGContextDrawImage(c, CGRectMake(0,size.height-10*scale-kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_tl.png"] CGImage]);
+    }
+    if (closeParen){
+        CGContextDrawImage(c, CGRectMake(size.width-8*scale,kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_br.png"] CGImage]);
+        if (scale == 1)
+            CGContextFillRect(c, CGRectMake(size.width-4, 10+kParenthesisPadding, 2, size.height-20-kParenthesisPadding*2));
+        CGContextDrawImage(c, CGRectMake(size.width-8*scale,size.height-10*scale-kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_tr.png"] CGImage]);    
+    }
+}
 
 - (NSString*)description
 {
@@ -203,8 +208,6 @@
 }
 
 - (void)dealloc {
-    [openParen release];
-    [closeParen release];
     [super dealloc];
 }
 
