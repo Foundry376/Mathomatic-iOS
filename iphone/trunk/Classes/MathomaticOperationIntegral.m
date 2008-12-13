@@ -48,8 +48,10 @@
             [warning show];
             [warning release];
             [self addInputMathomaticString: result];
-        } else
+        } else{
+            result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
             [self addInput: [[MathomaticExpression expressionWithMathomaticText: result] rhs]];
+        }
     }
     return nil;
 }
@@ -75,5 +77,10 @@
     }
 }
 
+- (void)dealloc
+{
+    [variable release];
+    [super dealloc];
+}
 
 @end

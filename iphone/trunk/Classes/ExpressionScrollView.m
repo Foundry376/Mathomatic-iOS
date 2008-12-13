@@ -60,6 +60,7 @@
     
     [expressionImageView setFrame: content_fit];
 
+    content_fit.size.width += padding.width*2;
     [self setContentSize: content_fit.size];
     [self scrollRectToVisible:CGRectMake(content_fit.size.width-10, 0, 10, 10) animated:YES];
 }

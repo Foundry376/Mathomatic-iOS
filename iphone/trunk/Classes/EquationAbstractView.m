@@ -35,6 +35,10 @@
     return YES;
 }
 
+- (void)unlink
+{
+}
+
 - (void)dealloc {
     [super dealloc];
 }

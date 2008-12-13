@@ -22,5 +22,6 @@
 - (void)finalizeTextSize:(int)parentTextSize;
 
 - (BOOL)isTreeLegal;
+- (void)unlink;
 
 @end

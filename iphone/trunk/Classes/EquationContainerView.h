@@ -32,6 +32,7 @@
 - (BOOL)finalizeEquationTreeForClass:(Class)c cleanParenthesis:(BOOL)clean;
 - (void)finalizeTextSize:(int)parentTextSize;
 - (void)finalizeFrame;
+- (void)unlink;
 
 - (void)setShowOpenParenthesis:(BOOL)showOpen;
 - (void)setShowCloseParenthesis:(BOOL)showClose;

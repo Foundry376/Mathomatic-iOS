@@ -11,6 +11,7 @@
 
 @protocol EquationSelectDelegate
 - (void)equationsSelected:(NSArray*)equations solveVariable:(NSString*)var;
+- (void)equationSelectCancelled;
 @end
 
 @interface EquationSelectController : UITableViewController {
@@ -23,8 +24,6 @@
     int                           activeVariable;
     
     id<EquationSelectDelegate>    delegate;
-    
-    NSMutableArray              * cells;
 }
 
 @property (nonatomic, retain) NSArray * equations;

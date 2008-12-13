@@ -32,6 +32,7 @@
     if ([result isEqualToString: @"Equation space is empty."])
         return @"The expression could not be factored.";
     
+    result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
     [self addInputMathomaticString: result];
     [controller release];
     controller = nil;

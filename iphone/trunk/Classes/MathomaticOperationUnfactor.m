@@ -30,6 +30,10 @@
     if ([result isEqualToString: @"Equation space is empty."])
         return @"The expression could not be unfactored.";
         
+    if ([result isEqualToString: @"Expression too large."])
+        return @"The expression was too large to be unfactored.";
+        
+    result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
     [self addInputMathomaticString: result];
     [controller release];
     controller = nil;

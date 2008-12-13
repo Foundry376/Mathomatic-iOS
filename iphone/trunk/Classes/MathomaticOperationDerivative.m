@@ -36,8 +36,9 @@
         input = [NSString stringWithFormat: @"a=%@", input];
     }
         
-    [self performMathomaticSetup];
     [self setName: [NSString stringWithFormat:@"Derivative (d/d%@)", variable]];
+    [self performMathomaticSetup];
+    [self evaluateMathomaticString: @"clear all"];
     [self evaluateMathomaticString: input];
     [controller release];
     controller = nil;
@@ -54,6 +55,7 @@
     else if (([result isEqualToString: @"Differentiation failed."]) || ([result isEqualToString: @"No current equation or expression."]))
         return @"The derivative could not be calculated.";
     else {
+        result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
         if (wasEquation){
             UIAlertView * warning = [[UIAlertView alloc] initWithTitle:@"Note" message:@"The expression was an equation. Mathomatic only took the derivative of the right hand side." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
             [warning show];

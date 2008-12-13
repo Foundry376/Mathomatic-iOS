@@ -12,6 +12,7 @@
 @interface ExpressionButtonView : UIControl {
     MathomaticExpression * expression;
     UIImageView * expressionImageView;
+    BOOL showTip;
 }
 
 @property (nonatomic, retain, setter=setExpression:) MathomaticExpression * expression;

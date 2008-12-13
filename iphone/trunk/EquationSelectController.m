@@ -79,6 +79,7 @@
 
 - (void)cancel
 {
+    [delegate equationSelectCancelled];
     [self.parentViewController dismissModalViewControllerAnimated:YES];
 }
 
@@ -96,8 +97,11 @@
 
 - (void)dealloc {
     [equations release];
+    [equationCells release];
+    
     [activeEquations release];
     [variables release];
+    [delegate release];
     
     [super dealloc];
 }

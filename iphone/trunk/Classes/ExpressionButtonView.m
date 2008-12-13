@@ -63,7 +63,12 @@
                                     content.width * scaleFactor, 
                                     content.height * scaleFactor);
     
-    [self setFrame: CGRectMake(self.frame.origin.x, self.frame.origin.y, content.width*scaleFactor + padding.width * 2, content.height*scaleFactor + padding.height * 2)];
+    showTip = NO;
+    if (scaleFactor < 0.65){
+        showTip = YES;
+        [self setFrame: CGRectMake(self.frame.origin.x, self.frame.origin.y, content.width*scaleFactor + padding.width * 2, content.height*scaleFactor + padding.height * 2 + 18)];
+    }else
+        [self setFrame: CGRectMake(self.frame.origin.x, self.frame.origin.y, content.width*scaleFactor + padding.width * 2, content.height*scaleFactor + padding.height * 2)];
     [expressionImageView setFrame: content_fit];
 }
 
@@ -92,6 +97,11 @@
         right = [[UIImage imageNamed: @"equation_highlight_right.png"] CGImage];
     }
     
+    if (showTip){
+        CGContextDrawImage(c, CGRectMake(0, 0, 320, 18), [[UIImage imageNamed:@"viewLarger.png"] CGImage]);
+        CGContextTranslateCTM(c, 0, 18);
+        size.height -= 18;
+    }
     float a = floor(25 * scale);
     
     CGContextDrawImage(c, CGRectMake(0, 0, a, size.height), left);

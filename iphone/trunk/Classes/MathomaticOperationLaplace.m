@@ -41,9 +41,10 @@
         return @"Laplace transform failed. The expression is not a polynomial.";
     else if ([result isEqualToString:@"No current equation or expression."])
         return @"Laplace transform failed. The expression is not a polynomial.";
-    else 
+    else {
+        result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
         [self addInputMathomaticString: result];
-    
+    }
     return nil;
 }
 

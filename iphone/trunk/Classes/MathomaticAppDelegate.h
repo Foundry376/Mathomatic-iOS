@@ -10,7 +10,7 @@
 
 @class MathomaticViewController;
 
-@interface mathomaticAppDelegate : NSObject <UIApplicationDelegate> {
+@interface MathomaticAppDelegate : NSObject <UIApplicationDelegate> {
     UIWindow *window;
     MathomaticViewController *viewController;
 }

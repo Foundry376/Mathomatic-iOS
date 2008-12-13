@@ -50,7 +50,6 @@
 
 - (void)setMathomaticText:(NSString*)t
 {
-    [mathomaticText release];
     mathomaticText = [t retain];
     optimizeEquationImageParenthesis = YES;
     
@@ -61,7 +60,6 @@
     equationText = [equationText stringByReplacingOccurrencesOfString:@"e#" withString:@"e"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"i#" withString:@"i"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"sign" withString:@"±1"];
-    equationText = [equationText stringByReplacingOccurrencesOfString:@" " withString:@""];
     [equationText retain];
     
 }
@@ -93,7 +91,7 @@
     // Otherwise, just look for illegial characters and combinations of characters.
     if (![self isEquation]){
         NSString * illegialStartCharacters = @"*/)^=";
-        NSString * illegialEndCharacters = @"*/^-+=";
+        NSString * illegialEndCharacters = @"*/^-+=.";
         
         // make sure the equation is not an empty string.
         if ([equationText length] == 0)
@@ -148,11 +146,13 @@
 
 - (UIImage*)equationImage
 {
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    
     // computing the image is expensive, so we only want to do it once.
     if (equationImage == nil)
     {
         NSMutableArray          * chunks = [NSMutableArray array];
-        NSMutableString         * openBuffer = [[NSMutableString alloc] initWithCapacity: [equationText length]];
+        NSMutableString         * openBuffer = [NSMutableString stringWithCapacity: [equationText length]];
         UIView                  * equationView;
         EquationContainerView   * root;
         int                     location = 0;
@@ -167,9 +167,7 @@
             if (isOperator){
                 if ([openBuffer length] > 0){
                     [chunks addObject: openBuffer];
-                    
-                    [openBuffer release];
-                    openBuffer = [[NSMutableString alloc] initWithCapacity: [equationText length]];
+                    openBuffer = [NSMutableString stringWithCapacity: [equationText length]];
                 }
                 [chunks addObject: c];
                 
@@ -181,8 +179,6 @@
         // If there is a chunk remaining, add it before we analyze the result.
         if ([openBuffer length] > 0){
             [chunks addObject: openBuffer];
-            [openBuffer release];
-            openBuffer = nil;
         }
     
         // create a containerView to be the base of our expression
@@ -244,6 +240,7 @@
             [root finalizeFrame];
             failed = ![root isTreeLegal];
         }
+        [root unlink];
         
         if (!failed){    
             equationView = root;
@@ -259,6 +256,10 @@
             equationView = l;
         }
         
+        if (equationImage){
+            [equationImage release];
+            equationImage = nil;
+        }
         CGSize imageSize = equationView.bounds.size;
         UIGraphicsBeginImageContext(imageSize);
         [equationView.layer renderInContext: UIGraphicsGetCurrentContext()];
@@ -266,6 +267,7 @@
         UIGraphicsEndImageContext();
         [equationImage retain];
     }
+    [pool release];
     return equationImage;
 }
 
@@ -285,6 +287,14 @@
  
     int r = [mathomaticText rangeOfString:@"="].location;
     return [MathomaticExpression expressionWithMathomaticText: [mathomaticText substringFromIndex: r + 1]];
+}
+
+- (void)dealloc
+{
+    [mathomaticText release];
+    [equationText release];
+    [equationImage release];
+    [super dealloc];
 }
 
 @end

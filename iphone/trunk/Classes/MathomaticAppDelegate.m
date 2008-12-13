@@ -6,10 +6,11 @@
 //  Copyright __MyCompanyName__ 2008. All rights reserved.
 //
 
-#import "mathomaticAppDelegate.h"
+#import "MathomaticAppDelegate.h"
 #import "MathomaticViewController.h"
+#import "Mathomatic.h"
 
-@implementation mathomaticAppDelegate
+@implementation MathomaticAppDelegate
 
 @synthesize window;
 @synthesize viewController;
@@ -20,8 +21,16 @@
     // Override point for customization after app launch    
     [window addSubview:viewController.view];
     [window makeKeyAndVisible];
+    
+    // call matho_init and make sure we're ready to start. This also clears any old steps and output,
+    // so re-performing doesn't have any averse affects.
+    matho_init();
 }
 
+- (void)applicationWillTerminate:(UIApplication *)application
+{
+    [viewController save];
+}
 
 - (void)dealloc {
     [viewController release];

@@ -29,6 +29,7 @@
     if ([result isEqualToString: @"Equation space is empty."])
         return @"The expression could not be simplified.";
     
+    result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
     [self addInputMathomaticString: result];
     [controller release];
     controller = nil;

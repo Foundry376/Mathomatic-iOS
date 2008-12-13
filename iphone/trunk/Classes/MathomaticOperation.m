@@ -47,9 +47,6 @@
 
 - (void)performMathomaticSetup
 {
-    matho_init();
-    [steps removeAllObjects];
-    [stepNames removeAllObjects];
 }
 
 // If a string is returned, it is displayed as an error
@@ -57,13 +54,12 @@
 {
     MathomaticExpression * input = [inputs lastObject];
     
-    // call matho_init and make sure we're ready to start. This also clears any old steps and output,
-    // so re-performing doesn't have any averse affects.
-    [self performMathomaticSetup];
+    [steps removeAllObjects];
+    [stepNames removeAllObjects];
     
     // unload all of the expressions from mathomatic, so don't accidentally solve using expressions
     // we don't want!
-    [self evaluateMathomaticString: @"clear all"];
+    clear_all();
     
     // if the expression contains no variables and is not an equation, we want to approximate it's value.
     // This is done by prefixing the expression with a=, and then approximating and removing the left hand
@@ -72,10 +68,22 @@
     {
         NSString * equation = [NSString stringWithFormat: @"a=%@", [input mathomaticText]];
         [self evaluateMathomaticString: equation];
-        NSString * result = [self evaluateMathomaticString: @"approximate"];
         
+        NSString * result = [self evaluateMathomaticString: @"approximate"];
+        result = [result stringByReplacingOccurrencesOfString:@" " withString:@""];
+        
+        // get the right hand side of the result (to chop of the a=)
+        MathomaticExpression * rhs = [[MathomaticExpression expressionWithMathomaticText: result] rhs];
+        result = [rhs mathomaticText];
+        
+        // check to see if the result is a simple fraction that we should display as a decimal.
+        NSArray * components = [result componentsSeparatedByString: @"/"];
+        if (([components count] == 2) && ([result rangeOfCharacterFromSet: [NSCharacterSet characterSetWithCharactersInString:@"*+-^pixyz="]].location == NSNotFound))
+            result = [[NSNumber numberWithFloat: [[components objectAtIndex:0] floatValue] / [[components objectAtIndex:1] floatValue]] stringValue];
+        
+        // Add the result to our inputs
         if (![result isEqualToString: @"Equation space is empty."]){
-            [self addInput: [[MathomaticExpression expressionWithMathomaticText: result] rhs]];
+            [self addInputMathomaticString: result];
             [inputs removeObject: input];
         }
     } else {
@@ -124,15 +132,27 @@
 {
     char * buffer = NULL;
     matho_process([[i mathomaticText] cStringUsingEncoding: NSStringEncodingConversionAllowLossy], &buffer);
-    if (buffer != NULL) 
-        return [NSString stringWithCString: buffer];
-    else
+    if (buffer != NULL){
+        NSString * result = [NSString stringWithCString: buffer];
+        free(buffer);
+        return result;
+    }else
         return nil;
 }
 
 - (NSString*)evaluateMathomaticString:(NSString*)i
 {
     return [self evaluateExpression: [MathomaticExpression expressionWithMathomaticText: i]];
+}
+
+- (void)dealloc
+{
+    [inputs release];
+    [steps release];
+    [stepNames release];
+    [controller release];
+    [name release];
+    [super dealloc];
 }
 
 

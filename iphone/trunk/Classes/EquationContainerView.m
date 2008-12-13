@@ -121,7 +121,8 @@
     for (EquationAbstractView * v in self.innerEquations)
         [v finalizeTextSize: parentTextSize];
     
-    minHeight = parentTextSize+kParenthesisPadding*2;
+    minHeight = parentTextSize;
+    //minHeight = parentTextSize+kParenthesisPadding*2;
 }
 
 - (void)finalizeFrame
@@ -207,7 +208,16 @@
     return description;
 }
 
+- (void)unlink
+{
+    for (EquationAbstractView * view in self.innerEquations)
+        [view unlink];
+    [parent release];
+    parent = nil;
+}
+
 - (void)dealloc {
+    [innerEquations release];
     [super dealloc];
 }
 
