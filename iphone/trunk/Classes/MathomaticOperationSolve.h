@@ -19,5 +19,6 @@
 - (NSString*)perform;
 - (NSString*)prepareWithDelegate:(MathomaticViewController*)c;
 - (void)equationsSelected:(NSArray*)equations solveVariable:(NSString*)var;
+- (void)equationSelectCancelled;
 
 @end
