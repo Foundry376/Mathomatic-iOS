@@ -62,7 +62,7 @@
  * Do not set to less than 100.
  */
 #if	HANDHELD
-#define	DEFAULT_N_TOKENS	300
+#define	DEFAULT_N_TOKENS	3000
 #else
 #define	DEFAULT_N_TOKENS	30000
 #endif

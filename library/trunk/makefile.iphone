@@ -16,7 +16,7 @@ LIBRARY=1
 
 VERSION		= `cat VERSION`
 CFLAGS		+= -O2 -Wuninitialized -Wunused -Wshadow -Wformat -Wparentheses # gcc specific flags
-CFLAGS		+= -DUNIX -DLIBRARY -DVERSION=\"$(VERSION)\" # C compiler flags
+CFLAGS		+= -DUNIX -DLIBRARY -DHANDHELD -DVERSION=\"$(VERSION)\" # C compiler flags
 LIBS		+= -lm # libraries to link
 
 # "make READLINE=1" to include readline support:
