@@ -36,20 +36,30 @@
         }
         
     } else {
-        BOOL previousIsVariable;
-        BOOL typedIsVariable;
+        BOOL addMultiplication;
+        BOOL typedIsNotOperator;
+        NSString * typed = nil;
         
-        NSString * typed = [button titleForState: UIControlStateNormal];
-        typedIsVariable = ([typed rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+        if (button == buttonAns){
+            if ([delegate lastExpression] == nil) return;
+            typed = [[delegate lastExpression] equationText];
+        }else
+            typed = [button titleForState: UIControlStateNormal];
+            
+        typedIsNotOperator = ([typed rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"+-*/^=()"]].location != 0);
         
         if ([fieldString length] > 0){
             NSString * previous = [fieldString substringFromIndex: [fieldString length] - 1];
-            previousIsVariable = ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+            addMultiplication = typedIsNotOperator && ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+            // for some reason mathomatic can't handle two blocks of parenthesis without a * inbetween. (5)(5) != 25?
+            if (([previous isEqualToString: @")"]) && ([typed isEqualToString:@"("]))
+                addMultiplication = YES;
+        
         } else {
-            previousIsVariable = NO;
+            addMultiplication = NO;
         }
         
-        if (previousIsVariable && typedIsVariable)
+        if (addMultiplication)
             [fieldString appendFormat: @"*%@", typed];
         else
             [fieldString appendString: typed];
@@ -76,13 +86,14 @@
     return [NSMutableString stringWithString: fieldString];
 }
 
-- (void)setField:(NSString*)str
+- (void)setField:(MathomaticExpression*)e
 {
     if (fieldString == nil)
         fieldString = [[NSMutableString alloc] init];
         
-    [fieldString setString: str];
-    [fieldScrollView setExpression: [MathomaticExpression expressionWithEquationText: [fieldString stringByAppendingString: @"•"]]];
+    [fieldString setString: [e equationText]];
+    MathomaticExpression * f = [MathomaticExpression expressionWithEquationText: [fieldString stringByAppendingString: @"•"]];
+    [fieldScrollView setExpression: f];
 }
 
 - (void)dealloc {

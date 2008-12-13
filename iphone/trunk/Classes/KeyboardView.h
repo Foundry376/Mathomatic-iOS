@@ -28,6 +28,7 @@
     
     IBOutlet UIButton *buttonAdd;
     IBOutlet UIButton *buttonPlusMinus;
+    IBOutlet UIButton *buttonAns;
     IBOutlet UIButton *buttonMultiply;
     IBOutlet UIButton *buttonDivide;
     IBOutlet UIButton *buttonSubtract;
@@ -60,6 +61,6 @@
 
 - (BOOL)fieldIsBlank;
 - (NSMutableString*)field;
-- (void)setField:(NSString*)str;
+- (void)setField:(MathomaticExpression*)e;
 
 @end

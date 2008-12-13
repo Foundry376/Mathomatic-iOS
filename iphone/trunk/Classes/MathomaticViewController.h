@@ -18,6 +18,8 @@
 @interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MathomaticOperationTableViewCellDelegate> {
     IBOutlet KeyboardView           *keyboard;
     IBOutlet UIButton               *keyboardSlideButton;
+    IBOutlet UIActivityIndicatorView *spinner;
+    NSTimer                         * spinnerTimer;
     IBOutlet UITableView            *commandHistory;
     NSMutableArray                  *commandStack;
     NSMutableArray                  *commandStackCells;
@@ -29,6 +31,7 @@
 
 - (IBAction)aboutPressed:(id)sender;
 - (IBAction)keyboardSlideToggle:(id)sender;
+- (void)save;
 
 - (void)performCommand:(MathomaticOperation*)c;
 - (void)addCommand:(MathomaticOperation*)c;

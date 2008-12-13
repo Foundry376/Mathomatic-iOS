@@ -15,6 +15,7 @@
 #import "MathomaticOperationFactor.h"
 #import "MathomaticOperationUnfactor.h"
 #import "MathomaticOperationLaplace.h"
+#import "MathomaticOperationTaylor.h"
 #import "MathomaticOperationIntegral.h"
 #import "MathomaticOperationSolve.h"
 #import "MathomaticOperationSimplify.h"
@@ -69,7 +70,7 @@
     [keyboardSlideButton setFrame: CGRectMake([keyboardSlideButton frame].origin.x, 417, [keyboardSlideButton frame].size.width, [keyboardSlideButton frame].size.height)];
 
     // load the command stack from the saved archive, if one exists
-    commandStack = [[NSKeyedUnarchiver unarchiveObjectWithFile: @"commandStack.nsarchive"] retain];
+    commandStack = [[NSKeyedUnarchiver unarchiveObjectWithFile: [[NSString stringWithString: @"~/Documents/commands.stack"] stringByExpandingTildeInPath]] retain];
     if (!commandStack)
         commandStack = [[NSMutableArray alloc] init];
 
@@ -81,6 +82,7 @@
         [commandStackCells addObject: row];
     }
     
+    spinnerTimer = nil;
     [commandHistory setSeparatorStyle: UITableViewCellSeparatorStyleNone];
     
     // if there are items in the stack, make sure we load them into the table 
@@ -92,12 +94,12 @@
     }
 }
 
-- (void)viewWillDisappear:(BOOL)animated
+- (void)save
 {   
     // if we are not just showing a sheet, the application is probably closing.
     // save all the items in the commandStack
     if (self.modalViewController == nil)
-        [NSKeyedArchiver archiveRootObject:commandStack toFile:@"commandStack.nsarchive"];
+        [NSKeyedArchiver archiveRootObject:commandStack toFile:[[NSString stringWithString: @"~/Documents/commands.stack"] stringByExpandingTildeInPath]];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
@@ -120,15 +122,42 @@
 
 - (void)performCommand:(MathomaticOperation*)c
 {
-    NSString * error = [c perform];
+    [spinnerTimer invalidate];
+    [spinnerTimer release];
+    spinnerTimer = [[NSTimer scheduledTimerWithTimeInterval: 0.5 target:spinner selector:@selector(startAnimating) userInfo:nil repeats:NO] retain];
+    [NSThread detachNewThreadSelector:@selector(performCommandThreaded:) toTarget:self withObject:c];
     
-    if (!error)
+}
+
+- (void)performCommandThreaded:(MathomaticOperation*)c
+{
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    NSString * error = [c perform];
+    NSDictionary * dict = [NSMutableDictionary dictionaryWithObject:c forKey:@"operation"];
+    if (error != nil)
+        [dict setValue:error forKey:@"error"];
+        
+    [self performSelectorOnMainThread:@selector(performCommandDone:) withObject:dict waitUntilDone:YES];
+    [pool release];
+}
+
+- (void)performCommandDone:(NSDictionary*)result
+{
+    MathomaticOperation * c = [result objectForKey:@"operation"];
+    
+    if (![result objectForKey: @"error"])
         [self addCommand: c];
     else {
-        UIAlertView * v = [[UIAlertView alloc] initWithTitle:@"Error" message:error delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView * v = [[UIAlertView alloc] initWithTitle:@"Error" message:[result objectForKey: @"error"] delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [v show];
         [v release];
     }
+    [spinnerTimer invalidate];
+    [spinnerTimer release];
+    spinnerTimer = nil;
+    
+    [c release];
+    [spinner stopAnimating];
 }
 
 - (void)addCommand:(MathomaticOperation*)c
@@ -210,7 +239,7 @@
 // the options are always the same. They are just provided for future use.
 - (NSArray*)recentExpressions:(BOOL)equationsOnly unique:(BOOL)unique
 {
-    NSMutableArray * recent = [[NSMutableArray alloc] init];
+    NSMutableArray * recent = [NSMutableArray array];
     for (int ii = [commandStack count] - 1; ii >= 0; ii --)
     {
         MathomaticOperation * op = [commandStack objectAtIndex: ii];
@@ -255,9 +284,18 @@
         [alert release];
     } else {
         // display the operations sheet
-        UIActionSheet * operationSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Integral...", @"Derivative...", @"Solve...", @"Laplace...", @"Factor", @"Unfactor", @"Simplify", nil];
+        UIActionSheet * operationSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Integral...", @"Derivative...", @"Solve...", @"Laplace...", @"Taylor...", @"Factor", @"Unfactor", @"Simplify", nil];
         [operationSheet showInView: self.view];
+        
+        int y = 52;
+        for (UIView * subview in [operationSheet subviews]){
+            CGRect f = [subview frame];
+            f.origin.y = y;
+            y += f.size.height + 6;
+            [subview setFrame: f];
+        }
         [operationSheet release];
+        
     }
 }
 
@@ -298,18 +336,22 @@
     } else if (buttonIndex == 3){
         op = [[MathomaticOperationLaplace alloc] init];
     } else if (buttonIndex == 4){
-        op = [[MathomaticOperationFactor alloc] init];
+        op = [[MathomaticOperationTaylor alloc] init];
     } else if (buttonIndex == 5){
-        op = [[MathomaticOperationUnfactor alloc] init];
+        op = [[MathomaticOperationFactor alloc] init];
     } else if (buttonIndex == 6){
+        op = [[MathomaticOperationUnfactor alloc] init];
+    } else if (buttonIndex == 7){
         op = [[MathomaticOperationSimplify alloc] init];
-    }
+    } else if (buttonIndex == 8)
+        return;
     
     NSString * error = [op prepareWithDelegate: self];
     if (error != nil){
         UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alert show];
         [alert release];
+        [op release];
     }
 }
 
@@ -317,7 +359,7 @@
 
 - (void)mathomaticOperationTableViewCellClicked:(MathomaticExpression*)expression
 {
-    [keyboard setField: [expression equationText]];
+    [keyboard setField: expression];
 }
 
 @end
