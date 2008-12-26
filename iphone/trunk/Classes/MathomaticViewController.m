@@ -126,7 +126,7 @@
     [spinnerTimer release];
     spinnerTimer = [[NSTimer scheduledTimerWithTimeInterval: 0.5 target:spinner selector:@selector(startAnimating) userInfo:nil repeats:NO] retain];
     [NSThread detachNewThreadSelector:@selector(performCommandThreaded:) toTarget:self withObject:c];
-    
+        
 }
 
 - (void)performCommandThreaded:(MathomaticOperation*)c

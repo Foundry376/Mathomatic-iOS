@@ -37,7 +37,6 @@
         
     } else {
         BOOL addMultiplication;
-        BOOL typedIsNotOperator;
         NSString * typed = nil;
         
         if (button == buttonAns){
@@ -46,11 +45,17 @@
         }else
             typed = [button titleForState: UIControlStateNormal];
             
-        typedIsNotOperator = ([typed rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"+-*/^=()"]].location != 0);
         
         if ([fieldString length] > 0){
             NSString * previous = [fieldString substringFromIndex: [fieldString length] - 1];
-            addMultiplication = typedIsNotOperator && ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+            
+            BOOL typedIsNotOperator = ([typed rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"+-*/^=)"]].location != 0);
+            BOOL typedIsOpenParen = ([typed rangeOfString:@"("].location == 0);
+            BOOL previousIsNumberic = ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]].location == 0);
+            BOOL previousIsVariable = ([previous rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"xyzπie"]].location == 0);
+            
+            addMultiplication = ((typedIsNotOperator && previousIsVariable) || (typedIsOpenParen && previousIsNumberic));
+            
             // for some reason mathomatic can't handle two blocks of parenthesis without a * inbetween. (5)(5) != 25?
             if (([previous isEqualToString: @")"]) && ([typed isEqualToString:@"("]))
                 addMultiplication = YES;
