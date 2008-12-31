@@ -71,7 +71,7 @@ long double	ceill(), sqrtl(), fmodl(), strtold();
 long double max_integer;		/* largest value of a long double integral value */
 long double start_value;		/* where to start finding primes */
 long double number;			/* number of primes to display */
-long double default_number = 30;	/* default number of primes to display */
+long double default_number = 20;	/* default number of primes to display */
 long double end_value;			/* where to stop finding primes */
 long double skip_multiples[] = {	/* Additive array that skips over multiples of 2, 3, 5, and 7. */
 	10, 2, 4, 2, 4, 6, 2, 6,

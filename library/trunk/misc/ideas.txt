@@ -16,3 +16,7 @@ GSL, so I may not do this.
 
 Implement complex number factorials, when an accurate floating point complex
 number gamma calculating function is found.  The GSL does this.
+
+Have "solve verify" verify individual solutions instead of the whole set of
+solutions at once.  This will show which solutions are correct instead of
+just saying yes or no.

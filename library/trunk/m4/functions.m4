@@ -8,8 +8,7 @@ m4_define(`abs', `(|($1)|)'); function abs(x) = absolute value = |x|
 m4_define(`fact', `(($1)!)'); function fact(x) = factorial = x!
 m4_define(`phi', `((1+5^.5)/2)'); phi = the golden ratio constant
 
-; floor() and ceil() only work properly with "set true_modulus" enabled.
-set true_modulus
+set modulus_mode=2 ; mode 1 or 2 required for floor() and ceil().
 m4_define(`floor', `(($1)-($1)%1)'); floor(x) = floor function, real x -> integer result
 m4_define(`ceil', `(($1)+(-($1))%1)'); ceil(x) = ceiling function, real x -> integer result
 m4_define(`int', `(($1)//1)'); int(x) = truncate to integer function, real x -> integer result

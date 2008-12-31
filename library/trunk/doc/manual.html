@@ -20,7 +20,7 @@
 
 <h2>Introduction</h2>
 <p>
-Mathomatic is a generalized symbolic math interpreter that can:
+Mathomatic is a symbolic math interpreter that can generally:
 
 <ul>
 <li>
@@ -38,7 +38,7 @@ carry out quick calculations, etc.
 </ul>
 
 <p>
-Mathomatic development started in 1986 and it was originally written in
+Mathomatic development started in the year 1986 and it was originally written in
 Microsoft C for MS-DOS and released as shareware.
 It was later ported to the GNU C Compiler (GCC) under Linux and became free software by
 publishing under the GNU Lesser General Public License (LGPL version 2.1).
@@ -148,9 +148,9 @@ LHS          RHS
 </pre>
 
 <p>
-In the above equation, the variable <b>a</b> is called the dependent
-variable because its value depends on the variables <b>b</b> and <b>c</b>.
-<b>b</b> and <b>c</b> are called independent variables.  In Mathomatic,
+In the above equation, the variable <b>a</b> is called the <strong>dependent</strong>
+variable because its value depends on the <strong>independent</strong> variables <b>b</b> and <b>c</b>.
+In Mathomatic,
 any variable can be made the dependent variable by simply typing
 the variable name in at the prompt.
 This will <a href="am.html#solving">solve</a> the equation
@@ -171,18 +171,21 @@ Here is the above equation entered into Mathomatic and solved for <b>b</b>:
 </pre>
 
 <p>
-The "#1:" listed in front of each displayed equation always indicates the equation space number it is stored in.
+The "<tt>#1:</tt>" listed in front of each displayed equation always indicates the equation space number it is stored in.
 
 <a name="constants"></a>
 <h3>Constants</h3>
 <p>
 All constants are stored internally as
 IEEE 754 standard 64-bit (8 bytes) double precision floating point numbers.
-They may be entered in normal, scientific, or hexadecimal notation.
-They are displayed in decimal (up to 14 digits) in normal or scientific notation,
+They may be entered as normal decimal (base 10) numbers or in scientific notation
+(also called exponential notation).
+Constants may also be entered using hexadecimal (base 16) notation.
+<p>
+Constants are displayed in decimal (rounded to 14 digits) in normal or scientific notation,
 whichever is shortest.
-Results exceeding 14 digits are always rounded to 14 digits and
-are usually accurate from 12 to 14 digits, due to accumulated round-off error.
+Results are usually accurate from 12 to 14 digits, due to accumulated round-off error,
+as all constants are stored as double precision floats.
 <p>
 Excepting constants with a name (like "inf" for the infinity constant),
 constants always start with a decimal digit (0..9) or a period.
@@ -194,13 +197,13 @@ Examples of equivalent constants follow:
 <table summary="constant notation examples" border=1 cellpadding=5>
 <tr>
 <th>
-Normal Notation
+Normal Notation (base 10)
 </th>
 <th>
-Scientific Notation
+Scientific Notation (base 10)
 </th>
 <th>
-Hexadecimal Notation
+Hexadecimal Notation (base 16)
 </th>
 </tr>
 <tr>
@@ -237,6 +240,11 @@ Hexadecimal Notation
 </td>
 </tr>
 </table>
+
+<p>
+The exact syntax to enter constants as above may be found by
+looking up the C library <code>strtod(3)</code> function.
+In the Unix shell, <tt>"man strtod"</tt> will do this.
 
 <ul>
 <li>
@@ -281,11 +289,12 @@ Mathomatic internally converts a fraction to a single floating point value,
 then may convert it back to a fraction for display
 after all floating point arithmetic has been done.
 <p>
-Irrational numbers, such as the square root of two: <b>2^(1/2)</b>, are preserved and simplified, if possible.
-This can be turned off with the command "<a href="am.html#set">set</a> no preserve_roots";
+Irrational numbers, such as the square root of two: <b>2^(1/2)</b>, are preserved and simplified,
+unless explicitly approximated.
+This can be turned off with the command "<a href="am.html#set">set</a> no preserve_surds";
 <b>2^(1/2)</b> will then always be approximated as <b>1.4142135623731</b>.
 <p>
-Denominators are usually rationalized in Mathomatic, so <b>1/2^(1/2)</b> becomes <b>2^(1/2)/2</b>.
+Denominators are usually rationalized in Mathomatic, so <b>1/(2^(1/2))</b> becomes <b>(2^(1/2))/2</b>.
 
 <a name="variables"></a>
 <h3>Variables</h3>
@@ -312,6 +321,7 @@ The following variables are predefined and are not normal variables:
 <b>pi</b> or <b>pi#</b> - the universal constant pi (3.1415926&hellip;)
 <b>i</b> or <b>i#</b> - the imaginary number (square root of -1)
 <b>sign</b>, <b>sign1</b>, <b>sign2</b>, &hellip; - may only be +1 or -1
+<b>integer</b> - may only be an integer value
 </pre>
 
 <p>
@@ -343,14 +353,17 @@ has been given the same precedence as times and divide.
 So in Mathomatic <b>-2^x</b> will give the expected <b>(-2)^x</b>,
 and not <b>-1*(2^x)</b>, which are completely different.
 <p>
-The default operator for variables and constants is multiply (<b>*</b>).
-If a variable or constant is entered when an operator is expected,
+The default operator is multiply (<b>*</b>).
+If an expression (operand) is entered when an operator is expected,
 a multiply operator is automatically inserted.
+For example, entering <b>2x</b>, <b>2(x)</b>, and <b>(2)(x)</b>
+all result in the expression <b>2*x</b>.
 <p>
 The modulo operator <b>a % b</b> (spoken as "a modulo b")
 gives the remainder of the division <b>a / b</b>.
-Whether the result is always positive or has the same sign as the dividend depends
-on the "<a href="am.html#set">set</a> true_modulus" option.
+The sign of the result depends
+on the "<a href="am.html#set">set</a> modulus_mode" option.
+Using the "integer" variable allows further simplification here.
 <p>
 The integral divide operator <b>a // b</b> divides <b>a</b> by <b>b</b>
 and then truncates by zeroing the fractional part to make the result an integer.
@@ -384,8 +397,8 @@ a + b*i#
 where <b>a</b> is the <a href="am.html#real">real part</a>
 and <b>b</b> is the <a href="am.html#imaginary">imaginary part</a>.
 <b>i#</b> represents the square root of -1
-("-1^.5" in Mathomatic notation), and may be entered into Mathomatic as "i",
-it will be displayed as "i#".
+("<tt>-1^.5</tt>" in Mathomatic notation), and may be entered into Mathomatic as "<tt>i</tt>",
+it will be displayed as "<tt>i#</tt>".
 <p>
 The imaginary number <b>i#</b> may appear anywhere within an expression,
 as many times as you want, Mathomatic will handle and simplify it properly.

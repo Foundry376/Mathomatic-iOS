@@ -3,20 +3,20 @@
 VERSION		= `cat VERSION`
 CFLAGS		= -O2 -DCYGWIN -DVERSION=\"$(VERSION)\"
 LDFLAGS		= -s
-LIBS		= -lm
+LDLIBS		= -lm
 
 CFLAGS		+= -DREADLINE
-LIBS		+= -lreadline -lcurses
+LDLIBS		+= -lreadline -lcurses
 
 AOUT		= mathomatic.exe
 OBJECTS		= main.o globals.o am.o solve.o help.o parse.o cmds.o simplify.o factor.o super.o \
 		  unfactor.o poly.o diff.o integrate.o complex.o complex_lib.o list.o gcd.o factor_int.o
 
 all: $(AOUT)
-	@echo Make completed.
 
-check test:
-	cd tests && time ../$(AOUT) -t all 0<&- >test.out && fc all.out test.out
+check test: all
+	cd tests && time ../$(AOUT) -t all 0<&- >test.out && diff -u all.out test.out
+	@rm tests/test.out
 	@echo All tests passed.
 
 baseline:
@@ -25,8 +25,9 @@ baseline:
 $(OBJECTS): includes.h am.h externs.h complex.h proto.h VERSION
 
 $(AOUT): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(AOUT)
+	$(CC) $(LDFLAGS) $(OBJECTS) $(LDLIBS) -o $(AOUT)
 
 clean:
-	rm -f *.o
-	rm -f lib/*.o
+	rm -f *.o *.a
+	rm -f lib/*.o lib/*.a
+	rm -f tests/test.out

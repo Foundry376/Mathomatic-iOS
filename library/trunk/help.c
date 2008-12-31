@@ -27,7 +27,9 @@ typedef	struct {
 static com_type com_list[] = {
 /*	command name,	alternate name,		function,		usage,							information */
 {	"approximate",	NULL,			approximate_cmd,	"[equation-number-ranges]",				"Approximate all numerical values in equation spaces." },
+#if	!LIBRARY
 {	"calculate",	NULL,			calculate_cmd,		"[\"repeat\"] [\"factor\"] [variable iterations]",	"Temporarily plug in values for variables and approximate." },
+#endif
 {	"clear",	NULL,			clear_cmd,		"[equation-number-ranges]",				"Delete expressions stored in memory so equation spaces can be reused.", "Tip: Use \"clear all\" to restart Mathomatic." },
 #if	!LIBRARY
 {	"code",		NULL,			code_cmd,		"[\"c\" or \"java\" or \"python\" or \"integer\"] [equation-number-ranges]",	"Output C, Java, or Python code for the specified equations.", "Related commands: simplify, optimize, and variables." },
@@ -55,8 +57,8 @@ static com_type com_list[] = {
 {	"list",		NULL,			list_cmd,		"[\"export\" or \"maxima\"] [equation-number-ranges]",	"Display equation spaces in single-line format." },
 #if	!LIBRARY
 {	"nintegrate",	NULL,			nintegrate_cmd,		"[\"trapezoid\"] variable [partitions]",		"Do numerical definite integration using Simpson's rule."},
-#endif
 {	"optimize",	NULL,			optimize_cmd,		"[equation-number-range]",				"Split up equations into smaller, more efficient equations.", "Related command: code." },
+#endif
 #if	!LIBRARY
 {	"pause",	NULL,			pause_cmd,		"[text]",						"Wait for user to press the Enter key. Optionally display a message." },
 #endif
@@ -176,7 +178,7 @@ char	*cp;
 				n = lhs[n][0].token.constant - 1;
 				goto return_ok;
 			}
-			
+#if	!LIBRARY
 			if (autocalc) {
 				/* the numerical input calculation */
 				if (n_lhs[n]) {
@@ -202,7 +204,7 @@ char	*cp;
 				n_rhs[n] = 0;
 				return true;
 			}
-			
+#endif
 		}
 return_ok:
 		cur_equation = n;
@@ -479,7 +481,7 @@ next_argument:
 			P("or on the Ubuntu Launchpad website:");
 			P("\thttp://bugs.launchpad.net/mathomatic\n");
 
-			P("Please include the version number:");
+			P("Please include version information:");
 			version_report();
 			return true;
 		}
@@ -516,6 +518,7 @@ next_argument:
 			P("    i or i# - the imaginary number (square root of -1)");
 			P("The above constants may also be used most anywhere variables are required.");
 			P("    sign, sign1, sign2, sign3, ... - variables that can only be +1 or -1");
+			P("    integer - variable that can only be an integer value");
 			P("    inf - floating point infinity constant (not a variable)\n");
 
 			P("Absolute value notation \"|x|\" and dual polarity \"+/-x\" are understood.");

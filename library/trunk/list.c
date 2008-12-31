@@ -15,18 +15,20 @@
 static int	flist();
 static int	flist_recurse();
 
-/* ANSI terminal color code array for 8 color ANSI, we don't use black */
+/* ANSI terminal color code array for 8 color ANSI, we don't use black or white */
+/* because the background may be the same color. */
 static int	carray[] = {
 	32,	/* green (default color) */
 	33,	/* yellow */
 	31,	/* red */
 	35,	/* magenta */
 	34,	/* blue */
-	36,	/* cyan */
-	37	/* white */
+	36	/* cyan */
 };
 
-/* Bright HTML color array */
+/* Bright HTML color array. */
+/* Used when HTML output and "set color" and "set bold" options are enabled. */
+/* Good looking with a dark background. */
 static char	*bright_html_carray[] = {
 	"#00FF00",	/* bright green (default color) */
 	"#FFFF00",
@@ -37,7 +39,8 @@ static char	*bright_html_carray[] = {
 	"#0000FF"
 };
 
-/* Dim HTML color array */
+/* Dim HTML color array for color HTML output. */
+/* Good looking with a white background. */
 static char	*html_carray[] = {
 	"green",	/* green (default color) */
 	"olive",
@@ -48,9 +51,9 @@ static char	*html_carray[] = {
 	"navy"
 };
 
-/* global variables for flist() */
-int	cur_line;	/* current line */
-int	cur_pos;	/* current position in the current line on the screen */
+/* global variables for flist() below */
+static int	cur_line;	/* current line */
+static int	cur_pos;	/* current position in the current line on the screen */
 
 /*
  * Reset terminal attributes function.
@@ -315,7 +318,7 @@ int	lang_code;	/* language code */
 
 /*
  * Display an expression in single-line format.
- * Use color if available.
+ * Use color if color mode is set.
  * The expression is not modified.
  *
  * Return number of characters output (excluding escape sequences).
@@ -776,8 +779,8 @@ int		int_flag;	/* integer arithmetic flag, should work with any language */
 }
 
 /*
- * Display an equation space in multi-line fraction format.
- * Use color if available.
+ * Display an equation space in 2D multi-line fraction format.
+ * Use color if color mode is set.
  *
  * Return the total width of the output (that is, the required number of screen columns)
  * or zero on failure.
@@ -850,6 +853,7 @@ make_smaller:
 		fprintf(gfp, "\n");
 	}
 	if (sind < n_rhs[n]) {
+/* output second half of split equation that was too wide to display on the screen without splitting */
 		fprintf(gfp, "\n");
 		for (cur_line = max2_line; cur_line >= min2_line; cur_line--) {
 			cur_pos = 0;
@@ -862,7 +866,9 @@ make_smaller:
 }
 
 /*
- * Display a line of an expression if "out_flag" is true.
+ * Display a line of an expression in 2D fraction format if "out_flag" is true.
+ * The number of the line to output is stored in the global variable cur_line.
+ * 0 is the middle line, lines above are positive, lines below are negative.
  * Use color if available.
  *
  * Return the width of the expression (that is, the required number of screen columns).

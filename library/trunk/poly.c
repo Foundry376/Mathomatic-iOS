@@ -693,10 +693,11 @@ long		v;
 }
 
 /*
- * Return true if passed expression is entirely integer.
+ * Return true if passed expression is entirely integer and all variables are
+ * integer like "integer" and "sign".
  *
- * Assuming the variables are integer, the result of evaluating
- * the expression must be integer if this returns true.
+ * The result of evaluating the expression must be integer if this returns true.
+ * Should be unfactored with uf_pplus() first for a proper determination.
  */
 int
 is_integer_expr(p1, n)
@@ -704,11 +705,13 @@ token_type	*p1;	/* expression pointer */
 int		n;	/* length of expression */
 {
 	int	i;
+	long	v;
 
+	parse_var(&v, V_INTEGER_NAME);
 	for (i = 0; i < n; i++) {
 		if ((p1[i].kind == OPERATOR && p1[i].token.operatr == DIVIDE)
 		    || (p1[i].kind == CONSTANT && fmod(p1[i].token.constant, 1.0))
-		    || (p1[i].kind == VARIABLE && p1[i].token.variable <= IMAGINARY)) {
+		    || (p1[i].kind == VARIABLE && p1[i].token.variable != v && (p1[i].token.variable & VAR_MASK) != SIGN)) {
 			return false;
 		}
 	}
@@ -717,7 +720,6 @@ int		n;	/* length of expression */
 
 /*
  * This routine is a modulus (%) simplifier for equation sides.
- * It does polynomial division, so tlhs and trhs are wiped out.
  *
  * Return true if expression was modified.
  */
@@ -739,7 +741,6 @@ int		*np, loc, level;
 	int	i1, i2, i3, i4, i5;
 	int	op, last_op2;
 	int	len1, len2, len3;
-	long	v;
 	int	diff_sign;
 
 	for (i = loc; i < *np && equation[i].level >= level;) {
@@ -857,18 +858,16 @@ int		*np, loc, level;
 					}
 					break;
 				}
-				/* remove integer*n multiples in x for x%n by doing */
-				/* polynomial division and replacing with remainder%n */
-				v = 0;
+#if	true
+				/* Remove integer*n multiples in x for x%n by doing */
+				/* polynomial division x/n and replacing with remainder%n. */
+				/* Globals tlhs[] and trhs[] are wiped out by the polynomial division here. */
+				long v = 0;
 				if (poly_div(&equation[j], len2, &equation[i+1], len1, &v)) {
+					uf_pplus(tlhs, &n_tlhs);	/* so integer%(integer^integer) isn't simplified to 0 */
 					if (is_integer_expr(tlhs, n_tlhs)) {
 						if ((*np + (n_trhs - len2)) > n_tokens)
 							error_huge();
-#if	!SILENT
-						if (var_count(tlhs, n_tlhs)) {
-							printf(_("Modulus simplification made some variables integer only.\n"));
-						}
-#endif
 						for (k = 0; k < n_trhs; k++)
 							trhs[k].level += level;
 						blt(&equation[j+n_trhs], &equation[j+len2], (*np - (j + len2)) * sizeof(token_type));
@@ -877,6 +876,7 @@ int		*np, loc, level;
 						return true;
 					}
 				}
+#endif
 			}
 		}
 	}

@@ -1154,7 +1154,7 @@ int		*side2np;	/* pointer to the length of "side2p" */
 		p2++;
 		p2->level = 2;
 		p2->kind = VARIABLE;
-		parse_var(&p2->token.variable, "integer");
+		parse_var(&p2->token.variable, V_INTEGER_NAME);
 		p2++;
 		p2->level = 2;
 		p2->kind = OPERATOR;

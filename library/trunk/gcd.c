@@ -140,8 +140,7 @@ double	*denominatorp;	/* returned denominator */
 			denominator /= divisor;
 		}
 		k3 = (numerator / denominator);
-		k4 = d;
-		if (fabs(k3 - k4) > (small_epsilon * fabs(k3))) {
+		if (fabs(k3 - d) > (small_epsilon * fabs(k3))) {
 			return false;	/* result is too inaccurate */
 		}
 /* numerator and denominator are integral */

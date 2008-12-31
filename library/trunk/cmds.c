@@ -11,11 +11,13 @@
 static int	sum_product();
 static int	complex_func();
 static int	elim_sub();
+#if	!LIBRARY
 static int	edit_sub();
 
 /* Global variables for the optimize command. */
 static int	opt_en[N_EQUATIONS];
 static int	last_temp_var = 0;
+#endif
 
 /*
  * Compare function for qsort(3).
@@ -52,9 +54,6 @@ version_report()
 {
 	fprintf(gfp, _("Mathomatic version %s\n"), VERSION);
 	fprintf(gfp, _("Compile flags used: "));
-#if	__STDC__
-	fprintf(gfp, "__STDC__ ");
-#endif
 #if	UNIX
 	fprintf(gfp, "UNIX ");
 #endif
@@ -346,6 +345,7 @@ int	product_flag;	/* true for product, otherwise sum */
 	return return_result(result_en);
 }
 
+#if	!LIBRARY
 /*
  * This function is for the "optimize" command.
  * It finds and substitutes all occurrences of the RHS of "en" in "equation".
@@ -587,6 +587,7 @@ char	*cp;
 	}
 	return rv;
 }
+#endif
 
 #if	READLINE
 /*
@@ -662,72 +663,70 @@ display_current_directory()
  * Output the current set options in a format suitable for reading back in.
  */
 void
-output_options()
+output_options(ofp)
+FILE	*ofp;	/* Output file pointer */
 {
-	fprintf(gfp, "precision = %d digits\n", precision);
+	fprintf(ofp, "precision = %d digits\n", precision);
 
 	if (!autosolve) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "autosolve\n");
+	fprintf(ofp, "autosolve\n");
 
 	if (!autocalc) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "autocalc\n");
+	fprintf(ofp, "autocalc\n");
 
 #if	!SILENT
-	fprintf(gfp, "debug_level = %d\n", debug_level);
+	fprintf(ofp, "debug_level = %d\n", debug_level);
 #endif
 
 	if (!case_sensitive_flag) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "case_sensitive\n");
+	fprintf(ofp, "case_sensitive\n");
 
 	if (!color_flag) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "color\n");
+	fprintf(ofp, "color\n");
 
 	if (!bold_colors) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "bold_colors\n");
+	fprintf(ofp, "bold_colors\n");
 
 	if (!display2d) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "display2d\n");
+	fprintf(ofp, "display2d\n");
 
 	if (quiet_mode) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "prompt\n");
+	fprintf(ofp, "prompt\n");
 
-	if (!preserve_roots) {
-		fprintf(gfp, "no ");
+	if (!preserve_surds) {
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "preserve_roots\n");
+	fprintf(ofp, "preserve_surds\n");
 
-	if (!true_modulus) {
-		fprintf(gfp, "no ");
-	}
-	fprintf(gfp, "true_modulus\n");
+	fprintf(ofp, "modulus_mode = %d\n", modulus_mode);
 
-	fprintf(gfp, "finance = %d\n", finance_option);
+	fprintf(ofp, "finance = %d\n", finance_option);
 
 	if (!factor_int_flag) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "factor_integers\n");
+	fprintf(ofp, "factor_integers\n");
 
 	if (!right_associative_power) {
-		fprintf(gfp, "no ");
+		fprintf(ofp, "no ");
 	}
-	fprintf(gfp, "right_associative_power\n");
+	fprintf(ofp, "right_associative_power\n");
 
-	fprintf(gfp, "special_variable_characters = %s\n", special_variable_characters);
+	fprintf(ofp, "special_variable_characters = %s\n", special_variable_characters);
 }
 
 /*
@@ -865,12 +864,26 @@ char	*cp;
 	}
 	if (strncasecmp(cp, "preserve", 8) == 0) {
 		cp = skip_param(cp);
-		preserve_roots = !negate;
+		preserve_surds = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "true_modulus", 10) == 0) {
+	if (strncasecmp(cp, "modulus_mode", 3) == 0) {
 		cp = skip_param(cp);
-		true_modulus = !negate;
+		if (negate) {
+			modulus_mode = 0;
+		} else {
+			i = decstrtol(cp, &cp1);
+			if (cp == cp1 || i < 0 || i > 2) {
+				error(_("Please specify the modulus mode number (0, 1, or 2)."));
+				printf(_("0 means modulus operator (%%) result has same sign as dividend,\n"));
+				printf(_("1 means computed result always has same sign as the divisor,\n"));
+                		printf(_("2 means the result is always positive or zero.\n"));
+				printf(_("Current value is %d.\n"), modulus_mode);
+				return false;
+			}
+			cp = cp1;
+			modulus_mode = i;
+		}
 		goto check_return;
 	}
 	if (strncasecmp(cp, "color", 5) == 0) {
@@ -937,7 +950,7 @@ char	*cp;
 	if (*cp == '\0') {
 		fprintf(gfp, _("Options are set as follows:\n\n"));
 
-		output_options();
+		output_options(gfp);
 
 		fprintf(gfp, "columns = %d\n", screen_columns);
 
@@ -1208,6 +1221,7 @@ char	*cp;
 }
 #endif
 
+#if	!LIBRARY
 /*
  * The calculate command.
  *
@@ -1224,13 +1238,11 @@ char	*cp;
 	sign_array_type	sa_mark, sa_value;
 	long		l, iterations = 1;
 	token_type	*source;
-	int			n;
-	int			diff_sign;
+	int		n;
+	int		diff_sign;
 	char		buf[MAX_CMD_LEN];
-	int			factor_flag = false, repeat_flag = false, value_entered;
+	int		factor_flag = false, repeat_flag = false, value_entered;
 
-	char 		outputBuf[2000];
-	
 	if (current_not_defined()) {
 		return false;
 	}
@@ -1331,7 +1343,7 @@ calc_again:
 			subst_var_with_exp(trhs, &n_trhs, tes, n_tes, it_v);
 			calc_simp(trhs, &n_trhs);
 			if (se_compare(trhs, n_trhs, tes, n_tes, &diff_sign) && !diff_sign) {
-				sprintf(outputBuf, _("Convergence reached after %ld iterations.\n"), l + 1);
+				fprintf(gfp, _("Convergence reached after %ld iterations.\n"), l + 1);
 				break;
 			}
 			blt(tes, trhs, n_trhs * sizeof(token_type));
@@ -1354,9 +1366,9 @@ calc_again:
 	}
 	counter_max = (1L << k) - 1L;
 	if (counter_max) {
-		sprintf(outputBuf, _("There are %ld solutions.\n"), counter_max + 1);
+		fprintf(gfp, _("There are %ld solutions.\n"), counter_max + 1);
 	}
-	sprintf(outputBuf, "\n");
+	fprintf(gfp, "\n");
 	for (counter = 0; counter <= counter_max; counter++) {
 		blt(tlhs, trhs, n_trhs * sizeof(token_type));
 		n_tlhs = n_trhs;
@@ -1380,46 +1392,39 @@ calc_again:
 		for (k1 = 0, k = false; k1 < ARR_CNT(sa_mark); k1++) {
 			if (sa_mark[k1]) {
 				if (k) {
-					sprintf(outputBuf, ", ");
+					fprintf(gfp, ", ");
 				} else {
-					sprintf(outputBuf, _("Solution number %ld with "), counter + 1);
+					fprintf(gfp, _("Solution number %ld with "), counter + 1);
 				}
 				list_var((long) SIGN + (((long) k1) << VAR_SHIFT), 0);
-				sprintf(outputBuf, "%s = ", var_str);
+				fprintf(gfp, "%s = ", var_str);
 				if (sa_value[k1]) {
-					sprintf(outputBuf, "-1");
+					fprintf(gfp, "-1");
 				} else {
-					sprintf(outputBuf, "1");
+					fprintf(gfp, "1");
 				}
 				k = true;
 			}
 		}
 		if (k)
-			sprintf(outputBuf, ":\n");
+			fprintf(gfp, ":\n");
 		calc_simp(tlhs, &n_tlhs);
 		if (factor_flag) {
 			simp_side(tlhs, &n_tlhs);
 		}
-		sprintf(outputBuf, " ");
+		fprintf(gfp, " ");
 		if (n_rhs[i]) {
 			list_proc(lhs[i], n_lhs[i], false);
-			sprintf(outputBuf, " = ");
+			fprintf(gfp, " = ");
 		}
 		list_factor(tlhs, &n_tlhs, factor_flag);
-		sprintf(outputBuf, "\n\n");
+		fprintf(gfp, "\n\n");
 	}
 	if (value_entered && repeat_flag)
 		goto calc_again;
-		
-	#if	LIBRARY
-		free(result_str);
-		result_str = strdup(outputBuf);
-	#endif
-
-	fprintf(gfp, outputBuf);
-
 	return true;
 }
+#endif
 
 /*
  * The clear command.
@@ -1956,6 +1961,13 @@ char	*cp;
 				if (factor_flag || factor_int_flag) {
 					factor_int_sub(i);
 				}
+#if     LIBRARY
+	                        if (gfp == stdout) {
+	                                free(result_str);
+	                                result_str = list_equation(i, false);
+	                                return(result_str != NULL);
+	                        }
+#endif
 				flist_equation(i);
 			}
 		}
@@ -2691,7 +2703,7 @@ char	*cp;
 	char	buf[MAX_CMD_LEN];
 
 	if (*cp == '\0') {
-		error(_("No file specified."));
+		error(_("No read file specified."));
 		return false;
 	}
 	fp = NULL;
@@ -2701,6 +2713,7 @@ char	*cp;
 		fp = fopen(cp, "r");
 		if (fp == NULL) {
 			error(_("Can't open input file."));
+			printf(_("Read of file \"%s\" failed.\n"), cp);
 			return false;
 		}
 	} else {
@@ -2772,7 +2785,7 @@ char	*cp;
 	FILE	*fp;
 	int	fd;
 	int	rv;
-	char	tmp_file[MAX_CMD_LEN];
+	char	tmp_file[PATH_MAX];
 
 	clean_up();	/* end any redirection */
 	if (*cp == '\0') {
@@ -2855,13 +2868,13 @@ char	*cp;
 
 	clean_up();	/* end any redirection */
 	if (*cp == '\0') {
-		error(_("No file specified."));
+		error(_("No save file specified."));
 		return false;
 	}
 #if	!SILENT
 	if (access(cp, F_OK) == 0) {
 		if (access(cp, W_OK)) {
-			error(_("Specified file is not writable."));
+			error(_("Specified save file is not writable."));
 			return false;
 		}
 		snprintf(prompt_str, sizeof(prompt_str), _("File \"%s\" exists, overwrite (y/n)? "), cp);
@@ -2873,7 +2886,7 @@ char	*cp;
 #endif
 	fp = fopen(cp, "w");
 	if (fp == NULL) {
-		error(_("Can't create specified file."));
+		error(_("Can't create specified save file."));
 		return false;
 	}
 	gfp = fp;

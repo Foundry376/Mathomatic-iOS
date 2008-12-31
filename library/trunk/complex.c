@@ -78,8 +78,8 @@ char	*cp;
 		radius_root = pow(radius, 1.0 / root);
 	}
 	check_err();
-	fprintf(gfp, _("\nThe polar coordinates are:\n%.12g amplitude and %.12g radians (%.12g degrees).\n\n"),
-	    radius, theta, theta * 180.0 / M_PI);
+	fprintf(gfp, _("\nThe polar coordinates are:\n%.*g amplitude and %.*g radians (%.*g degrees).\n\n"),
+	    precision, radius, precision, theta, precision, theta * 180.0 / M_PI);
 	if (root) {
 		if (c.im == 0.0) {
 			fprintf(gfp, _("The %.12g roots of (%.12g)^(1/%.12g) are:\n\n"), root, c.re, root);

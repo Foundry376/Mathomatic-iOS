@@ -179,8 +179,9 @@ multiple equation numbers and ranges may be specified for that command,
 separated by spaces.
 <p>
 A greater-than character (<b>&gt;</b>) may be appended to the end of any command line,
-followed by a file name.  This will redirect the output of that command to a file.
+followed by a file name.  This will redirect the output of the command to that file.
 If the file already exists, it will be overwritten without asking.
+Note that any debugging output will be redirected, too.
 Two greater-than characters (<b>&gt;&gt;</b>) next to each other
 will <strong>append</strong> command output to a file, like the Unix shell does.
 For example:
@@ -199,7 +200,7 @@ always come immediately after the command name and before anything else on the c
 These words direct the command to do a different, but related, task.
 <p>
 If Mathomatic becomes unresponsive (a rare occurrence),
-pressing Control-C will usually abort the current operation
+pressing Control-C once will usually safely abort the current operation
 and return you to the main prompt.
 Pressing Control-C three times in a row will exit Mathomatic,
 with a warning displayed the second time.
@@ -1105,7 +1106,7 @@ instead of straight lines, so that curves are approximated better.
 If the integration fails, chances of success are greater if
 you reduce the number of variables involved in the integration.
 <p>
-If there are any singularities between the bounds of integration,
+If there are any singularities, such as division by zero, between the bounds of integration,
 the computed result will be wrong.
 <p>
 Here is an example of successful numerical integration:
@@ -1412,9 +1413,11 @@ This file is loaded every time Mathomatic starts up, when not in test or secure 
 <blockquote>
 <p>
 "set <b>precision</b>" followed by an integer less than or equal to 14 sets the display precision
-in number of digits for most numerical output.
+in number of decimal digits for most numerical output.
 All arithmetic in Mathomatic is double precision floating point,
 so the precision cannot be set higher than 14 digits.
+Display output is rounded to this precision,
+though internally constants are only rounded to fit in a double precision float.
 <p>
 "set no <b>autosolve</b>" will disable solving by typing the variable at the prompt.
 This allows entry of single variable expressions.
@@ -1467,20 +1470,24 @@ An additional effect of "set no display2d" is constants will not be converted to
 <p>
 "set no <b>prompt</b>" turns off Mathomatic prompt output like the "-q" option does.
 <p>
-"set <b>preserve</b>" will set "preserve_roots" mode, which suppresses approximation
+"set <b>preserve</b>" will set "preserve_surds" mode, which suppresses approximation
 of roots of real rational numbers, if the result will be irrational.
-For example, <b>2^.5</b> will remain <b>2^.5</b> unless explicitly approximated.
-This is the default.
+For example, <b>2^.5</b> (the square root of two, which is irrational and a surd)
+will remain <b>2^.5</b> unless explicitly approximated
+or "set no preserve" is entered.
+This option is turned on by default,
+allowing more exact arithmetic and some simplification of surds.
 <p>
-"set <b>true_modulus</b>" sets true modulus mode,
-which is 100% mathematically correct and the modulo used in number theory.
-Remainder-modulus ("set no true_modulus") only gives the remainder of the division,
-which may be negative when the dividend is negative,
-and will sometimes fail the simplification rules employed by Mathomatic.
-Remainder-modulus is the modulus used by the C and Java computer languages.
-True modulus always gives a positive value or zero.
-This mode only affects modulo (<b>%</b>) operator calculations.
-All true modulus simplification rules are enabled, regardless of this mode.
+"set <b>modulus_mode</b>" requires an integer from 0 to 2.
+When modulo arithmetic is performed with the modulus (%) operator,
+mode 0 returns a result that is the same sign as the dividend (same as C's % operator gives),
+mode 1 returns a result the same sign as the divisor (same as Python's % operator gives),
+mode 2 returns an always positive or zero result.
+Mode 2 is the default and is 100% mathematically correct and the
+type of modulo operation that can be generally simplified.
+Mode 0 is the remainder modulus used by the C and Java computer languages.
+This mode only affects modulo (<b>%</b>) operator numeric calculations.
+All modulus simplification rules are enabled, regardless of this mode.
 <p>
 "set <b>finance</b>" sets finance mode (fixed point display),
 which displays all constants with 2 digits after the decimal point (for example: "2.00")
@@ -1528,6 +1535,8 @@ that is equivalent to the original expression.
 <p>
 Use this command whenever you think an expression is not completely
 simplified or if you don't like the way an expression is factored.
+Sometimes simplifying more than once or using the "symbolic" option
+simplifies even more.
 <p>
 More than one option may be specified at a time.
 

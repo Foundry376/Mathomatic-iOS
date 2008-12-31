@@ -39,8 +39,8 @@ int		precision = 14;				/* the display precision for doubles (number of digits) 
 int		case_sensitive_flag = true;		/* "set case_sensitive" flag */
 int		factor_int_flag;			/* factor integers when displaying expressions */
 int		display2d = true;			/* "set display2d" flag */
-int		preserve_roots = true;			/* set option to preserve roots like (2^.5) */
-int		true_modulus = true;				/* true for mathematically correct modulus */
+int		preserve_surds = true;			/* set option to preserve roots like (2^.5) */
+int		modulus_mode = 2;				/* true for mathematically correct modulus */
 volatile int	screen_columns = STANDARD_SCREEN_COLUMNS;	/* screen width of the terminal; 0 = infinite */
 volatile int	screen_rows = STANDARD_SCREEN_ROWS;		/* screen height of the terminal; 0 = infinite */
 int		finance_option;				/* for displaying dollars and cents */
@@ -66,15 +66,17 @@ double		small_epsilon	= 0.000000000000005;	/* for small round-off errors */
 double		epsilon		= 0.00000000000005;	/* for larger, accumulated round-off errors */
 
 /* string variables */
+char		*prog_name = "mathomatic";	/* name of this program */
 char		*var_names[MAX_VAR_NAMES];	/* index for storage of variable name strings */
 char		var_str[MAX_VAR_LEN+80];	/* temp storage for listing a variable name */
 char		prompt_str[MAX_PROMPT_LEN];	/* temp storage for the prompt string */
 #if	CYGWIN
 char		*dir_path;			/* directory path to the executable, only set and used in CYGWIN version */
 #endif
-char		*prog_name = "mathomatic";	/* name of this program */
 #if	READLINE
 char		*last_history_string;
+char		*history_filename;
+char		history_filename_storage[PATH_MAX];
 #endif
 
 /* The following are for integer factoring (filled by factor_one()): */

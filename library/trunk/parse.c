@@ -175,9 +175,9 @@ token_type	*equation;	/* where the parsed expression is stored (equation side) *
 int		*np;		/* pointer to the returned parsed expression length */
 char		*cp;		/* string to parse */
 {
-	int		n = 0;		/* position in equation[] */
-	int		cur_level = 1;	/* current level of parentheses */
-	int		operand;	/* flip-flop between operand and operator */
+	int		n = 0;			/* position in equation[] */
+	int		cur_level = 1;		/* current level of parentheses */
+	int		operand = false;	/* flip-flop between operand and operator */
 	char		*cp_start, *cp1;
 	double		d;
 	int		abs_count = 0;
@@ -186,18 +186,28 @@ char		*cp;		/* string to parse */
 	if (cp == NULL)
 		return(NULL);
 	cp_start = cp;
-	operand = false;
 	for (;; cp++) {
+		if (n > (n_tokens - 10)) {
+			error_huge();
+		}
 		switch (*cp) {
 		case ' ':
 		case '\t':
 			continue;
 		case '(':
 		case '{':
-			cur_level++;
 			if (operand) {
+#if	true
+				operand = false;
+				equation[n].level = cur_level;
+				equation[n].kind = OPERATOR;
+				equation[n].token.operatr = TIMES;
+				n++;
+#else
 				goto syntax_error;
+#endif
 			}
+			cur_level++;
 			continue;
 		case ')':
 		case '}':
@@ -215,9 +225,6 @@ char		*cp;		/* string to parse */
 		case '\0':
 		case '\n':
 			goto p_out;	/* terminator encountered */
-		}
-		if (n > (n_tokens - 6)) {
-			error_huge();
 		}
 		operand = !operand;
 		switch (*cp) {

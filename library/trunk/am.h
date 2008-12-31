@@ -47,10 +47,12 @@
 /*
  * The following defines the maximum number of equation spaces that can be allocated.
  */
+#ifndef	N_EQUATIONS
 #if	HANDHELD
 #define	N_EQUATIONS	20
 #else
 #define	N_EQUATIONS	100
+#endif
 #endif
 
 /*
@@ -61,10 +63,12 @@
  * This should be made much smaller for handhelds and embedded systems.
  * Do not set to less than 100.
  */
+#ifndef	DEFAULT_N_TOKENS
 #if	HANDHELD
 #define	DEFAULT_N_TOKENS	3000
 #else
 #define	DEFAULT_N_TOKENS	30000
+#endif
 #endif
 
 #define	DIVISOR_SIZE		(DEFAULT_N_TOKENS / 2)	/* a nice maximum divisor size */
@@ -102,6 +106,7 @@ typedef union {
 #define	IMAGINARY	3L	/* the imaginary constant "i" or "i#" */
 #define	SIGN		4L	/* for two-valued "sign" variables */
 #define	MATCH_ANY	5L	/* match any variable (wild-card variable) */
+#define	V_INTEGER_NAME	"integer"	/* name for the integer variable type */
 	int	operatr;	/* internal storage for Mathomatic operators */
 /* Valid operators follow (order doesn't matter), 0 is reserved for no operator: */
 #define	PLUS		1	/* a + b */
@@ -134,5 +139,5 @@ typedef struct {		/* qsort(3) data structure for sorting Mathomatic variables */
 #else
 #define list_tdebug(level)		list_debug(level, tlhs, n_tlhs, trhs, n_trhs)
 #define	side_debug(level, p1, n1)	list_debug(level, p1, n1, NULL, 0)
-#define debug_string(level, str)	{ if (debug_level >= (level)) printf("%s\n", str); }
+#define debug_string(level, str)	{ if (debug_level >= (level)) fprintf(gfp, "%s\n", str); }
 #endif

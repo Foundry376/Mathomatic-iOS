@@ -313,7 +313,7 @@ int	i;
 }
 
 /*
- * Return true if variable "v" exists in expression.
+ * Return the number of times variable "v" is found in an expression.
  */
 int
 found_var(p1, n, v)
@@ -322,15 +322,16 @@ int		n;	/* expression length */
 long		v;	/* standard Mathomatic variable */
 {
 	int	j;
+	int	count = 0;
 
 	if (v) {
 		for (j = 0; j < n; j++) {
 			if (p1[j].kind == VARIABLE && p1[j].token.variable == v) {
-				return true;
+				count++;
 			}
 		}
 	}
-	return false;
+	return count;
 }
 
 /*

@@ -1,21 +1,21 @@
 ; Equations are entered by just typing them in:
 c^2=a^2+b^2 ; The Pythagorean theorem
 ; The entered equation becomes the current equation.
-; The current equation is solved by typing in a variable name:
-c ; Solve for c.
-; "sign" variables are special two-valued variables that may only be +1 or -1
-b ; Solve for b.
-; To generate C programming language code, use the code command:
-code C
+; The current equation can be solved by typing in a variable name:
+c ; which is shorthand for the solve command.
+; "sign" variables are special two-valued variables that may only be +1 or -1.
+b ; Solve for variable "b".
+; To output programming language code, use the code command:
+code ; C language code is the default.
 
 code java ; Mathomatic can also generate Java
 
 code python ; and Python code.
 
 ; ********************************************************************
-a=b+1/b ; enter another equation
-solve verify b ; solve for "b", verifying the result
-a ; solve back for "a" and we should get the original equation
+a=b+1/b ; Enter another equation.
+solve verify b ; Solve for "b", plugging the result into the original equation to verify.
+solve a ; Solve back for "a" and we should get the original equation.
 simplify ; The simplify command makes expressions simpler and prettier.
 ; ********************************************************************
 ; Mathomatic is also handy as a calculator.

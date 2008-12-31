@@ -1,5 +1,5 @@
 /*
- * Global function prototypes for Mathomatic.
+ * Global C function prototypes for Mathomatic.
  *
  * Copyright (C) 1987-2008 George Gesslein II.
  */

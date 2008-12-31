@@ -10,15 +10,15 @@ OS X, and Cygwin, without any modifications.  Most of the Mathomatic code can
 also be called from any C or C++ program, when linked with the static library
 created by "makefile.lib".
 
-Mathomatic is a free, portable, general-purpose CAS (Computer Algebra System)
-and calculator software that can symbolically solve, simplify, combine, and
-compare equations, perform complex number and polynomial arithmetic, etc.  It
-does some calculus and is very easy to use.
+Mathomatic is a portable, general-purpose CAS (Computer Algebra System) and
+calculator software that can symbolically solve, simplify, combine, and
+compare equations; perform complex number and polynomial arithmetic, etc.  It
+does some calculus and is very easy to compile and use.
 
 All software and documentation in this archive is copyrighted and made
 available under the GNU Lesser General Public License (LGPL) version 2.1 (see
-file "COPYING").  Mathomatic comes with no warranty at all, but if you find
-any bugs, I will try to fix them.
+file "COPYING").  This means Mathomatic is free and comes with no warranty at
+all, but if you find any bugs, I will try to fix them.
 
 
                                   Compilation
@@ -53,14 +53,15 @@ or pushed expressions when running Mathomatic.
 To compile Mathomatic as a stand-alone executable that has no shared library
 dependencies, type:
 
-	LIBS=-static make
+	make clean
+	make static
 
 The resulting binary will run on any system with the same operating system
 (like Linux) and architecture (like x86), because the libraries are static
-(included with the binary).  Unfortunately, the "-static" option cannot be
-combined with readline, due to the way the readline library works.
+(included with the binary).
 
-To compile the secure version, with no file I/O or shelling out, type:
+To create the secure version of Mathomatic, with no file I/O nor shelling out
+possible, type:
 
 	./compile.secure
 
@@ -128,8 +129,8 @@ Define "READLINE" and include the readline libraries at link time to use
 readline mode.  This will allow easy command line editing and history.
 
 Define "SILENT" to remove all helpful messages and debugging code.  This is
-useful when using Mathomatic as a symbolic math library.  Code size is
-reduced with this option.
+useful when using Mathomatic in another program or if you only want terse
+output.
 
 Define "LIBRARY" when using the Mathomatic code as a symbolic math library.
 "SILENT" is automatically defined when this is defined.  Most standard input
@@ -141,8 +142,8 @@ optimize, pause, quit, roots, tally, and variables.
 Define "SECURE" to disable all file reading, writing, and executing.  This is
 useful when making Mathomatic available to the public through telnet or CGI
 programs.  It is also useful when making ROMable code.  All insecure commands
-are omitted with this option.  See "compile.secure", which is the secure
-Mathomatic build script.
+and code are omitted with this option.  See "compile.secure", which is the
+secure Mathomatic build script.
 
 Define "TIMEOUT_SECONDS" to set the maximum number of seconds Mathomatic may
 run.  Upon timeout, Mathomatic properly exits.  This is useful when making
@@ -157,10 +158,11 @@ been made, so Mathomatic is only available in English.
 
   am.h - the main include file for Mathomatic, contains tunable parameters
   complex.h - floating point complex number arithmetic function prototypes
-  externs.h - global variable extern definitions
-  proto.h - global function prototypes, can be made with cproto
+  cproto.h - copy to proto.h to compile with -Wall with no complaints
+  externs.h - global variable extern definitions, from globals.c
+  proto.h - global function prototypes, can be made with cproto utility
 
-  am.c - many necessary routines
+  am.c - miscellaneous C functions for Mathomatic
   cmds.c - code for commands that don't belong anywhere else
   complex.c - floating point complex number routines for Mathomatic
   complex_lib.c - generic floating point complex number arithmetic library
@@ -172,10 +174,10 @@ been made, so Mathomatic is only available in English.
   help.c - command table, help command code, and input parsing routines
   integrate.c - integration routines and commands
   list.c - expression and equation display routines
-  main.c - startup code for Mathomatic
+  main.c - startup code for Mathomatic, not used for library
   parse.c - mathematical expression parsing routines
   poly.c - simplifying and polynomial routines
   simplify.c - simplifying routines
   solve.c - symbolic solving routines
   super.c - group and combine denominators of fractions
-  unfactor.c - unfactorizing (expanding) routines
+  unfactor.c - symbolic unfactorizing (expanding) routines

@@ -4,8 +4,8 @@
  *
  * Copyright (C) 1987-2008 George Gesslein II.
  *
- * Output to stderr is only done in this file.  The rest of the code
- * should not output to stderr.
+ * Output to stderr is only done in this file.  The rest of the Mathomatic code
+ * should not output to stderr; error messages should use error() or go to stdout.
  *
  * This program only supports binary and unary operators.
  * Unary operators are implemented as a binary operation with a dummy operand.
@@ -21,13 +21,15 @@
  * contains the current length of the expression stored in the array.
  * This length is always odd and must never exceed "n_tokens".
  *
- * Only one POWER operator is allowed per level in the storage format,
- * and no other operators may be on that level.  Same with the FACTORIAL
- * and MODULUS operators.
+ * In the storage format,
+ * any number of TIMES and DIVIDE operators may be on the same level of parentheses,
+ * because they are similar and the most basic multiplicative class operators.
+ * The same for the PLUS and MINUS operators, because they are similar (additive class).
+ * All other operators are only allowed one single operator per level of parentheses,
+ * and no same nor different operators may be with it on that level within the current grouping.
  *
- * Any number of TIMES and DIVIDE operators may be on the same
- * level, because they are simple multiplicative class operators.
- * The same for PLUS and MINUS, because they are additive class operators.
+ * Most of the expression manipulation and comparison routines are recursive,
+ * calling themselves for each level of parentheses.
  *
  * See the file "am.h" to start understanding the Mathomatic code and
  * to adjust memory usage.
@@ -46,7 +48,7 @@
 static void usage();
 static int set_signals();
 
-static char	rc_file[MAX_CMD_LEN];
+static char	rc_file[PATH_MAX];
 
 int
 main(argc, argv)
@@ -62,9 +64,6 @@ char	**argv;
 	double		multiplier;
 	int		coption = false;
 
-#if	UNIX
-	prog_name = strdup(basename(argv[0]));		/* set prog_name to this executable's filename */
-#endif
 #if	CYGWIN
 	dir_path = strdup(dirname_win(argv[0]));	/* set dir_path to this executable's directory */
 #endif
@@ -72,6 +71,10 @@ char	**argv;
 	init_gvars();
 	gfp = stdout;
 #if	READLINE
+	if ((cp = getenv("HOME")) && prog_name) {
+		snprintf(history_filename_storage, sizeof(history_filename_storage), "%s/.%s_history", cp, prog_name);
+		history_filename = history_filename_storage;
+	}
 	using_history();		/* initialize readline history */
 	stifle_history(500);		/* maximum of 500 entries */
 	rl_inhibit_completion = true;	/* turn off readline file name completion */
@@ -88,7 +91,7 @@ char	**argv;
 			break;
 		case 'm':
 			multiplier = strtod(optarg, &cp) * DEFAULT_N_TOKENS;
-			if (cp == NULL || *cp || multiplier < 100 || multiplier >= (INT_MAX / 3)) {
+			if (cp == NULL || *cp || multiplier <= 0 || multiplier >= (INT_MAX / 3)) {
 				fprintf(stderr, _("%s: Invalid memory size multiplier specified.\n"), prog_name);
 				exit(2);
 			}
@@ -115,6 +118,10 @@ char	**argv;
 			usage();
 		}
 	}
+	if (n_tokens < 100) {
+		fprintf(stderr, _("%s: Improper equation space size.\n"), prog_name);
+		exit(2);
+	}
 	if (test_mode || html_flag) {
 		screen_columns = 0;
 		screen_rows = 0;
@@ -129,7 +136,7 @@ char	**argv;
 	}
 #if	READLINE && !SECURE
 	if (readline_enabled) {
-		read_history(NULL);	/* restore readline history of previous session */
+		read_history(history_filename);	/* restore readline history of previous session */
 	}
 #endif
 	if (html_flag) {
@@ -139,9 +146,9 @@ char	**argv;
 #if	SECURE
 		printf(_("Secure "));
 #endif
-		printf(_("This is Mathomatic version %s (www.mathomatic.org).\n"), VERSION);
+		printf(_("Mathomatic version %s (www.mathomatic.org)\n"), VERSION);
 		printf(_("Copyright (C) 1987-2008 George Gesslein II.\n"));
-		printf(_("%d equation spaces available, %ldK per equation space.\n"),
+		printf(_("%d equation spaces available, %ld kilobytes per equation space.\n"),
 		    N_EQUATIONS, (long) n_tokens * sizeof(token_type) * 2L / 1000L);
 	}
 #if	!SECURE
@@ -214,7 +221,7 @@ usage()
 	printf(_("  -r            Disable readline.\n"));
 	printf(_("  -t            Set test mode.\n"));
 	printf(_("  -u            Set unbuffered output.\n"));
-	printf(_("  -v            Display version number, etc., then exit.\n"));
+	printf(_("  -v            Display version information, then exit.\n"));
 	printf(_("\nPlease refer to the man page for more information.\n"));
 	exit(2);
 }
@@ -412,7 +419,7 @@ int	exit_value;	/* zero if OK, non-zero indicates error return */
 	}
 #if	READLINE && !SECURE
 	if (readline_enabled) {
-		write_history(NULL);	/* save readline history in ~/.history */
+		write_history(history_filename);	/* save readline history */
 	}
 #endif
 	exit(exit_value);

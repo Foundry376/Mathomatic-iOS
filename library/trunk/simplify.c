@@ -532,6 +532,7 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	uf_times(equation, np);
 	simp_loop(equation, np);
 /* Here is the only place in Mathomatic that we do modulus (%) simplification: */
+	uf_pplus(equation, np);
 	uf_repeat(equation, np);
 	do {
 		elim_loop(equation, np);
@@ -1037,9 +1038,15 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 		/* Another way to get the remainder of division: */
 		*k1p = modf(*k1p / k2, &d) * k2;
 #endif
-		if (true_modulus && *k1p < 0.0) {
+		if (modulus_mode && *k1p < 0.0) {
 			*k1p += fabs(k2);	/* make positive */
 		}
+		if (modulus_mode == 1 && k2 < 0.0 && *k1p > 0.0) {
+			*k1p += k2;		/* make negative */
+		}
+		/* modulus_mode == 0 result same sign as dividend,
+		   modulus_mode == 1 result same sign as divisor,
+                   modulus_mode == 2 result is always positive or zero */
 		break;
 	case POWER:
 		if (*k1p < 0.0 && fmod(k2, 1.0) != 0.0) {
@@ -1061,7 +1068,7 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 			d = INFINITY;
 		} else {
 			d = pow(*k1p, k2);
-			if (preserve_roots && !approximate_roots) {
+			if (preserve_surds && !approximate_roots) {
 				if (isfinite(k2) && fmod(k2, 1.0) != 0.0 && f_to_fraction(*k1p, &d1, &d2)) {
 					if (!f_to_fraction(d, &d1, &d2)) {
 						domain_check = false;
@@ -1135,7 +1142,7 @@ beginning:
 			if (calc((loc1 <= old_loc) ? NULL : &equation[loc1-1].token.operatr, &d1, op, d2)) {
 				if (op == POWER && !domain_check) {
 					if (!f_to_fraction(d2, &numerator, &denominator)) {	/* if irrational power */
-						if (!iflag || (preserve_roots && !approximate_roots))
+						if (!iflag || (preserve_surds && !approximate_roots))
 							return modified;
 						cv.re = d1;
 						cv.im = 0.0;

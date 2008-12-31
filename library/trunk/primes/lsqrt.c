@@ -25,6 +25,7 @@ verify_lsqrt(long y, long x)
 /*
  * Returns the truncated integer square root of y using the Babylonian iterative approximation method.
  * Return -1 on error.
+ * This particular lsqrt() function is placed in the public domain by George Gesslein II.
  */
 long
 lsqrt(long y)

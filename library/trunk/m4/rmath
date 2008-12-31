@@ -1,0 +1,5 @@
+#!/bin/sh
+# This shell script runs m4 Mathomatic with readline capability.
+# Requires rlwrap program, which is a readline wrapper.
+
+rlwrap -H ~/.mathomatic_history math $*

@@ -1435,22 +1435,22 @@ Finished reading file "linear.in".
 #1: c^2 = (a^2) + (b^2)
 
 1-> ; The entered equation becomes the current equation.
-1-> ; The current equation is solved by typing in a variable name:
-1-> c ; Solve for c.
+1-> ; The current equation can be solved by typing in a variable name:
+1-> c ; which is shorthand for the solve command.
 
                          1
 #1: c = (((a^2) + (b^2))^-)*sign
                          2
 
-1-> ; "sign" variables are special two-valued variables that may only be +1 or -1
-1-> b ; Solve for b.
+1-> ; "sign" variables are special two-valued variables that may only be +1 or -1.
+1-> b ; Solve for variable "b".
 
                          1
 #1: b = (((c^2) - (a^2))^-)*sign0
                          2
 
-1-> ; To generate C programming language code, use the code command:
-1-> code C
+1-> ; To output programming language code, use the code command:
+1-> code ; C language code is the default.
 b = (pow(((c*c) - (a*a)), (1.0/2.0))*sign0);
 1-> 
 1-> code java ; Mathomatic can also generate Java
@@ -1460,13 +1460,13 @@ b = (Math.pow(((c*c) - (a*a)), (1.0/2.0))*sign0);
 b = ((((c*c) - (a*a))**(1.0/2.0))*sign0)
 1-> 
 1-> ; ********************************************************************
-1-> a=b+1/b ; enter another equation
+1-> a=b+1/b ; Enter another equation.
 
             1
 #2: a = b + -
             b
 
-2-> solve verify b ; solve for "b", verifying the result
+2-> solve verify b ; Solve for "b", plugging the result into the original equation to verify.
 Equation is a degree 2 polynomial in (b).
 Equation was quadratic.
 
@@ -1477,7 +1477,7 @@ Equation was quadratic.
                      2
 
 Solutions verified.
-2-> a ; solve back for "a" and we should get the original equation
+2-> solve a ; Solve back for "a" and we should get the original equation.
 Equation is a degree 0.5 polynomial in (a).
 Raising both equation sides to the power of 2 and unfactoring...
 

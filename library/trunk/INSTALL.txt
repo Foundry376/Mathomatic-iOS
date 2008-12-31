@@ -22,8 +22,8 @@ A typical installation is done by typing the following at the shell prompt:
 This will compile, test, and install the Mathomatic executable and docs in
 "/usr/local" in less than a minute.  After this, typing "man mathomatic"
 should bring up the man page, and typing "mathomatic" should run Mathomatic.
-If Mathomatic doesn't run, check that the shell PATH environment variable
-includes "/usr/local/bin" with the command "echo $PATH".
+If Mathomatic doesn't run, check that the PATH environment variable includes
+"/usr/local/bin" with the shell command "echo $PATH".
 
 To install in "/usr" instead of "/usr/local", type:
 
@@ -35,8 +35,8 @@ If sudo doesn't work, login as root or type:
 
 and enter the root password to install as the super-user.
 
-To install the Mathomatic GNU m4 script that allows math functions as macros,
-use "make m4install" instead of "make install".
+To install everything, including the Mathomatic GNU m4 script that allows
+math functions as macros, use "make m4install" instead of "make install".
 
 To undo the installation and remove Mathomatic from the local computer, type:
 

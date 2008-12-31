@@ -1,10 +1,9 @@
-                        VERSION HISTORY OF MATHOMATIC
-                        -----------------------------
-                This list is entirely in chronological order.
-               The latest changes are at the end of this file.
-              This file may be obtained at "www.mathomatic.org".
-                 All changes were made by George Gesslein II.
-              --------------------------------------------------
+          Version history of the Mathomatic computer algebra system
+          ---------------------------------------------------------
+             This change log is entirely in chronological order;
+               the latest changes are at the end of this file.
+              This file is at "www.mathomatic.org/changes.txt".
+              -------------------------------------------------
 
 CHANGES MADE TO MATHOMATIC V12.8.9 TO BRING IT UP TO VERSION 12.9.0:
 
@@ -52,6 +51,7 @@ Disallow variable name "all" in expressions.  "all" means all normal variables a
 
 4/28/08 - More correct simplification restriction added: (x^n)^m remains unsimplified unless "symbolic" option is used.
           This was documented but not fully implemented.  You need to use "simplify symbolic" to simplify like before.
+          Note that this caused expression complication, which is fixed in version 14.2.2 or by using "simplify symbolic".
 
 CHANGES MADE TO MATHOMATIC V14.0.1:
 
@@ -243,7 +243,7 @@ Documentation tweaks and simplified the simplification routines.
 
 11/9/08 - Moved "help geometry" to "tests/geometry.in" so the formulas can be easily loaded with the read command.
 
-11/10/08 - Improved display command by allowing multiple equation numbers and ranges, fixed bug in library.
+11/10/08 - Improved display command by allowing multiple equation numbers and ranges.
 
 11/15/08 - Added "set precision" option, sets the display precision, default is the maximum of 14 digits.
            Bold improvements were made to polynomial factoring and simplification.
@@ -254,4 +254,54 @@ Mathomatic version 14.2.3 released 2008-11-16
 
 CHANGES MADE TO MATHOMATIC V14.2.3:
 
-11/18/08 - All C functions that do not return anything now properly declared "void".
+11/18/08 - All C functions that do not return a value now properly declared "void".
+
+11/26/08 - "set preserve_roots" option renamed to "set preserve_surds"; Functionality remains the same.
+
+11/29/08 - Created "cproto.h" with the cproto utility and added it to the source distribution;
+           swap it with "proto.h" to compile Mathomatic with -Wall with no warnings.
+
+Mathomatic version 14.2.4 released 2008-11-30
+
+CHANGES MADE TO MATHOMATIC V14.2.4:
+
+Improved and fixed makefiles.  Using proper variable LDLIBS in makefiles now,
+which fixes library link errors with matho-primes.
+
+12/03/08 - rman utility is no longer used in the makefile because it is not available in Mac OS X;
+           Using groff instead to create web pages from the Unix man pages.
+
+12/04/08 - Finished fixing command output redirection to include all debugging output.
+
+12/06/08 - Removed a part of modulus simplification that sometimes gave a completely wrong answer.
+
+Mathomatic version 14.2.5 released 2008-12-06
+
+CHANGES MADE TO MATHOMATIC V14.2.5:
+
+12/06/08 - Renamed boolean "set true_modulus" option to integer "modulus_mode" and added another mode:
+           0 means result is the same sign as the dividend; 1 means result is the same sign as the divisor;
+           Currently set to 2 for an always positive or zero result of modulus, as was the default before.
+
+12/08/08 - Allow ANSI color mode to display readably when terminal emulator has a white background
+           by removing the color white in the text output.
+
+12/13/08 - Restored modulus simplification with a fix for wrong answers like x%(x^x) simplifying to 0.
+
+12/14/08 - Discovered rlwrap (readline wrapper), so the shell script "m4/rmath" was created
+           to run m4 Mathomatic with a readline front end, when the rlwrap program is installed.
+
+Mathomatic version 14.2.6 released 2008-12-14
+
+CHANGES MADE TO MATHOMATIC V14.2.6:
+
+Cleanup and corrections.
+
+12/15/08 - Modulus simplification now checks for "integer" variable to determine whether to proceed.
+           Fixed wrong answers for modulus when modulus_mode=1.  Results now the same as Python gives.
+
+12/16/08 - Allow expressions like "(x+1)(x+2)" and "2(x)" to be entered.  Default operator is multiply.
+
+12/17/08 - Renamed readline history file from "~/.history" to "~/.mathomatic_history".
+
+Mathomatic version 14.2.7 released 2008-12-19
