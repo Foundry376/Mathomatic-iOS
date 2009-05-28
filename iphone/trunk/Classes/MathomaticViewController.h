@@ -15,7 +15,7 @@
 
 @class MathomaticOperation;
 
-@interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MathomaticOperationTableViewCellDelegate> {
+@interface MathomaticViewController : UIViewController <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, UIAlertViewDelegate, MathomaticOperationTableViewCellDelegate> {
     IBOutlet KeyboardView           *keyboard;
     IBOutlet UIButton               *keyboardSlideButton;
     IBOutlet UIActivityIndicatorView *spinner;
@@ -23,6 +23,9 @@
     IBOutlet UITableView            *commandHistory;
     NSMutableArray                  *commandStack;
     NSMutableArray                  *commandStackCells;
+    
+    UIButton                        * editButton;
+    UIButton                        * clearButton;
     
     BOOL                             keyboardVisible;
 }
@@ -33,6 +36,9 @@
 - (IBAction)keyboardSlideToggle:(id)sender;
 - (void)save;
 
+- (void)historyDelete;
+- (void)historyEdit;
+
 - (void)performCommand:(MathomaticOperation*)c;
 - (void)addCommand:(MathomaticOperation*)c;
 - (BOOL)addKeyboardEntry;
@@ -41,6 +47,14 @@
 
 - (void)keyboardEntryPerform;
 - (void)keyboardEntryComplete;
+
+#pragma mark UIAlertView Delegate Functions
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex;
+
+#pragma mark MathomaticOperationTableViewCellDelegate functions
+
+- (void)mathomaticOperationTableViewCellClicked:(MathomaticExpression*)expression;
 
 @end
 

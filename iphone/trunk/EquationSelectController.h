@@ -23,13 +23,13 @@
     NSMutableArray              * variables;
     int                           activeVariable;
     
-    id<EquationSelectDelegate>    delegate;
+    NSObject<EquationSelectDelegate>*delegate;
 }
 
 @property (nonatomic, retain) NSArray * equations;
-@property (nonatomic, retain) id<EquationSelectDelegate> delegate;
+@property (nonatomic, retain) NSObject<EquationSelectDelegate>* delegate;
 
-- (id)initWithEquations:(NSArray*)commandHistory andOperation:(id<EquationSelectDelegate>)d;
+- (id)initWithEquations:(NSArray*)commandHistory andOperation:(NSObject<EquationSelectDelegate>*)d;
 - (void)reloadVariables;
 
 @end

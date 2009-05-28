@@ -84,6 +84,37 @@
     
     spinnerTimer = nil;
     [commandHistory setSeparatorStyle: UITableViewCellSeparatorStyleNone];
+
+    // iPhone OS 3.0 only
+    if ([commandHistory respondsToSelector:@selector(setAllowsSelection:)])
+        [commandHistory setAllowsSelection: NO];
+    if ([commandHistory respondsToSelector:@selector(setAllowsSelectionDuringEditing:)])
+        [commandHistory setAllowsSelectionDuringEditing: NO];
+    
+    // create the table view header with the delete / edit buttons
+    UIImageView * h = [[UIImageView alloc] initWithFrame: CGRectMake(0,0,320,49)];
+    [h setImage: [UIImage imageNamed: @"header_background.png"]];
+    [h setUserInteractionEnabled: YES];
+    
+    editButton = [[UIButton buttonWithType: UIButtonTypeCustom] retain];
+    [editButton setFrame: CGRectMake(0,0,160,49)];
+    [editButton setAdjustsImageWhenHighlighted: NO];
+    [editButton setImage:[UIImage imageNamed:@"history_edit.png"] forState:UIControlStateNormal];
+    [editButton setImage:[UIImage imageNamed:@"history_edit_down.png"] forState:UIControlStateHighlighted];
+    [editButton setImage:[UIImage imageNamed:@"history_edit_selected.png"] forState:UIControlStateSelected];
+    [editButton addTarget:self action:@selector(historyEdit) forControlEvents:UIControlEventTouchUpInside];
+    
+    clearButton = [[UIButton buttonWithType: UIButtonTypeCustom] retain];
+    [clearButton setFrame: CGRectMake(160,0,160,49)];
+    [clearButton setAdjustsImageWhenHighlighted: NO];
+    [clearButton setImage:[UIImage imageNamed:@"history_clear.png"] forState:UIControlStateNormal];
+    [clearButton setImage:[UIImage imageNamed:@"history_clear_down.png"] forState:UIControlStateHighlighted];
+    [clearButton addTarget:self action:@selector(historyDelete) forControlEvents:UIControlEventTouchUpInside];
+    
+    [h addSubview: editButton];
+    [h addSubview: clearButton];
+    [commandHistory setTableHeaderView: h];
+    [h autorelease];
     
     // if there are items in the stack, make sure we load them into the table 
     // and scroll to the bottom.
@@ -102,6 +133,30 @@
         [NSKeyedArchiver archiveRootObject:commandStack toFile:[[NSString stringWithString: @"~/Documents/commands.stack"] stringByExpandingTildeInPath]];
 }
 
+
+- (void)historyDelete
+{
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Are you sure you want to clear the history?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Clear", nil];
+    [alert show];
+    [alert release];
+}
+
+- (void)historyDeleteConfirmed
+{
+    [commandStack removeAllObjects];
+    [commandStackCells removeAllObjects];
+    [commandHistory reloadData];
+    
+    if ([commandHistory isEditing])
+        [self historyEdit];
+}
+
+- (void)historyEdit
+{    
+    [commandHistory setEditing:![commandHistory isEditing] animated:YES];
+    [editButton setSelected: [commandHistory isEditing]];
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
 {
     // Return YES for supported orientations
@@ -115,6 +170,8 @@
 
 - (void)dealloc 
 {
+    [clearButton release];
+    [editButton release];
     [commandStack release];
     [commandStackCells release];
     [super dealloc];
@@ -156,12 +213,15 @@
     [spinnerTimer release];
     spinnerTimer = nil;
     
-    [c release];
     [spinner stopAnimating];
 }
 
 - (void)addCommand:(MathomaticOperation*)c
 {
+    // if we're editing, stop editing
+    if ([commandHistory isEditing])
+        [self historyEdit];
+        
     // add the command to the command stack and remove the first object if there are more than kMaxStackLength
     [commandStack addObject: c];
     if ([commandStack count] > kMaxStackLength)
@@ -275,7 +335,7 @@
     if (![keyboard fieldIsBlank])
         if (![self addKeyboardEntry])
             return;
-        
+    
     // make sure you can't open the math sheet without entering an expression first. This would
     // effectively do nothing, and none of the operations would actually work.
     if ([commandStack count] == 0){
@@ -283,16 +343,29 @@
         [alert show];
         [alert release];
     } else {
+        // if we're editing, stop editing
+        if ([commandHistory isEditing])
+            [self historyEdit];
+            
         // display the operations sheet
         UIActionSheet * operationSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Integral...", @"Derivative...", @"Solve...", @"Laplace...", @"Taylor...", @"Factor", @"Unfactor", @"Simplify", nil];
         [operationSheet showInView: self.view];
         
-        int y = 52;
+        // determine if the sheet contains a table view (OS 3.0)
+        BOOL isOS3 = NO;
         for (UIView * subview in [operationSheet subviews]){
-            CGRect f = [subview frame];
-            f.origin.y = y;
-            y += f.size.height + 6;
-            [subview setFrame: f];
+            for (UIView * subview2 in [subview subviews])
+                if ([subview2 isKindOfClass: [UITableView class]])
+                    isOS3 = YES;
+        }
+        if (!isOS3){
+            int y = 52;
+            for (UIView * subview in [operationSheet subviews]){
+                CGRect f = [subview frame];
+                f.origin.y = y;
+                y += f.size.height + 6;
+                [subview setFrame: f];
+            }
         }
         [operationSheet release];
         
@@ -319,6 +392,18 @@
 - (NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     return nil;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [commandStack removeObjectAtIndex: [indexPath indexAtPosition: 1]];
+    [commandStackCells removeObjectAtIndex: [indexPath indexAtPosition: 1]];
+    
+    // if there are no more rows, automatically leave the edit mode
+    if ([commandStackCells count] == 0)
+        [self historyEdit];
+        
+    [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject: indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 
 #pragma mark ActionSheet Delegate Functions
@@ -353,6 +438,14 @@
         [alert release];
         [op release];
     }
+}
+
+#pragma mark UIAlertView Delegate Functions
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1)
+        [self historyDeleteConfirmed];
 }
 
 #pragma mark MathomaticOperationTableViewCellDelegate functions

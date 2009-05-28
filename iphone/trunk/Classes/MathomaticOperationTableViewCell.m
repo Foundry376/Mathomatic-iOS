@@ -16,7 +16,7 @@
 @synthesize height;
 @synthesize delegate;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(id<MathomaticOperationTableViewCellDelegate>)d
+- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d
 {
     if (self = [super initWithFrame:frame reuseIdentifier:reuseIdentifier]) {
         operation = nil;
@@ -125,6 +125,31 @@
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated 
 {
     // Configure the view for the selected state
+}
+
+- (void)setEditing:(BOOL)editing animated:(BOOL)animated
+{
+    if ((editing != [self isEditing]) && [self shouldIndentWhileEditing]){
+        if (animated){
+            [UIView beginAnimations:nil context:nil];
+            [UIView setAnimationDuration: 0.30];
+        }
+        
+        // slide over all our subviews?
+        for (UIView * v in [self subviews]){
+            if ([v isKindOfClass: [ExpressionButtonView class]] || [v isKindOfClass: [UIImageView class]]){
+                CGRect f = [v frame];
+                if (editing)
+                    f.origin.x = 3 + 35;
+                else
+                    f.origin.x = 3;
+                [v setFrame: f];            }
+        }
+        
+        if (animated)
+            [UIView commitAnimations];
+    }
+    [super setEditing: editing animated: animated];
 }
 
 - (void)dealloc {

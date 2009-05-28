@@ -19,14 +19,14 @@
 
     MathomaticOperation * operation;
     int height;
-    id<MathomaticOperationTableViewCellDelegate> delegate;
+    NSObject<MathomaticOperationTableViewCellDelegate>* delegate;
 }
 
 @property (nonatomic, retain, setter=setOperation:) MathomaticOperation * operation;
 @property (nonatomic, assign) int height;
-@property (nonatomic, retain) id<MathomaticOperationTableViewCellDelegate> delegate;
+@property (nonatomic, retain) NSObject<MathomaticOperationTableViewCellDelegate>* delegate;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(id<MathomaticOperationTableViewCellDelegate>)d;
+- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d;
 - (void)setOperation:(MathomaticOperation*)op;
 
 - (void)attachText:(NSString*)text withSize:(int)size andColor:(UIColor*)color;

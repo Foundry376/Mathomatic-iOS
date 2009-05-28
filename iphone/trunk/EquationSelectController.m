@@ -14,7 +14,7 @@
 @synthesize delegate;
 @synthesize equations;
 
-- (id)initWithEquations:(NSArray*)e andOperation:(id<EquationSelectDelegate>)d
+- (id)initWithEquations:(NSArray*)e andOperation:(NSObject<EquationSelectDelegate>*)d
 {
     if (self = [super initWithStyle:UITableViewStyleGrouped]) {
     

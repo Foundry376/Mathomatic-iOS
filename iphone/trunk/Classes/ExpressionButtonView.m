@@ -87,7 +87,7 @@
     CGImageRef back;
     CGImageRef right;
     
-    if ([self state] == UIControlStateNormal){
+    if (!([self isTracking] && [self isTouchInside])){
         left = [[UIImage imageNamed: @"equation_normal_left.png"] CGImage];
         back = [[UIImage imageNamed: @"equation_normal.png"] CGImage];
         right = [[UIImage imageNamed: @"equation_normal_right.png"] CGImage];
