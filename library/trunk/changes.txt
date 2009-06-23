@@ -5,43 +5,7 @@
               This file is at "www.mathomatic.org/changes.txt".
               -------------------------------------------------
 
-CHANGES MADE TO MATHOMATIC V12.8.9 TO BRING IT UP TO VERSION 12.9.0:
-
-Documentation and code cleanup.
-
-3/6/08 - Added demo "tests/circles.in", completes in 1 second!
-
-3/7/08 - Made all error text the color red when color mode is enabled.
-
-3/8/08 - Made "set true_modulus" the default.
-
-3/13/08 - Implemented integral divide operator "//" which divides and truncates result to an integer.
-          This operator is handy for doing integer arithmetic.
-
-3/16/08 - Made all warning text the color yellow.
-
-CHANGES MADE TO MATHOMATIC V12.9.0:
-
-3/27/08 - Deleted outdated "doc/notes.html".
-
-3/29/08 - Set command allows the following option prefix words: no, not, off, false, yes, on, true.
-
-3/30/08 - Updated matho-primes to work with architectures that don't support long double.
-
-CHANGES MADE TO MATHOMATIC V12.9.1:
-
-Some minor corrections were made.
-
-4/5/08 - Turned off readline file name completion, tab is now just a tab.
-
-CHANGES MADE TO MATHOMATIC V12.9.2:
-
-4/20/08 - Read set options in either "~/.mathomaticrc" or "mathomatic.rc" when starting up under Cygwin.
-
-4/23/08 - A major fix was made to the simplify command, it was not expanding fractions enough.
-          *Note that this simplify fix was done wrong and is now corrected in version 14.1.4
-
-CHANGES MADE TO MATHOMATIC V14.0.0:
+CHANGES MADE TO MATHOMATIC V14.0.0 TO BRING IT UP TO V14.0.1:
 
 Code and documentation cleanup.
 
@@ -51,7 +15,7 @@ Disallow variable name "all" in expressions.  "all" means all normal variables a
 
 4/28/08 - More correct simplification restriction added: (x^n)^m remains unsimplified unless "symbolic" option is used.
           This was documented but not fully implemented.  You need to use "simplify symbolic" to simplify like before.
-          Note that this caused expression complication, which is fixed in version 14.2.2 or by using "simplify symbolic".
+          Note that this caused expression complication, which is fixed in V14.2.2 or by using "simplify symbolic".
 
 CHANGES MADE TO MATHOMATIC V14.0.1:
 
@@ -305,3 +269,220 @@ Cleanup and corrections.
 12/17/08 - Renamed readline history file from "~/.history" to "~/.mathomatic_history".
 
 Mathomatic version 14.2.7 released 2008-12-19
+
+CHANGES MADE TO MATHOMATIC V14.2.7:
+
+Code cleanup and improvements.
+
+12/23/08 - Simplified makefile.
+
+12/26/08 - Fixed rules for simplifying "(x^n)^m" so "misc/john.in" and others simplify better.
+           Works similar to Maxima now, which is correct, I think.
+
+12/27/08 - Numeric GCD now properly returns the other parameter, if either parameter is 0.
+           Renamed "misc/polyroots.c" to "misc/roots.c" and simplified this example code.
+
+12/30/08 - Added "update" script, which updates the function prototypes in "cproto.h".
+
+1/1/09 - Optionally factor out the gcd of integer coefficients when improving readability,
+         for example: 6x+4y becomes 2*((3*x) + (2*y)).  This is now the default.
+
+Mathomatic version 14.2.8 released 2009-01-04
+
+CHANGES MADE TO MATHOMATIC V14.2.8:
+
+1/13/09 - Added descriptions of all interesting math scripts in "tests/README.txt".
+
+1/16/09 - Allow nintegrate and "integrate definite" commands in the symbolic math library;
+          the bounds are specified in the two equation spaces following the current equation.
+
+1/18/09 - Made expression and equation entry always consecutively numbered equation spaces,
+          unless memory is exhausted.
+
+1/19/09 - Made consistent list command output with only one newline after each equation space.
+
+Mathomatic version 14.3.0 released 2009-01-19
+
+CHANGES MADE TO MATHOMATIC V14.3.0:
+
+Documentation corrections were made.
+
+1/21/09 - Fixed erroneous doubling of parentheses display when solving and showing steps with "set debug 2".
+
+1/22/09 - Added -b option, to conveniently set bold color mode from the command line.
+
+1/25/09 - Improved looks of eliminate command by not solving if equation is already solved.
+
+Mathomatic version 14.3.1 released 2009-01-31
+
+CHANGES MADE TO MATHOMATIC V14.3.1:
+
+2/3/09 - Table of contents was added to the Mathomatic User's Manual.
+
+2/5/09 - Added display of any numerical fractions when calculating or using calculate command;
+         for example, entering "1/2+3/8" now results in "answer = 0.875 = 7/8".
+
+2/6/09 - Removed erroneous lsqrt() routine obtained from Wikipedia, so that matho-sumsq works properly now.
+
+2/7/09 - Disable pause command when appropriate (when input not a tty and for symbolic math library).
+
+2/8/09 - Polished up educational example scripts in "tests" directory.
+
+Mathomatic version 14.3.2 released 2009-02-09
+
+CHANGES MADE TO MATHOMATIC V14.3.2:
+
+Cleanup and bugfixes and code simplification.
+
+2/11/09 - Entry of a function now results in "Named functions currently not implemented" error message.
+
+2/12/09 - Bugfix to matho-primes and added "misc/limits.c".
+
+2/15/09 - The fraction command was fixed to give better results.
+          "set display2d" flag now no longer affects any results at all, it only affects 2D output mode.
+
+Mathomatic version 14.3.3 released 2009-02-16
+
+CHANGES MADE TO MATHOMATIC V14.3.3:
+
+Code cleanup and polishing of output and documentation.
+
+2/17/09 - Renamed -h (HTML) option to -x, -h is now the help option.
+          Added -w option to set wide output mode.
+
+Mathomatic version 14.3.4 released 2009-03-04
+
+CHANGES MADE TO MATHOMATIC V14.3.4:
+
+3/9/09 - Found the correct formulas for solving the general cubic equation on Wikipedia,
+         so "tests/cubic.in" always gives correct answers now.
+
+3/12/09 - Tweak made to simplify result beautifier: factoring priority only given to real variables now,
+          special constant variables pi#, e#, and i# have no effect and behave like any constant now.
+
+3/15/09 - Corrected and improved parse_complex() C function for more complex number functionality
+          and a bug fix.
+
+3/18/09 - Added "set negate_highest_precedence" option, which allows the negate operator to be the
+          lower precedence of times and divide, like it is in Maxima and most other math programs.
+
+Mathomatic version 14.3.5 released 2009-03-18
+
+CHANGES MADE TO MATHOMATIC V14.3.5:
+
+More improvements to the documentation were made.
+
+3/24/09 - Made "set no autosolve" mode more useful by making it solve if a solve variable is entered
+          with an equals sign.  This allows easy entry of both single variable expressions (with no =)
+          and solve variables (with =) while in this mode.
+
+3/27/09 - Selecting equations by entering the equation number was returning with error if the equation
+          space was empty.  Fixed, you can now select any previously allocated equation space.
+
+Mathomatic version 14.3.6 released 2009-03-29
+
+CHANGES MADE TO MATHOMATIC V14.3.6:
+
+Many minor code and documentation corrections were done, in addition to the following:
+
+Perfected the user interface for the sum, product, and integrate commands.
+
+4/2/09 - Added the proper LGPL license preamble for all Mathomatic files in new file "license.h".
+         The license remains the same.
+
+4/4/09 - Renamed m4 Mathomatic script from "math" to "matho" to make it unique.
+         m4 Mathomatic should now be suitable for packaging with the command "make m4install"
+         instead of "make install".  Then typing "rmath" runs "matho" with readline support,
+         allowing trig and other standard functions to be entered and edited.
+         Requires GNU m4 and rlwrap programs.
+
+Mathomatic version 14.3.7 released 2009-04-08
+
+CHANGES MADE TO MATHOMATIC V14.3.7:
+
+More improvements to the documentation were made.  The READMEs were clarified.
+
+4/10/09 - Compilation define HANDHELD was corrected to work properly on handheld devices.
+          UNIX define was corrected so that Mathomatic will compile without it.
+
+4/12/09 - Restored initial full simplify in the limit command for better results,
+          that was unintentionally removed in version 14.1.0.
+
+4/16/09 - Fixed an endless loop in simplification; results look better, too.
+
+Mathomatic version 14.4.0 released 2009-04-17
+
+CHANGES MADE TO MATHOMATIC V14.4.0:
+
+Documention and tests cleanup.
+
+4/25/09 - Added "set save" command, which makes all current session options permanent,
+          by saving them in "~/.mathomaticrc".  "set no save" removes this file.
+
+4/30/09 - Added "mathomatic -s" option, which stands for secure mode.  This is a run-time option
+          that disallows shelling out and writing files, and was created for use on public servers
+          that can't use the SECURE compile-time define.
+
+Mathomatic version 14.4.1 released 2009-05-02
+
+CHANGES MADE TO MATHOMATIC V14.4.1:
+
+General cleanup.
+
+5/6/09 - Doubled the default maximum mathematical expression size to allow larger expressions.
+
+5/12/09 - Mathomatic now compiles with -Wall by default.
+
+Mathomatic version 14.4.2 released 2009-05-13
+
+CHANGES MADE TO MATHOMATIC V14.4.2:
+
+5/13/09 - A fatal compilation error when compiling with defines other than UNIX was fixed.
+          Thanks to Gordon McKinney for quickly reporting and verifying this bug.
+
+Mathomatic version 14.4.2 re-released 2009-05-13
+
+CHANGES MADE TO MATHOMATIC V14.4.2:
+
+General cleanup and fixes.
+
+5/15/09 - Slight improvement made to simplification; results are more simple and stable.
+
+5/20/09 - Added info to the Mathomatic man page and to the "AUTHORS" file.
+
+5/25/09 - The maximum integer that can be factored has been raised from 14 to 15 decimal digits.
+
+Mathomatic version 14.4.3 released 2009-05-25
+
+CHANGES MADE TO MATHOMATIC V14.4.3:
+
+5/25/09 - Small fix made to fraction command and "simplify fraction" for better looking fractions.
+
+5/26/09 - Added a "simplify quickest" command option, which does no unfactoring nor factoring.
+
+5/28/09 - Made full simplification more efficient and simpler by cutting out unnecessary loops.
+
+5/31/09 - Improved the divide command and enabled its use in the symbolic math library.
+          Enabled code and variables commands in library, too.
+          Currently, library output of these 3 commands can only be gathered by redirecting to a file.
+
+6/2/09 - Added "set autoselect" and "set auto" options.  Use "set no auto" to always store
+         entered expressions into equation spaces, unless it is a command.
+
+Mathomatic version 14.4.4 released 2009-06-03
+
+CHANGES MADE TO MATHOMATIC V14.4.4:
+
+General cleanup and addition of helpful descriptive text.
+
+6/9/09 - "primes/mult" improved and renamed to "primes/matho-mult",
+         so you can install as a unique program, if you wish.
+         "primorial 1" works now, too.
+         Roots command enabled in the symbolic math library.
+
+6/10/09 - Fixed factor command parameter handling and results, it was not user friendly.
+          Also fixed factor command for consistent behavior in the symbolic math library.
+
+6/14/09 - Allow separate install of Mathomatic binaries and documentation in makefile.
+
+Mathomatic version 14.4.5 released 2009-06-14

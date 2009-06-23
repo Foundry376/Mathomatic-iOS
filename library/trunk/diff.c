@@ -1,7 +1,7 @@
 /*
- * Mathomatic differentiation routines and commands.
+ * Mathomatic symbolic differentiation routines and related commands.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -10,10 +10,12 @@ static int	d_recurse();
 
 /*
  * Compute the derivative of an equation side, with respect to variable "v",
- * using the fast, rule based transform method.
- * The result must be simplified by the caller.
+ * using the fast, rule-based transform method.
+ * This is done by recursively applying the proper rule of differentiation
+ * for each operator encountered.
  *
  * Return true if successful.
+ * The result must be simplified by the caller.
  */
 int
 differentiate(equation, np, v)
@@ -288,7 +290,7 @@ derivative_cmd(cp)
 char	*cp;
 {
 	int		i;
-	long		v = 0;		/* variable */
+	long		v = 0;		/* Mathomatic variable */
 	long		l1, order = 1;
 	token_type	*source, *dest;
 	int		n1, *nps, *np;
@@ -335,7 +337,7 @@ char	*cp;
 		}
 	}
 	if (no_vars(source, *nps, &v)) {
-		error(_("Current expression contains no variables."));
+		error(_("Current expression contains no variables; the derivative would be zero."));
 		return false;
 	}
 	if (v == 0) {
@@ -348,16 +350,18 @@ char	*cp;
 		return false;
 	}
 #if	!SILENT
-	list_var(v, 0);
-	if (n_rhs[cur_equation]) {
-		printf(_("Differentiating the RHS with respect to (%s)"), var_str);
-	} else {
-		printf(_("Differentiating with respect to (%s)"), var_str);
-	}
-	if (simplify_flag) {
-		printf(" and simplifying...\n");
-	} else {
-		printf("...\n");
+	if (debug_level >= 0) {
+		list_var(v, 0);
+		if (n_rhs[cur_equation]) {
+			printf(_("Differentiating the RHS with respect to (%s)"), var_str);
+		} else {
+			printf(_("Differentiating with respect to (%s)"), var_str);
+		}
+		if (simplify_flag) {
+			printf(" and simplifying...\n");
+		} else {
+			printf("...\n");
+		}
 	}
 #endif
 	blt(dest, source, *nps * sizeof(token_type));
@@ -391,7 +395,7 @@ extrema_cmd(cp)
 char	*cp;
 {
 	int		i;
-	long		v = 0;		/* variable */
+	long		v = 0;		/* Mathomatic variable */
 	long		l1, order = 1;
 	token_type	want;
 	token_type	*source;
@@ -477,7 +481,7 @@ int
 taylor_cmd(cp)
 char	*cp;
 {
-	long		v = 0;			/* variable */
+	long		v = 0;			/* Mathomatic variable */
 	int		i, j, k, i1;
 	int		level;
 	long		l1, n, order = -1L;
@@ -693,10 +697,9 @@ limit_cmd(cp)
 char	*cp;
 {
 	int		i;
-	long		v = 0;			/* variable */
+	long		v = 0;			/* Mathomatic variable */
 	token_type	solved_v, want;
 	char		*cp_start;
-	int		infinity_flag;
 
 	cp_start = cp;
 	if (current_not_defined()) {
@@ -749,11 +752,11 @@ char	*cp;
 			return false;
 		}
 	}
-/* copy the current equation to a new equation space and work on the copy: */
+/* copy the current equation to a new equation space, then simplify and work on the copy: */
 	copy_espace(cur_equation, i);
-/* see if the limit expression contains infinity: */
+	simpa_side(rhs[i], &n_rhs[i], false, false);
+/* see if the limit expression is positive infinity: */
 	simp_loop(tes, &n_tes);
-	infinity_flag = exp_contains_infinity(tes, n_tes);
 
 	debug_string(0, "Solving...");
 	if (n_tes == 1 && tes[0].kind == CONSTANT && tes[0].token.constant == INFINITY) {
@@ -782,7 +785,7 @@ char	*cp;
 /* replace the limit variable (LHS) with the limit expression: */
 	blt(lhs[i], tes, n_tes * sizeof(token_type));
 	n_lhs[i] = n_tes;
-/* symbolically simplify the RHS: */
+/* simplify the RHS: */
 	symb_flag = true;
 	simpa_side(rhs[i], &n_rhs[i], false, false);
 	symb_flag = false;
@@ -795,10 +798,8 @@ char	*cp;
 		error(_("Can't take the limit because solve failed."));
 		return false;
 	}
-/* symbolically simplify before returning the result: */
-	symb_flag = true;
+/* simplify before returning the result: */
 	simpa_side(rhs[i], &n_rhs[i], false, false);
-	symb_flag = false;
 	if (exp_contains_nan(rhs[i], n_rhs[i])) {
 		error(_("Unable to take limit; result contains NaN (Not a Number)."));
 		return false;

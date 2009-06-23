@@ -8,7 +8,10 @@ matho-sumsq \- Find the minimum sum of the squares for integers
 .RI [ numbers ]
 
 .SH DESCRIPTION
-This program finds the minimum number of positive integers that when squared
+This utility is optionally part of the
+.BR mathomatic (1)
+package.
+It finds the minimum number of positive integers that when squared
 and added together, equal the given number.  There is a proof that no more
 than 4 squares summed together are required to represent any positive
 integer.
@@ -18,10 +21,6 @@ less than 2147483648 (2^31), to find the squares of,
 otherwise the program counts up from 0.  If the number of squares is 2,
 this program displays all possible combinations, otherwise it just
 displays the first combination it finds.
-
-This program is part of the
-.BR mathomatic (1)
-package.
 
 .SH SEE ALSO
 .BR mathomatic (1),

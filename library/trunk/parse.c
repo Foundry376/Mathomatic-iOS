@@ -1,7 +1,7 @@
 /*
  * Expression parsing routines for Mathomatic.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -17,9 +17,11 @@ void
 str_tolower(cp)
 char	*cp;
 {
-	for (; cp && *cp; cp++) {
-		if (isupper(*cp))
-			*cp = tolower(*cp);
+	if (cp) {
+		for (; *cp; cp++) {
+			if (isupper(*cp))
+				*cp = tolower(*cp);
+		}
 	}
 }
 
@@ -66,10 +68,9 @@ int		i;	/* location of operator to parenthesize in expression */
 	int	j;
 	int	level;
 
-#if	false
+#if	true
 	if (i >= (n - 1) || (n & 1) != 1 || (i & 1) != 1) {
-		error("Internal error in arguments to binary_parenthesize().");
-		longjmp(jmp_save, 13);
+		error_bug("Internal error in arguments to binary_parenthesize().");
 	}
 #endif
 	level = p1[i].level++;
@@ -104,7 +105,7 @@ int		*np;
 		if (equation[i].token.operatr == NEGATE) {
 			/* change negate operator to -1 times the operand: */
 			equation[i].token.operatr = TIMES;
-			if (negate_high_precedence) {
+			if (negate_highest_precedence) {
 				/* make negate top priority by parenthesizing it first: */
 				binary_parenthesize(equation, *np, i);
 			}	/* otherwise negate has same priority as times/divide */
@@ -164,16 +165,17 @@ int		*np;		/* pointer to expression length */
  * This is a simple, non-recursive mathematical expression parser.
  * To parse, the character string is sequentially read and stored
  * in the internal storage format.
- * The maximum length that can be parsed is the size of an equation side.
+ * The maximum length that can be parsed is the size of an equation side (n_tokens).
  * Any syntax and other errors are carefully reported and give a NULL return.
  *
- * Returns the new string position or NULL if error.
+ * Returns the new string position, or NULL if error.
  */
-char	*
-parse_section(equation, np, cp)
+char *
+parse_section(equation, np, cp, allow_space)
 token_type	*equation;	/* where the parsed expression is stored (equation side) */
 int		*np;		/* pointer to the returned parsed expression length */
 char		*cp;		/* string to parse */
+int		allow_space;	/* if false, any space characters terminate parsing */
 {
 	int		n = 0;			/* position in equation[] */
 	int		cur_level = 1;		/* current level of parentheses */
@@ -191,9 +193,6 @@ char		*cp;		/* string to parse */
 			error_huge();
 		}
 		switch (*cp) {
-		case ' ':
-		case '\t':
-			continue;
 		case '(':
 		case '{':
 			if (operand) {
@@ -220,6 +219,10 @@ char		*cp;		/* string to parse */
 				goto syntax_error;
 			}
 			continue;
+		case ' ':
+		case '\t':
+			if (allow_space)
+				continue;
 		case '=':
 		case ';':
 		case '\0':
@@ -369,7 +372,7 @@ parse_power:
 				equation[n].token.operatr = TIMES;
 				n++;
 			}
-			if (*cp == '-' && (!negate_high_precedence || !(isdigit(cp[1]) || cp[1] == '.'))) {
+			if (*cp == '-' && (!negate_highest_precedence || !(isdigit(cp[1]) || cp[1] == '.'))) {
 				equation[n].kind = CONSTANT;
 				equation[n].token.constant = -1.0;
 				equation[n].level = cur_level;
@@ -409,6 +412,7 @@ parse_power:
 				equation[n].token.operatr = TIMES;
 				n++;
 			}
+			cp1 = cp;
 			if (strncasecmp(cp, INFINITY_NAME, strlen(INFINITY_NAME)) == 0
 			    && !isvarchar(cp[strlen(INFINITY_NAME)])) {
 				equation[n].kind = CONSTANT;
@@ -416,11 +420,14 @@ parse_power:
 				cp += strlen(INFINITY_NAME);
 			} else {
 				equation[n].kind = VARIABLE;
-				cp1 = cp;
 				cp = parse_var(&equation[n].token.variable, cp);
 				if (cp == NULL) {
 					return(NULL);
 				}
+			}
+			if (*cp == '(') {
+				put_up_arrow(cp1 - cp_start, _("Named functions currently not implemented."));
+				return(NULL);
 			}
 			cp--;
 			equation[n].level = cur_level;
@@ -455,10 +462,10 @@ syntax_error:
 /*
  * Parse an equation string into equation space "n".
  *
- * Returns the new string position or NULL on error.
+ * Returns the new string position, or NULL if error.
  * Currently, there can be no more to parse in the string when this returns.
  */
-char	*
+char *
 parse_equation(n, cp)
 int	n;	/* equation space number */
 char	*cp;	/* pointer to the beginning of the equation character string */
@@ -466,8 +473,8 @@ char	*cp;	/* pointer to the beginning of the equation character string */
 	if (!case_sensitive_flag) {
 		str_tolower(cp);
 	}
-	if ((cp = parse_section(lhs[n], &n_lhs[n], cp)) != NULL) {
-		if ((cp = parse_section(rhs[n], &n_rhs[n], cp)) != NULL) {
+	if ((cp = parse_section(lhs[n], &n_lhs[n], cp, true)) != NULL) {
+		if ((cp = parse_section(rhs[n], &n_rhs[n], cp, true)) != NULL) {
 			if (extra_characters(cp))
 				return NULL;
 			return cp;
@@ -479,10 +486,10 @@ char	*cp;	/* pointer to the beginning of the equation character string */
 /*
  * Parse an expression with equation space pull if the line starts with "#" followed by an equation number.
  *
- * Returns the new string position or NULL on error.
+ * Returns the new string position, or NULL if error.
  * Currently, there can be no more to parse in the string when this returns.
  */
-char	*
+char *
 parse_expr(equation, np, cp)
 token_type	*equation;	/* where the parsed expression is stored (equation side) */
 int		*np;		/* pointer to the returned parsed expression length */
@@ -512,7 +519,7 @@ char		*cp;		/* string to parse */
 			return NULL;
 		}
 		if (i < 0 || i >= n_equations || n_lhs[i] <= 0) {
-			error(_("Equation not defined."));
+			error(_("No expression available in specified equation space."));
 			return NULL;
 		}
 		if (n_rhs[i]) {
@@ -522,11 +529,13 @@ char		*cp;		/* string to parse */
 			blt(equation, lhs[i], n_lhs[i] * sizeof(token_type));
 			*np = n_lhs[i];
 		}
+#if	!SILENT
 		list_proc(equation, *np, false);
 		fprintf(gfp, "\n");
+#endif
 		return cp2;
 	}
-	if ((cp = parse_section(equation, np, cp)) != NULL) {
+	if ((cp = parse_section(equation, np, cp, true)) != NULL) {
 		if (extra_characters(cp))
 			return NULL;
 	}
@@ -542,7 +551,7 @@ char		*cp;		/* string to parse */
  * Return new string position if successful.
  * Display error message and return NULL on failure.
  */
-char	*
+char *
 parse_var(vp, cp)
 long	*vp;
 char	*cp;

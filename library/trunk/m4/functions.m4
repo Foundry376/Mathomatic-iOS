@@ -5,14 +5,13 @@ m4_define(`cbrt', `(($1)^(1/3))'); function cbrt(x) = cube root of x
 m4_define(`exp', `(e^($1))'); function exp(x) = e^x
 m4_define(`pow', `(($1)^($2))'); function pow(x, y) = x^y
 m4_define(`abs', `(|($1)|)'); function abs(x) = absolute value = |x|
-m4_define(`fact', `(($1)!)'); function fact(x) = factorial = x!
 m4_define(`phi', `((1+5^.5)/2)'); phi = the golden ratio constant
 
 set modulus_mode=2 ; mode 1 or 2 required for floor() and ceil().
 m4_define(`floor', `(($1)-($1)%1)'); floor(x) = floor function, real x -> integer result
 m4_define(`ceil', `(($1)+(-($1))%1)'); ceil(x) = ceiling function, real x -> integer result
-m4_define(`int', `(($1)//1)'); int(x) = truncate to integer function, real x -> integer result
-m4_define(`round', `((($1)+|($1)|/($1)/2)//1)'); round(x) = round to nearest integer function; round(0) fails
+m4_define(`int', `(($1)//1)'); int(x) = truncate to integer, real x -> integer result
+m4_define(`round', `((($1)+|($1)|/($1)/2)//1)'); round(x) = round to nearest integer; round(0) fails
 
 ; Standard trigonometry functions as complex exponentials, argument x is in radians:
 m4_define(`sin', `((e^(i*($1))-e^(-i*($1)))/(2i))'); sin(x) = sine of x
@@ -22,7 +21,8 @@ m4_define(`cot', `(i*(e^(i*($1))+e^(-i*($1)))/(e^(i*($1))-e^(-i*($1))))'); cot(x
 m4_define(`sec', `(2/(e^(i*($1))+e^(-i*($1))))'); sec(x) = secant of x
 m4_define(`csc', `(2i/(e^(i*($1))-e^(-i*($1))))'); csc(x) = cosecant of x
 
-; The following are hyperbolic trigonometry functions: sinh(x), cosh(x), tanh(x), coth(x), sech(x), and csch(x).
+; The following are hyperbolic trigonometry functions:
+; sinh(x), cosh(x), tanh(x), coth(x), sech(x), and csch(x).
 ; These are related to the above trigonometry functions without the "h" appended to the function name.
 m4_define(`sinh', `((e^($1)-e^-($1))/2)')
 m4_define(`cosh', `((e^($1)+e^-($1))/2)')

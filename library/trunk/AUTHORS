@@ -1,2 +1,17 @@
 George Gesslein II <georgegesslein@gmail.com>
-Creator and maintainer.
+Chief Mathomatic creator, maintainer, and copyright holder.
+http://www.mathomatic.org
+
+David Moreno Garza
+Former maintainer of the Debian Mathomatic package
+and creator of the original Prime Number Tools man pages.
+http://log.damog.net/
+
+Sandro Tosi
+The current maintainer of the Debian Mathomatic package and doing a fine job.
+http://matrixhasu.altervista.org/ and http://wiki.debian.org/SandroTosi
+
+Gordon McKinney
+Porter and maintainer of the Win32 version using Cygwin DLLs.
+Thank you very much for creating and supporting the Win32 port for all these years.
+http://night-ray.blogspot.com/

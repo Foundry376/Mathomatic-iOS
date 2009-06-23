@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 {
 	struct winsize	ws;
 
-        prog_name = strdup(basename(argv[0]));
+/*	prog_name = strdup(basename(argv[0])); */
 
 	ws.ws_col = 0;
 	ws.ws_row = 0;

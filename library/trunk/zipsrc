@@ -2,8 +2,14 @@
 # Create a zip file containing the Mathomatic source distribution with no object files.
 # The current directory must be the root of the Mathomatic source tree for this to work.
 
-rm -f ~/am.zip
-rm -f */*.o */*.pyc
+if [ ! -f "VERSION" ]
+then
+	echo 'zipsrc executed from an improper directory;'
+	echo 'Must only be invoked as "./zipsrc".'
+	exit 1
+fi
+
+rm -f ~/am.zip */*.o */*.pyc
 echo Mathomatic development source code version `cat VERSION`+ \
-| zip -rqz ~/am.zip *.c *.h makefile* compile* *.txt VERSION AUTHORS COPYING mathomatic.* zipsrc doc primes tests lib factorial m4 misc icons \
+| zip -rqz ~/am.zip *.c *.h makefile* update compile* *.txt VERSION AUTHORS COPYING mathomatic.* zipsrc doc primes tests lib factorial m4 misc icons \
 && echo ~/am.zip created.

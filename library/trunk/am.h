@@ -1,7 +1,7 @@
 /*
- * Main include file for Mathomatic, an algebraic manipulator written entirely in C.
+ * Main include file for Mathomatic.  Can be edited.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #ifndef	max
@@ -21,16 +21,15 @@
 #define	ARR_CNT(a)	((int) (sizeof(a)/sizeof(a[0])))	/* returns the number of elements in an array */
 #define CLEAR_ARRAY(a)	memset(a, 0, sizeof(a))			/* sets all elements of an array to zero */
 
-#define	MAX_K_INTEGER	1.0e14				/* maximum representable integer, 14 digits for doubles */
-#define	MAX_PRECISION	16				/* maximum useful display precision (number of digits) */
+#define	MAX_K_INTEGER	1.0e15				/* maximum safely representable integer, 15 digits for doubles */
 
 #define	blt(dst, src, cnt)	memmove((char *) (dst), (char *) (src), (size_t) (cnt))	/* memory copy function */
 #define always_positive(power)	(fmod((double) (power), 2.0) == 0.0)	/* true if all real numbers raised to "power" result in positive, real numbers */
 
-#if	I18N	/* internationalization: allow other languages if all strings are translated; not tested */
-#define _(str)		gettext(str)
+#if	I18N		/* internationalization: output in languages other than English using gettext(3) */
+#define _(str)		gettext(str)	/* currently the support code for this incomplete and untested */
 #else
-#define _(str)		str
+#define _(str)		str		/* constant strings to be translated should be marked with this macro */
 #endif
 
 #define	STANDARD_SCREEN_COLUMNS	80			/* default number of columns of characters on the screen */
@@ -38,14 +37,15 @@
 
 #define	TMP_FILE	"/tmp/mathomatic.XXXXXX"	/* temporary file template for mkstemp(3) */
 
-#define	PROMPT		"-> "				/* user interface prompt string */
-#define	HTML_PROMPT	"&mdash;&gt; "
+#define	PROMPT_STR	"-> "				/* user interface main prompt strings, preceded by the current equation number */
+#define	HTML_PROMPT_STR	"&mdash;&gt; "
 
-#define	MAX_CMD_LEN	PATH_MAX			/* maximum command line length (not equations), also max file name length */
+#define	MAX_CMD_LEN	(max(PATH_MAX, 500))		/* maximum command line length (not expression input), also max filename length */
 #define	MAX_PROMPT_LEN	STANDARD_SCREEN_COLUMNS		/* maximum length of prompts */
 
 /*
  * The following defines the maximum number of equation spaces that can be allocated.
+ * This affects maximum memory usage.
  */
 #ifndef	N_EQUATIONS
 #if	HANDHELD
@@ -67,7 +67,7 @@
 #if	HANDHELD
 #define	DEFAULT_N_TOKENS	3000
 #else
-#define	DEFAULT_N_TOKENS	30000
+#define	DEFAULT_N_TOKENS	60000
 #endif
 #endif
 

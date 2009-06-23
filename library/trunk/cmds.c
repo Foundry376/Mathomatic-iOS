@@ -1,7 +1,7 @@
 /*
  * Mathomatic commands that don't belong anywhere else.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -12,22 +12,10 @@ static int	sum_product();
 static int	complex_func();
 static int	elim_sub();
 #if	!LIBRARY
-static int	edit_sub();
-
 /* Global variables for the optimize command. */
 static int	opt_en[N_EQUATIONS];
 static int	last_temp_var = 0;
 #endif
-
-/*
- * Compare function for qsort(3).
- */
-static int
-vcmp(p1, p2)
-sort_type	*p1, *p2;
-{
-	return(p2->count - p1->count);
-}
 
 /*
  * The version command.
@@ -38,6 +26,7 @@ char	*cp;	/* the command line argument */
 {
 	int		rv;	/* return value */
 
+	extra_characters(cp);	/* no command options allowed */
 #if	LIBRARY
 	free(result_str);
 	result_str = strdup(VERSION);
@@ -47,13 +36,13 @@ char	*cp;	/* the command line argument */
 }
 
 /*
- * Report version number, compile flags, and memory usage.
+ * Display version info.
  */
 int
 version_report()
 {
 	fprintf(gfp, _("Mathomatic version %s\n"), VERSION);
-	fprintf(gfp, _("Compile flags used: "));
+	fprintf(gfp, _("Compile defines used: "));
 #if	UNIX
 	fprintf(gfp, "UNIX ");
 #endif
@@ -81,8 +70,11 @@ version_report()
 #if	I18N
 	fprintf(gfp, "I18N ");
 #endif
-	fprintf(gfp, _("\nMaximum memory usage: %ld kilobytes\n"), ((long) (N_EQUATIONS + 3L) * n_tokens * sizeof(token_type) * 2L) / 1000L);
-	fprintf(gfp, _("This is GNU LGPL version 2.1 licensed software.\n"));
+	fprintf(gfp, _("\nThe current expression array size is %d tokens,\n"), n_tokens);
+	fprintf(gfp, _("making the maximum memory usage %ld kilobytes.\n"), ((long) (N_EQUATIONS + 3L) * n_tokens * sizeof(token_type) * 2L) / 1000L);
+	fprintf(gfp, _("\nMathomatic is GNU LGPL version 2.1 licensed software,\n"));
+	fprintf(gfp, _("meaning it is free software that comes with no warranty.\n"));
+	fprintf(gfp, "Use \"help copyright\" for copyright and license information.\n");
 	return true;
 }
 
@@ -95,10 +87,11 @@ char	*cp;
 {
 	int		i, j;
 	char		buf[MAX_CMD_LEN];
-	long		v;	/* variable */
+	long		v;	/* Mathomatic variable */
 	token_type	want;
 	int		diff_sign;
 	int		verify_flag = false, plural_flag = false, once_through;
+	char		*cp1;
 
 	if (cur_equation < 0 || cur_equation >= n_equations || n_lhs[cur_equation] <= 0 || n_rhs[cur_equation] <= 0) {
 		error(_("No current equation."));
@@ -108,6 +101,12 @@ char	*cp;
 	if (strcmp_tospace(cp, "verify") == 0) {
 		verify_flag = true;
 		cp = skip_param(cp);
+	}
+	if (strcmp_tospace(cp, "for") == 0) {
+		cp1 = skip_param(cp);
+		if (*cp1) {
+			cp = cp1;
+		}
 	}
 	if (*cp == '\0') {
 		my_strlcpy(prompt_str, _("Enter variable to solve for: "), sizeof(prompt_str));
@@ -212,7 +211,7 @@ char	*cp;		/* the command line */
 int	product_flag;	/* true for product, otherwise sum */
 {
 	int		i;
-	long		v = 0;			/* variable */
+	long		v = 0;			/* Mathomatic variable */
 	double		start, end, step = 1.0;
 	int		result_en;
 	int		n, ns;
@@ -264,8 +263,12 @@ int	product_flag;	/* true for product, otherwise sum */
 			return false;
 	}
 	start = strtod(cp1, &cp);
-	if (cp1 == cp || fabs(start) >= MAX_K_INTEGER) {
-		error(_("Invalid number."));
+	if (cp1 == cp) {
+		error(_("Number expected."));
+		return false;
+	}
+	if (fabs(start) >= MAX_K_INTEGER) {
+		error(_("Number too large."));
 		return false;
 	}
 	cp = skip_space(cp);
@@ -280,8 +283,12 @@ int	product_flag;	/* true for product, otherwise sum */
 			return false;
 	}
 	end = strtod(cp1, &cp);
-	if (cp1 == cp || fabs(end) >= MAX_K_INTEGER) {
-		error(_("Invalid number."));
+	if (cp1 == cp) {
+		error(_("Number expected."));
+		return false;
+	}
+	if (fabs(end) >= MAX_K_INTEGER) {
+		error(_("Number too large."));
 		return false;
 	}
 	cp = skip_space(cp);
@@ -416,8 +423,8 @@ int		*np;
 	int	level, level1;
 	int	diff_sign;
 	int	found_se, found_se1;	/* found sub-expression flags */
-	long	v;			/* variable */
-	char	temp_buf[50];
+	long	v;			/* Mathomatic variable */
+	char	var_name_buf[MAX_VAR_LEN];
 
 	if (*np <= 0) {
 		return false;
@@ -448,8 +455,8 @@ int		*np;
 					k1 = i1 - 1;
 					if ((jj1 - k1) >= OPT_MIN_SIZE
 					    && se_compare(&equation[k], j - k, &equation[k1], jj1 - k1, &diff_sign)) {
-						snprintf(temp_buf, sizeof(temp_buf), "temp%d", last_temp_var);
-						if (parse_var(&v, temp_buf) == NULL) {
+						snprintf(var_name_buf, sizeof(var_name_buf), "temp%d", last_temp_var);
+						if (parse_var(&v, var_name_buf) == NULL) {
 							return false;	/* can't create "temp" variable */
 						}
 						last_temp_var++;
@@ -614,7 +621,7 @@ char	*cp;
 			}
 		}
 	}
-	debug_string(0, _("Expression(s) pushed.  Press the UP key to access."));
+	debug_string(0, _("Expression pushed.  Press the UP key to access."));
 	return true;
 }
 
@@ -641,18 +648,19 @@ int	en;	/* equation space number */
 #endif
 
 /*
- * Display current working directory.
+ * Output the current working directory.
  *
  * Return true if successful.
  */
 int
-display_current_directory()
+output_current_directory(ofp)
+FILE	*ofp;	/* output file pointer */
 {
 #if	!SECURE
 	char	buf[MAX_CMD_LEN];
 
-	if (getcwd(buf, sizeof(buf))) {
-		fprintf(gfp, "directory = %s\n", buf);
+	if (!secure_flag && ofp && getcwd(buf, sizeof(buf))) {
+		fprintf(ofp, "directory = %s\n", buf);
 		return true;
 	}
 #endif
@@ -664,8 +672,11 @@ display_current_directory()
  */
 void
 output_options(ofp)
-FILE	*ofp;	/* Output file pointer */
+FILE	*ofp;	/* output file pointer */
 {
+	if (ofp == NULL)
+		return;
+
 	fprintf(ofp, "precision = %d digits\n", precision);
 
 	if (!autosolve) {
@@ -677,6 +688,11 @@ FILE	*ofp;	/* Output file pointer */
 		fprintf(ofp, "no ");
 	}
 	fprintf(ofp, "autocalc\n");
+
+	if (!autoselect) {
+		fprintf(ofp, "no ");
+	}
+	fprintf(ofp, "autoselect\n");
 
 #if	!SILENT
 	fprintf(ofp, "debug_level = %d\n", debug_level);
@@ -726,6 +742,11 @@ FILE	*ofp;	/* Output file pointer */
 	}
 	fprintf(ofp, "right_associative_power\n");
 
+	if (!negate_highest_precedence) {
+		fprintf(ofp, "no ");
+	}
+	fprintf(ofp, "negate_highest_precedence\n");
+
 	fprintf(ofp, "special_variable_characters = %s\n", special_variable_characters);
 }
 
@@ -751,6 +772,38 @@ char	**cpp;
 	return false;
 }
 
+#if	!SECURE && !LIBRARY
+/*
+ * Save set options in the startup file, displaying a confirmation message.
+ *
+ * Return true if successful.
+ */
+int
+save_set_options()
+{
+	FILE	*fp;
+
+	if (rc_file[0] == '\0') {
+		error(_("Set options startup file name not set."));
+		return false;
+	}
+	if ((fp = fopen(rc_file, "w")) == NULL) {
+		error(_("Unable to write to set options startup file."));
+		return false;
+	}
+	fprintf(fp, "; Mathomatic set options loaded at startup.\n");
+	fprintf(fp, "; This file can be edited.\n\n");
+	output_options(fp);
+	if (fclose(fp) == 0) {
+		printf(_("All options saved in startup file \"%s\".\n"), rc_file);
+	} else {
+		error(_("Error saving set options."));
+		return false;
+	}
+	return true;
+}
+#endif
+
 /*
  * Handle parsing of options for the set command.
  *
@@ -762,14 +815,14 @@ char	*cp;
 {
 	int	i;
 	int	negate;
-	char	*cp1;
+	char	*cp1, *option_string;
 
 	cp = skip_space(cp);
 	if (*cp == '\0') {
 		return true;
 	}
 #if	!SECURE
-	if (strncasecmp(cp, "dir", 3) == 0) {
+	if (!secure_flag && strncasecmp(cp, "dir", 3) == 0) {
 		cp = skip_param(cp);
 		if (*cp == '\0') {
 			cp1 = getenv("HOME");
@@ -781,14 +834,15 @@ char	*cp;
 			error(_("Error changing directory."));
 			return false;
 		}
-		display_current_directory();
+		output_current_directory(stdout);
 		return true;
 	}
 #endif
 	negate = skip_no(&cp);
+	option_string = cp;
+	cp = skip_param(cp);
 #if	!SILENT
-	if (strncasecmp(cp, "debug", 5) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "debug", 5) == 0) {
 		if (negate) {
 			debug_level = 0;
 		} else {
@@ -803,8 +857,7 @@ char	*cp;
 		goto check_return;
 	}
 #endif
-	if (strncasecmp(cp, "special", 7) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "special", 7) == 0) {
 		if (negate) {
 			special_variable_characters[0] = '\0';
 		} else {
@@ -812,8 +865,7 @@ char	*cp;
 		}
 		return true;
 	}
-	if (strncasecmp(cp, "columns", 7) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "columns", 6) == 0) {
 		if (negate) {
 			screen_columns = 0;
 		} else {
@@ -827,8 +879,7 @@ char	*cp;
 		}
 		goto check_return;
 	}
-	if (strncasecmp(cp, "precision", 4) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "precision", 4) == 0) {
 		i = decstrtol(cp, &cp1);
 		if (i < 0 || i > 14 || cp == cp1) {
 			error(_("Please specify a display precision between 0 and 14 digits."));
@@ -837,38 +888,39 @@ char	*cp;
 		precision = i;
 		return true;
 	}
-	if (strncasecmp(cp, "autosolve", 9) == 0) {
-		cp = skip_param(cp);
+	if (strcmp_tospace(option_string, "auto") == 0) {
+		autosolve = autocalc = autoselect = !negate;
+		goto check_return;
+	}
+	if (strncasecmp(option_string, "autosolve", 9) == 0) {
 		autosolve = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "autocalc", 8) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "autocalc", 8) == 0) {
 		autocalc = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "case", 4) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "autoselect", 10) == 0) {
+		autoselect = !negate;
+		goto check_return;
+	}
+	if (strncasecmp(option_string, "case", 4) == 0) {
 		case_sensitive_flag = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "display2d", 7) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "display2d", 7) == 0) {
 		display2d = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "prompt", 6) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "prompt", 6) == 0) {
 		quiet_mode = negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "preserve", 8) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "preserve", 8) == 0) {
 		preserve_surds = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "modulus_mode", 3) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "modulus_mode", 3) == 0) {
 		if (negate) {
 			modulus_mode = 0;
 		} else {
@@ -886,20 +938,17 @@ char	*cp;
 		}
 		goto check_return;
 	}
-	if (strncasecmp(cp, "color", 5) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "color", 5) == 0) {
 		color_flag = !negate;
 		cur_color = -1;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "bold", 4) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "bold", 4) == 0) {
 		bold_colors = !negate;
 		cur_color = -1;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "finance", 7) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "finance", 7) == 0) {
 		if (negate) {
 			finance_option = 0;
 		} else {
@@ -912,8 +961,8 @@ char	*cp;
 					return false;
 				}
 			}
-			if (i < 0 || i > 50) {
-				error(_("Minimum is 0, maximum is 50."));
+			if (i < 0 || i > 14) {
+				error(_("Minimum is 0, maximum is 14."));
 				return false;
 			}
 			cp = cp1;
@@ -921,16 +970,35 @@ char	*cp;
 		}
 		goto check_return;
 	}
-	if (strncasecmp(cp, "factor_integers", 6) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "factor_integers", 6) == 0) {
 		factor_int_flag = !negate;
 		goto check_return;
 	}
-	if (strncasecmp(cp, "right_associative_power", 5) == 0) {
-		cp = skip_param(cp);
+	if (strncasecmp(option_string, "right_associative_power", 5) == 0) {
 		right_associative_power = !negate;
 		goto check_return;
 	}
+	if (strncasecmp(option_string, "negate_highest_precedence", 6) == 0) {
+		negate_highest_precedence = !negate;
+		goto check_return;
+	}
+#if	!SECURE && !LIBRARY
+	if (!secure_flag && strcmp_tospace(option_string, "save") == 0) {
+		if (rc_file[0] == '\0') {
+			error(_("Set options startup file name not set."));
+			return false;
+		}
+		if (negate) {
+			if (unlink(rc_file) == 0) {
+				printf(_("Set options startup file \"%s\" removed.\n"), rc_file);
+			}
+		} else {
+			if (!save_set_options())
+				return false;
+		}
+		goto check_return;
+	}
+#endif
 	error(_("Unknown set option."));
 	return false;
 
@@ -954,7 +1022,7 @@ char	*cp;
 
 		fprintf(gfp, "columns = %d\n", screen_columns);
 
-		display_current_directory();
+		output_current_directory(gfp);
 		return true;
 	}
 	return set_options(cp);
@@ -978,14 +1046,17 @@ int
 pause_cmd(cp)
 char	*cp;
 {
+#if	LIBRARY
+	return true;
+#else
 	char	*cp1;
 	char	buf[MAX_CMD_LEN];
 
-	if (test_mode /* || !isatty(0) */) {
+	if (test_mode || !isatty(0)) {
 		return true;
 	}
 	if (*cp == '\0') {
-		cp = _("Please press Enter");
+		cp = _("Please press the Enter key");
 	}
 	snprintf(prompt_str, sizeof(prompt_str), " ==== %s ==== ", cp);
 	if ((cp1 = get_string(buf, sizeof(buf))) == NULL) {
@@ -998,6 +1069,7 @@ char	*cp;
 		return false;
 	}
 	return true;
+#endif
 }
 
 /*
@@ -1044,11 +1116,10 @@ int	imag_flag;	/* if true, copy the imaginary part, otherwise copy the real part
 {
 	int		i, j, k;
 	int		beg;
-	int		found_imag;
-	int		has_imag, has_real;
+	int		found_imag, has_imag, has_real;
 	token_type	*source, *dest;
 	int		n1, *nps, *np;
-	long		v;			/* variable */
+	long		v = IMAGINARY;			/* separation variable */
 
 	if (current_not_defined()) {
 		return false;
@@ -1066,7 +1137,6 @@ int	imag_flag;	/* if true, copy the imaginary part, otherwise copy the real part
 		dest = lhs[j];
 		np = &n_lhs[j];
 	}
-	v = IMAGINARY;
 	if (*cp) {
 		cp = parse_var2(&v, cp);
 		if (cp == NULL) {
@@ -1085,8 +1155,7 @@ int	imag_flag;	/* if true, copy the imaginary part, otherwise copy the real part
 	dest[0] = zero_token;
 	has_imag = has_real = false;
 	for (beg = k = 0; beg < *nps; beg = k, k++) {
-		found_imag = false;
-		for (; k < *nps; k++) {
+		for (found_imag = false; k < *nps; k++) {
 			if (source[k].level == 1 && source[k].kind == OPERATOR
 			    && (source[k].token.operatr == PLUS || source[k].token.operatr == MINUS)) {
 				break;
@@ -1418,6 +1487,11 @@ calc_again:
 			fprintf(gfp, " = ");
 		}
 		list_factor(tlhs, &n_tlhs, factor_flag);
+		if (make_fractions(tlhs, &n_tlhs)) {
+			group_proc(tlhs, &n_tlhs);
+			fprintf(gfp, " = ");
+			list_factor(tlhs, &n_tlhs, factor_flag);
+		}
 		fprintf(gfp, "\n\n");
 	}
 	if (value_entered && repeat_flag)
@@ -1655,7 +1729,6 @@ times_neg1:
 	return(!diff_sign);
 }
 
-#if	!LIBRARY
 /*
  * The divide command.
  */
@@ -1666,9 +1739,10 @@ char	*cp;
 	long		v = 0, v_tmp;		/* Mathomatic variables */
 	int		i, j;
 	int		nl, nr;
-	double		d1, d2, d3, d4, d5;
+	double		lcm, d1, d2, d3, d4, d5;
 	complexs	c1, c2, c3;
 
+	pull_number = -1;	/* Operands are last two entered expressions when using library. */
 	if (*cp) {
 		cp = parse_var2(&v, cp);
 		if (cp == NULL) {
@@ -1678,6 +1752,7 @@ char	*cp;
 			return false;
 	}
 	i = next_espace();
+/* prompt for the two operands */
 	my_strlcpy(prompt_str, _("Enter dividend: "), sizeof(prompt_str));
 	if (!get_expr(rhs[i], &nr)) {
 		return false;
@@ -1687,7 +1762,7 @@ char	*cp;
 		return false;
 	}
 	fprintf(gfp, "\n");
-/* simplify the input expressions */
+/* simplify the operand expressions */
 	calc_simp(rhs[i], &nr);
 	calc_simp(lhs[i], &nl);
 /* if division by zero, display a warning */
@@ -1698,12 +1773,11 @@ char	*cp;
 	if (get_constant(rhs[i], nr, &d1) && get_constant(lhs[i], nl, &d2)) {
 		d3 = gcd_verified(d1, d2);
 		d4 = modf(d1 / d2, &d5);
-		if (d3 == 0 || d3 == 1) {
-			fprintf(gfp, "%.*g/%.*g = %.*g\n", precision, d1, precision, d2, precision, d1 / d2);
-		} else {
-			fprintf(gfp, "%.*g/%.*g = %.*g/%.*g = %.*g\n", precision, d1, precision, d2, precision, d1 / d3, precision, d2 / d3, precision, d1 / d2);
+		fprintf(gfp, "%.*g/%.*g = %.*g", precision, d1, precision, d2, precision, d1 / d2);
+		if (d3 != 0.0 && (d2 / d3) != 1.0) {
+			fprintf(gfp, " = %.*g/%.*g", precision, d1 / d3, precision, d2 / d3);
 		}
-		fprintf(gfp, _("Quotient: %.*g, Remainder: %.*g\n"), precision, d5, precision, d4 * d2);
+		fprintf(gfp, _("\nQuotient: %.*g, Remainder: %.*g\n"), precision, d5, precision, d4 * d2);
 		d1 = fabs(d1);
 		d2 = fabs(d2);
 		if (d3 == 0.0) {
@@ -1711,16 +1785,17 @@ char	*cp;
 			return true;
 		}
 		fprintf(gfp, "GCD = ");
-		if (factor_one(d3)) {
+		if (d3 >= 4.0 && factor_one(d3) && !is_prime()) {
 			display_unique();
 		} else {
-			fprintf(gfp, "%.*g\n", precision, d3);
+			display_fraction(d3);
 		}
+		lcm = (d1 * d2) / d3;
 		fprintf(gfp, "LCM = ");
-		if (factor_one((d1 * d2) / d3)) {
+		if (lcm >= 4.0 && factor_one(lcm) && !is_prime()) {
 			display_unique();
 		} else {
-			fprintf(gfp, "%.*g\n", precision, (d1 * d2) / d3);
+			display_fraction(lcm);
 		}
 		return true;
 	}
@@ -1755,7 +1830,7 @@ char	*cp;
 	}
 	if (j) {
 		simp_divide(trhs, &n_trhs);
-		fprintf(gfp, _("Polynomial GCD (iterations = %d):\n"), j);
+		fprintf(gfp, _("Polynomial GCD (%d Euclidean algorithm iteration%s):\n"), j, (j == 1) ? "" : "s");
 		display_fractions_and_group(trhs, &n_trhs);
 		list_factor(trhs, &n_trhs, false);
 		fprintf(gfp, "\n");
@@ -1764,7 +1839,6 @@ char	*cp;
 	}
 	return true;
 }
-#endif
 
 /*
  * The eliminate command.
@@ -1779,11 +1853,8 @@ char	*cp;
 	int	success_flag = false, did_something = false, repeat_flag = false, using_flag;
 	char	used[N_EQUATIONS];
 	char	*cp_start;
+	char	buf[MAX_CMD_LEN];
 
-	if (*cp == '\0') {
-		error(_("Please specify the variables to eliminate or \"all\" for all variables."));
-		return false;
-	}
 	CLEAR_ARRAY(used);
 	if (current_not_defined()) {
 		return false;
@@ -1791,6 +1862,13 @@ char	*cp;
 	if (strcmp_tospace(cp, "repeat") == 0) {
 		repeat_flag = true;
 		cp = skip_param(cp);
+	}
+	if (*cp == '\0') {
+		my_strlcpy(prompt_str, _("Enter variables to eliminate: "), sizeof(prompt_str));
+		cp = get_string(buf, sizeof(buf));
+		if (cp == NULL || *cp == '\0') {
+			return false;
+		}
 	}
 	cp_start = cp;
 next_var:
@@ -1905,23 +1983,30 @@ int	i;	/* equation number */
 long	v;	/* Mathomatic variable */
 {
 	token_type	want;
+	int		solved;
 
 	if (i == cur_equation) {
 		error(_("Error: source and destination are the same."));
 		return false;
 	}
+	solved = (solved_equation(i) && lhs[i][0].token.variable == v);
 #if	!SILENT
-	if (debug_level >= 0) {
-		list_var(v, 0);
+	list_var(v, 0);
+	if (solved) {
+		/* already solved */
+		printf(_("Substituting the RHS of equation #%d into the current equation for variable (%s)...\n"), i + 1, var_str);
+	} else {
 		printf(_("Solving equation #%d for (%s) and substituting into the current equation...\n"), i + 1, var_str);
 	}
 #endif
-	want.level = 1;
-	want.kind = VARIABLE;
-	want.token.variable = v;
-	if (solve_sub(&want, 1, lhs[i], &n_lhs[i], rhs[i], &n_rhs[i]) <= 0) {
-		error(_("Solve failed."));
-		return false;
+	if (!solved) {
+		want.level = 1;
+		want.kind = VARIABLE;
+		want.token.variable = v;
+		if (solve_sub(&want, 1, lhs[i], &n_lhs[i], rhs[i], &n_rhs[i]) <= 0) {
+			error(_("Solve failed."));
+			return false;
+		}
 	}
 	subst_var_with_exp(rhs[cur_equation], &n_rhs[cur_equation], rhs[i], n_rhs[i], v);
 	subst_var_with_exp(lhs[cur_equation], &n_lhs[cur_equation], rhs[i], n_rhs[i], v);
@@ -2016,7 +2101,6 @@ char	*cp;
 	return true;
 }
 
-#if	!LIBRARY
 /*
  * The code command.
  */
@@ -2088,6 +2172,16 @@ char	*cp;
 }
 
 /*
+ * Compare function for qsort(3).
+ */
+static int
+vcmp(p1, p2)
+sort_type	*p1, *p2;
+{
+	return(p2->count - p1->count);
+}
+
+/*
  * The variables command.
  */
 int
@@ -2119,7 +2213,7 @@ char	*cp;
 		return false;
 	}
 	last_v = 0;
-	for (vc = 0;; vc++) {
+	for (vc = 0;;) {
 		if (vc >= ARR_CNT(va)) {
 			error(_("Too many variables to list."));
 			return false;
@@ -2159,6 +2253,7 @@ char	*cp;
 		last_v = v1;
 		va[vc].v = v1;
 		va[vc].count = cnt;
+		vc++;
 	}
 	if (vc <= 0)
 		return true;
@@ -2180,7 +2275,6 @@ char	*cp;
 	}
 	return true;
 }
-#endif
 
 /*
  * The approximate command.
@@ -2345,18 +2439,22 @@ char	*cp;
 	int		k, k1;
 	long		counter, counter_max, previous_solution_number[N_EQUATIONS];
 	sign_array_type	sa_mark, sa_value;
-	int		sign_flag = false, quick_flag = false, symb = false, frac_flag = false;
+	int		sign_flag = false, quick_flag = false, quickest_flag = false, symb = false, frac_flag = false;
 
 	for (;; cp = skip_param(cp)) {
 		if (strncasecmp(cp, "sign", 4) == 0) {
 			sign_flag = true;
 			continue;
 		}
-		if (strncasecmp(cp, "symbolic", 3) == 0) {
+		if (strncasecmp(cp, "symbolic", 4) == 0) {
 			symb = true;
 			continue;
 		}
-		if (strncasecmp(cp, "quick", 4) == 0) {
+		if (strcmp_tospace(cp, "quickest") == 0) {
+			quickest_flag = true;
+			continue;
+		}
+		if (strcmp_tospace(cp, "quick") == 0) {
 			quick_flag = true;
 			continue;
 		}
@@ -2372,8 +2470,12 @@ char	*cp;
 	symb_flag = symb;
 	for (; i <= j; i++) {
 		if (n_lhs[i]) {
-			simpa_side(lhs[i], &n_lhs[i], quick_flag, frac_flag);
-			simpa_side(rhs[i], &n_rhs[i], quick_flag, frac_flag);
+			if (quickest_flag) {
+				simp_sub(i);
+			} else {
+				simpa_side(lhs[i], &n_lhs[i], quick_flag, frac_flag);
+				simpa_side(rhs[i], &n_rhs[i], quick_flag, frac_flag);
+			}
 			if (!return_result(i)) {
 				symb_flag = false;
 				return false;
@@ -2451,8 +2553,12 @@ char	*cp;
 				}
 				if (k)
 					fprintf(gfp, ":\n");
-				simpa_side(lhs[i1], &n_lhs[i1], quick_flag, frac_flag);
-				simpa_side(rhs[i1], &n_rhs[i1], quick_flag, frac_flag);
+				if (quickest_flag) {
+					simp_sub(i1);
+				} else {
+					simpa_side(lhs[i1], &n_lhs[i1], quick_flag, frac_flag);
+					simpa_side(rhs[i1], &n_rhs[i1], quick_flag, frac_flag);
+				}
 				for (k1 = 0; k1 < ARR_CNT(previous_solution_number); k1++) {
 					if (previous_solution_number[k1]) {
 						if (compare_es(k1, i1)) {
@@ -2483,15 +2589,18 @@ char	*cp;
 {
 	int	i, j;
 	int	i1;
-	long	v;				/* variable */
+	long	v;				/* Mathomatic variable */
 	double	d;
 	char	buf[MAX_CMD_LEN];
 	int	valid_range = false, repeat_flag = false, power_flag = false;
+	char	*cp1;
 
 	if (strcmp_tospace(cp, "number") == 0) {
 		cp = skip_param(cp);
 	} else if (strcmp_tospace(cp, "numbers") == 0) {
+#if	!LIBRARY
 		repeat_flag = true;
+#endif
 		cp = skip_param(cp);
 	} else {
 		if (strcmp_tospace(cp, "power") == 0) {
@@ -2500,8 +2609,14 @@ char	*cp;
 		}
 		valid_range = get_range(&cp, &i, &j);
 		if (!valid_range) {
-			if (*cp == '\0' || power_flag)
+#if	LIBRARY	/* be consistent */
+			return false;
+#else		/* be helpful */
+			if (*cp == '-' || isdigit(*cp)) {
+				printf(_("Factoring integers on command line instead:\n"));
+			} else
 				return false;
+#endif
 		}
 	}
 	if (!valid_range) {
@@ -2512,17 +2627,24 @@ char	*cp;
 				if (cp == NULL)
 					return false;
 			}
-			if (*cp == '\0') {
+			if (*cp == '\0')
 				return true;
-			}
 			for (; *cp; ) {
+				cp1 = cp;
 				d = strtod(cp, &cp);
+				if (cp == cp1) {
+					error(_("Integer expected."));
+					return false;
+				}
 				cp = skip_space(cp);
 				if (!factor_one(d)) {
-					error(_("Not a valid integer or number too large to factor."));
+					error(_("Number too large to factor or not a non-zero integer."));
 					return false;
 				}
 				display_unique();
+				if (is_prime()) {
+					fprintf(gfp, _("Prime number!\n"));
+				}
 			}
 		} while (repeat_flag);
 		return true;
@@ -2582,7 +2704,7 @@ char	*cp;
 	int	quick_flag = false, fully_flag = false, power_flag = false;
 
 	for (;; cp = skip_param(cp)) {
-		if (strncasecmp(cp, "quick", 5) == 0) {
+		if (strcmp_tospace(cp, "quick") == 0) {
 			quick_flag = true;
 			continue;
 		}
@@ -2590,7 +2712,7 @@ char	*cp;
 			fully_flag = true;
 			continue;
 		}
-		if (strncasecmp(cp, "power", 5) == 0) {
+		if (strcmp_tospace(cp, "power") == 0) {
 			power_flag = true;
 			continue;
 		}
@@ -2703,10 +2825,9 @@ char	*cp;
 	char	buf[MAX_CMD_LEN];
 
 	if (*cp == '\0') {
-		error(_("No read file specified."));
+		error(_("No read file name specified."));
 		return false;
 	}
-	fp = NULL;
 	snprintf(buf, sizeof(buf), "%s.in", cp);
 	fp = fopen(buf, "r");
 	if (fp == NULL) {
@@ -2724,7 +2845,9 @@ char	*cp;
 	if (rv) {
 		printf(_("Read operation aborted.\n"));
 	} else {
-		printf(_("Finished reading file \"%s\".\n"), cp);
+		if (!quiet_mode) {
+			printf(_("Finished reading file \"%s\".\n"), cp);
+		}
 	}
 #endif
 	fclose(fp);
@@ -2752,17 +2875,19 @@ FILE	*fp;
 		}
 	} else {
 		while ((cp = fgets((char *) tlhs, n_tokens * sizeof(token_type), fp)) != NULL) {
-#if	!SILENT
+#if	LIBRARY
+			fprintf(gfp, "%d%s%s", cur_equation + 1, PROMPT_STR, cp);
+#else
 			default_color();
-			input_column = printf("%d%s", cur_equation + 1, html_flag ? HTML_PROMPT : PROMPT);
+			input_column = printf("%d%s", cur_equation + 1, html_flag ? HTML_PROMPT_STR : PROMPT_STR);
 			if (html_flag)
 				printf("<b>%s</b>", cp);	/* make input bold */
 			else
 				printf("%s", cp);
-#endif
 			if (gfp != stdout) {
-				fprintf(gfp, "%d%s%s", cur_equation + 1, PROMPT, cp);
+				fprintf(gfp, "%d%s%s", cur_equation + 1, PROMPT_STR, cp);
 			}
+#endif
 			set_error_level(cp);
 			if (!process(cp)) {
 				longjmp(jmp_save, 3);	/* jump to the above error trap */
@@ -2775,6 +2900,38 @@ FILE	*fp;
 #endif
 
 #if	(UNIX || CYGWIN) && !SECURE && !LIBRARY
+static int
+edit_sub(cp)
+char	*cp;
+{
+	char	cl[MAX_CMD_LEN];	/* command line */
+	char	*cp1;
+
+edit_again:
+	cp1 = getenv("EDITOR");
+	if (cp1 == NULL) {
+#if	CYGWIN
+		cp1 = "notepad";
+#else
+		error("EDITOR environment variable not set.");
+		return false;
+#endif
+	}
+	snprintf(cl, sizeof(cl), "%s %s", cp1, cp);
+	if (shell_out(cl)) {
+		error("Error executing editor, check EDITOR environment variable.");
+		printf(_("Command line = \"%s\".\n"), cl);
+		return false;
+	}
+	clear_all();
+	if (!read_cmd(cp)) {
+		if (pause_cmd(_("Prepare to rerun the editor"))) {
+			goto edit_again;
+		}
+	}
+	return true;
+}
+
 /*
  * The edit command.
  */
@@ -2787,6 +2944,10 @@ char	*cp;
 	int	rv;
 	char	tmp_file[PATH_MAX];
 
+	if (secure_flag) {
+		error(_("Command disabled."));
+		return false;
+	}
 	clean_up();	/* end any redirection */
 	if (*cp == '\0') {
 #if	CYGWIN
@@ -2821,38 +2982,6 @@ char	*cp;
 		return edit_sub(cp);
 	}
 }
-
-static int
-edit_sub(cp)
-char	*cp;
-{
-	char	cl[MAX_CMD_LEN];	/* command line */
-	char	*cp1;
-
-edit_again:
-	cp1 = getenv("EDITOR");
-	if (cp1 == NULL) {
-#if	CYGWIN
-		cp1 = "notepad";
-#else
-		error("EDITOR environment variable not set.");
-		return false;
-#endif
-	}
-	snprintf(cl, sizeof(cl), "%s %s", cp1, cp);
-	if (shell_out(cl)) {
-		error("Error executing editor, check EDITOR environment variable.");
-		printf(_("Command line = \"%s\".\n"), cl);
-		return false;
-	}
-	clear_all();
-	if (!read_cmd(cp)) {
-		if (pause_cmd(_("Prepare to rerun the editor"))) {
-			goto edit_again;
-		}
-	}
-	return true;
-}
 #endif
 
 #if	!SECURE
@@ -2866,9 +2995,13 @@ char	*cp;
 	FILE	*fp;
 	int	rv;
 
+	if (secure_flag) {
+		error(_("Command disabled."));
+		return false;
+	}
 	clean_up();	/* end any redirection */
 	if (*cp == '\0') {
-		error(_("No save file specified."));
+		error(_("No save file name specified."));
 		return false;
 	}
 #if	!SILENT

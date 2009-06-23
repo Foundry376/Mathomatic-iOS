@@ -1,7 +1,7 @@
 /*
  * Mathomatic unfactorizing (expanding) routines.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -164,6 +164,9 @@ int		*np;
 	return rv;
 }
 
+/*
+ * Increase the level of numerators by 2, so that the divide operator is not unfactored.
+ */
 static void
 no_divide(equation, np)
 token_type	*equation;
@@ -663,7 +666,7 @@ int		*np;
 /*
  * Simplify division by irrational constants (roots like 2^.5) by
  * converting 1/(k1^k2) to 1/(k1^(k2-1))/k1 if k1 is integer,
- * otherwise 1*((1/k1)^k2).
+ * otherwise convert 1/(k1^k2) to 1*((1/k1)^k2).
  *
  * Return true if equation side was modified.
  */

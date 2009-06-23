@@ -1,7 +1,7 @@
 /*
  * Miscellaneous routines for Mathomatic.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -26,8 +26,9 @@ const char	*str;
  */
 void
 warning(str)
-char	*str;
+const char	*str;
 {
+	warning_str = str;	/* must be a constant string, temporary strings don't work */
 #if	!SILENT
 	if (debug_level >= 0) {
 		set_color(1);	/* set color to yellow */
@@ -46,6 +47,19 @@ void
 error_huge()
 {
 	longjmp(jmp_save, 14);
+}
+
+/*
+ * This is called when a bug test result is positive.
+ *
+ * There is no return.
+ */
+void
+error_bug(str)
+const char	*str;	/* constant string to display */
+{
+	error(str);		/* Display the passed error message. */
+	longjmp(jmp_save, 13);	/* Abort the current operation with the critical error number 13. */
 }
 
 /*
@@ -127,12 +141,20 @@ init_gvars()
 void
 clean_up()
 {
+	int	i;
+
 	init_gvars();		/* reset the global variables to the default */
 	if (gfp != stdout) {	/* reset the output file to standard output */
 #if	!SECURE
 		fclose(gfp);
 #endif
 		gfp = stdout;
+	}
+	for (i = 0; i < n_equations; i++) {
+		if (n_lhs[i] <= 0) {
+			n_lhs[i] = 0;
+			n_rhs[i] = 0;
+		}
 	}
 }
 
@@ -244,14 +266,23 @@ alloc_next_espace()
 {
 	int	i, n;
 
-	for (n = cur_equation, i = 1;; n = (n + 1) % n_equations, i++) {
-		if (i > n_equations) {
-			i = n_equations;
-			if (!alloc_espace(i)) {
+	for (n = cur_equation, i = 0;; n = (n + 1) % N_EQUATIONS, i++) {
+		if (i >= N_EQUATIONS)
+			return -1;
+		if (n >= n_equations) {
+			n = n_equations;
+			if (!alloc_espace(n)) {
+				warning(_("Memory is exhausted."));
+				for (n = 0; n < n_equations; n++) {
+					if (n_lhs[n] == 0) {
+						n_rhs[n] = 0;
+						return n;
+					}
+				}
 				return -1;
 			}
 			n_equations++;
-			return i;
+			return n;
 		}
 		if (n_lhs[n] == 0)
 			break;
@@ -284,10 +315,10 @@ next_espace()
  */
 void
 copy_espace(src, dest)
-int	src, dest;	/* indices */
+int	src, dest;	/* equation space numbers */
 {
 	if (src == dest) {
-		error("Internal error: copy_espace(src, dest) source and destination the same.");
+		error("Internal error: copy_espace() source and destination the same.");
 		return;
 	}
 	blt(lhs[dest], lhs[src], n_lhs[src] * sizeof(token_type));
@@ -339,7 +370,7 @@ long		v;	/* standard Mathomatic variable */
  */
 int
 var_in_equation(i, v)
-int	i;	/* index */
+int	i;	/* equation space number */
 long	v;	/* standard Mathomatic variable */
 {
 	if (n_lhs[i] <= 0)
@@ -448,6 +479,12 @@ int		*np;		/* pointer to the returned parsed expression length */
 	char	buf[DEFAULT_N_TOKENS];
 	char	*cp;
 
+#if	LIBRARY
+	snprintf(buf, sizeof(buf), "#%+d", pull_number);
+	pull_number++;
+	cp = parse_expr(equation, np, buf);
+	return(cp && *np > 0);
+#else
 	for (;;) {
 		if ((cp = get_string(buf, sizeof(buf))) == NULL) {
 			return false;
@@ -458,6 +495,7 @@ int		*np;		/* pointer to the returned parsed expression length */
 		}
 	}
 	return(*np > 0);
+#endif
 }
 
 /*
@@ -531,7 +569,7 @@ current_not_defined()
  *
  * Returns "string" if successful or NULL on error.
  */
-char	*
+char *
 get_string(string, n)
 char	*string;	/* storage for input string */
 int	n;		/* maximum size of "string" in bytes */
@@ -553,7 +591,8 @@ int	n;		/* maximum size of "string" in bytes */
 	if (readline_enabled && !echo_input) {
 		cp = readline(prompt_str);
 		if (cp == NULL) {
-			fprintf(gfp, _("\nEnd of input.\n"));
+			if (!quiet_mode)
+				printf(_("\nEnd of input.\n"));
 			exit_program(0);
 		}
 		my_strlcpy(string, cp, n);
@@ -568,7 +607,8 @@ int	n;		/* maximum size of "string" in bytes */
 			printf("%s", prompt_str);
 		}
 		if (fgets(string, n, stdin) == NULL) {
-			fprintf(gfp, _("\nEnd of input.\n"));
+			if (!quiet_mode)
+				printf(_("\nEnd of input.\n"));
 			exit_program(0);
 		}
 	}
@@ -577,7 +617,8 @@ int	n;		/* maximum size of "string" in bytes */
 		printf("%s", prompt_str);
 	}
 	if (fgets(string, n, stdin) == NULL) {
-		fprintf(gfp, _("\nEnd of input.\n"));
+		if (!quiet_mode)
+			printf(_("\nEnd of input.\n"));
 		exit_program(0);
 	}
 #endif
@@ -587,8 +628,8 @@ int	n;		/* maximum size of "string" in bytes */
 		string[i] = '\0';
 	}
 	if (gfp != stdout || echo_input) {
-		/* Input that is prompted for is now included in the redirected output of a command to a file,
-		   making redirection like logging. */
+		/* Input that is prompted for is now included in the redirected output
+		   of a command to a file, making redirection like logging. */
 		fprintf(gfp, "%s%s\n", prompt_str, string);
 	}
 	set_error_level(string);
@@ -623,22 +664,22 @@ get_yes_no()
 }
 
 /*
- * Store or display the result of a command.
+ * Display the result of a command,
+ * or store the pointer to the text of the listed expression
+ * into result_str if compiled for the library.
  *
  * Return true if successful.
  */
 int
 return_result(en)
-int	en;	/* equation space number */
+int	en;	/* equation space number the result is in */
 {
 	if (n_lhs[en] <= 0) {
 		return false;
 	}
 #if	LIBRARY
 	if (gfp == stdout) {
-		if (display2d) {
-			make_fractions_and_group(en);
-		}
+		make_fractions_and_group(en);
 		if (factor_int_flag) {
 			factor_int_sub(en);
 		}
@@ -771,12 +812,14 @@ int	*ip, *jp;
 /*
  * Skip over space characters.
  */
-char	*
+char *
 skip_space(cp)
 char	*cp;	/* character pointer */
 {
-	while (cp && *cp && isspace(*cp))
-		cp++;
+	if (cp) {
+		while (*cp && isspace(*cp))
+			cp++;
+	}
 	return cp;
 }
 
@@ -798,21 +841,31 @@ char	*cp, **cpp;
 }
 
 /*
- * Skip over a parameter (command line argument) in a character string.
- * Parameters are separated with spaces.
- *
- * Returns a string pointer to the next parameter.
+ * Return true if passed character is a Mathomatic command parameter delimiter.
  */
-char	*
+int
+isdelimiter(ch)
+int	ch;
+{
+	return(isspace(ch) || ch == ',' || ch == '=');
+}
+
+/*
+ * Skip over the current parameter in a Mathomatic command line string.
+ * Parameters are usually separated with spaces.
+ *
+ * Returns a string (character pointer) to the next parameter.
+ */
+char *
 skip_param(cp)
-char	*cp;	/* character pointer */
+char	*cp;
 {
 	if (cp) {
-		while (*cp && (!isascii(*cp) || (!isspace(*cp) && *cp != '='))) {
+		while (*cp && (!isascii(*cp) || !isdelimiter(*cp))) {
 			cp++;
 		}
 		cp = skip_space(cp);
-		if (*cp == '=') {
+		if (isdelimiter(*cp)) {
 			cp = skip_space(cp + 1);
 		}
 	}
@@ -820,11 +873,11 @@ char	*cp;	/* character pointer */
 }
 
 /*
- * Compare strings up to the end or the first space.
+ * Compare strings up to the end or the first space or parameter delimiter.
  * Must be an exact match.
  * Compare is alphabetic case insensitive.
  *
- * Returns zero on match, non-zero if different.
+ * Returns zero on exact match, otherwise non-zero if strings are different.
  */
 int
 strcmp_tospace(cp1, cp2)
@@ -832,9 +885,9 @@ char	*cp1, *cp2;
 {
 	char	*cp1a, *cp2a;
 
-	for (cp1a = cp1; *cp1a && !isspace(*cp1a); cp1a++)
+	for (cp1a = cp1; *cp1a && !isdelimiter(*cp1a); cp1a++)
 		;
-	for (cp2a = cp2; *cp2a && !isspace(*cp2a); cp2a++)
+	for (cp2a = cp2; *cp2a && !isdelimiter(*cp2a); cp2a++)
 		;
 	return strncasecmp(cp1, cp2, max(cp1a - cp1, cp2a - cp2));
 }
@@ -846,12 +899,11 @@ int
 level_plus_count(p1, n1, level)
 token_type	*p1;	/* expression pointer */
 int		n1;	/* expression length */
-int		level;	/* parentheses level number */
+int		level;	/* parentheses level number to check */
 {
 	int	i;
-	int	count;
+	int	count = 0;
 
-	count = 0;
 	for (i = 1; i < n1; i += 2) {
 		if (p1[i].level == level) {
 			switch (p1[i].token.operatr) {
@@ -884,9 +936,8 @@ token_type	*p1;	/* expression pointer */
 int		n1;	/* expression length */
 {
 	int	i;
-	int	count;
+	int	count = 0;
 
-	count = 0;
 	for (i = 0; i < n1; i += 2) {
 		if (p1[i].kind == VARIABLE) {
 			count++;
@@ -987,14 +1038,16 @@ int		n1;	/* expression length */
 
 /*
  * Check for division by zero.
+ *
+ * Display a warning and return true if passed double is 0.
  */
-void
+int
 check_divide_by_zero(denominator)
 double	denominator;
 {
-#if	!TRAP_FPERRORS
 	if (denominator == 0) {
 		warning(_("Division by zero."));
+		return true;
 	}
-#endif
+	return false;
 }

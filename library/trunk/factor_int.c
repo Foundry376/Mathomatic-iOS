@@ -1,7 +1,7 @@
 /*
  * Mathomatic floating point constant factorizing routines.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -21,20 +21,20 @@ static double skip_multiples[] = {	/* Additive array that skips over multiples o
 };	/* sum of all numbers = 210 = (2*3*5*7) */
 
 /*
- * Factor the integer in "start".
+ * Factor the integer in "value".
  * Store the prime factors in the unique[] array.
  *
  * Return true if successful.
  */
 int
-factor_one(start)
-double	start;
+factor_one(value)
+double	value;
 {
 	int	i;
 	double	d;
 
 	uno = 0;
-	nn = start;
+	nn = value;
 	if (nn == 0.0) {
 		return false;
 	}
@@ -61,9 +61,8 @@ double	start;
 	if (nn != 1.0) {
 		try_factor(nn);
 	}
-	if (start != multiply_out_unique()) {
-		error("Internal error factoring integers.");
-		return false;
+	if (value != multiply_out_unique()) {
+		error_bug("Internal error factoring integers.");
 	}
 	return true;
 }
@@ -92,8 +91,9 @@ double	arg;
 }
 
 /*
- * Convert unique[] back into an integer.
- * Return the double integer.
+ * Convert unique[] back into the single integer it represents,
+ * which was the value passed in the last call to factor_one(value).
+ * Nothing is changed and the value is returned.
  */
 double
 multiply_out_unique()
@@ -111,14 +111,18 @@ multiply_out_unique()
 }
 
 /*
- * Display the prime factors in the unique[] array.
+ * Display the integer prime factors in the unique[] array.
+ * Must have had a successful call to factor_one(value) previously,
+ * to fill out unique[] with the prime factors of value.
  */
 void
 display_unique()
 {
 	int	i;
+	double	value;
 
-	fprintf(gfp, "%.0f = ", multiply_out_unique());
+	value = multiply_out_unique();
+	fprintf(gfp, "%.0f = ", value);
 	for (i = 0; i < uno;) {
 		fprintf(gfp, "%.0f", unique[i]);
 		if (ucnt[i] > 1) {
@@ -130,6 +134,24 @@ display_unique()
 		}
 	}
 	fprintf(gfp, "\n");
+}
+
+/*
+ * Determine if the result of factor_one(x) is prime.
+ *
+ * Return true if x is a prime number.
+ */
+int
+is_prime()
+{
+	double	value;
+
+	value = multiply_out_unique();
+	if (value < 2.0)
+		return false;
+	if (uno == 1 && ucnt[0] == 1)
+		return true;
+	return false;
 }
 
 /*
@@ -242,11 +264,12 @@ int		factor_flag;
  * If "level_code" is 0, all additive expressions are normalized
  * by making at least one coefficient unity (1) by factoring out
  * the absolute value of the constant coefficient closest to zero.
- * The absolute value of all other coefficients will be >= 1.
+ * This makes the absolute value of all other coefficients >= 1.
  * If all coefficients are negative, -1 will be factored out, too.
  *
  * If "level_code" is 1, any level 1 additive expression is factored
- * nicely for readability, while all deeper levels are normalized.
+ * nicely for readability, while all deeper levels are normalized,
+ * so that algebraic fractions are simplified.
  *
  * If "level_code" is 2, nothing is normalized unless it increases
  * readability.
@@ -272,13 +295,11 @@ token_type	*equation;
 int		*np, loc, level;
 int		level_code;
 {
-	int	modified = false;
 	int	i, j, k;
 	int	op;
-	int	neg_flag = true;
 	double	d, minimum = 1.0, cogcd = 1.0;
-	int	first = true;
-	int	count = 0;
+	int	improve_readability, first = true, neg_flag = true, modified = false;
+	int	op_count = 0, const_count = 0;
 
 	for (i = loc; i < *np && equation[i].level >= level;) {
 		if (equation[i].level > level) {
@@ -292,52 +313,42 @@ int		level_code;
 	}
 	if (modified)
 		return true;
-	for (i = loc;;) {
-break_cont:
-		if (i >= *np || equation[i].level < level)
-			break;
+	improve_readability = (level_code > 1 || (level_code && (level == 1)));
+	for (i = loc; i < *np && equation[i].level >= level;) {
 		if (equation[i].level == level) {
 			switch (equation[i].kind) {
 			case CONSTANT:
-				if (i == loc && equation[i].token.constant >= 0.0)
-					neg_flag = false;
-				d = fabs(equation[i].token.constant);
-				if (first) {
-					minimum = d;
-					cogcd = d;
-					first = false;
-				} else {
-					if (minimum > d)
-						minimum = d;
-					if (integer_coefficients)
-						cogcd = gcd_verified(d, cogcd);
-				}
+				const_count++;
+				d = equation[i].token.constant;
 				break;
 			case OPERATOR:
-				count++;
 				switch (equation[i].token.operatr) {
 				case PLUS:
 					neg_flag = false;
 				case MINUS:
+					op_count++;
 					break;
 				default:
 					return modified;
 				}
-				break;
+				i++;
+				continue;
 			default:
-				if (i == loc)
-					neg_flag = false;
-				if (first) {
-					minimum = 1.0;
-					cogcd = 1.0;
-					first = false;
-				} else {
-					if (minimum > 1.0)
-						minimum = 1.0;
-					if (integer_coefficients)
-						cogcd = gcd_verified(1.0, cogcd);
-				}
+				d = 1.0;
 				break;
+			}
+			if (i == loc && d > 0.0)
+				neg_flag = false;
+			d = fabs(d);
+			if (first) {
+				minimum = d;
+				cogcd = d;
+				first = false;
+			} else {
+				if (minimum > d)
+					minimum = d;
+				if (integer_coefficients && improve_readability && cogcd)
+					cogcd = gcd_verified(d, cogcd);
 			}
 		} else {
 			op = 0;
@@ -349,23 +360,29 @@ break_cont:
 			if (op == TIMES || op == DIVIDE) {
 				for (k = i; k < j; k++) {
 					if (equation[k].level == (level + 1) && equation[k].kind == CONSTANT) {
-						if (i == loc && equation[k].token.constant >= 0.0)
+						if (i == j)
+							return modified; /* more than one constant */
+						if (k > i && equation[k-1].token.operatr != TIMES)
+							return modified;
+						d = equation[k].token.constant;
+						if (i == loc && d > 0.0)
 							neg_flag = false;
-						d = fabs(equation[k].token.constant);
+						d = fabs(d);
 						if (first) {
 							minimum = d;
 							cogcd = d;
 							first = false;
 						} else {
-							if (d < minimum)
+							if (minimum > d)
 								minimum = d;
-							if (integer_coefficients)
+							if (integer_coefficients && improve_readability && cogcd)
 								cogcd = gcd_verified(d, cogcd);
 						}
 						i = j;
-						goto break_cont;
 					}
 				}
+				if (i == j)
+					continue;
 			}
 			if (i == loc)
 				neg_flag = false;
@@ -374,9 +391,9 @@ break_cont:
 				cogcd = 1.0;
 				first = false;
 			} else {
-				if (1.0 < minimum)
+				if (minimum > 1.0)
 					minimum = 1.0;
-				if (integer_coefficients)
+				if (integer_coefficients && improve_readability && cogcd)
 					cogcd = gcd_verified(1.0, cogcd);
 			}
 			i = j;
@@ -384,14 +401,14 @@ break_cont:
 		}
 		i++;
 	}
-	if (integer_coefficients && cogcd != 0.0 && fmod(cogcd, 1.0) == 0.0) {
+	if (integer_coefficients && improve_readability && cogcd && fmod(cogcd, 1.0) == 0.0) {
 		minimum = cogcd;
 	}
-	if (first || count == 0 || (!neg_flag && minimum == 1.0))
+	if (first || op_count == 0 || const_count > 1 || (!neg_flag && minimum == 1.0))
 		return modified;
 	if (minimum == 0.0 || !isfinite(minimum))
 		return modified;
-	if (level_code > 1 || (level_code && (level == 1))) {
+	if (improve_readability) {
 		for (i = loc;;) {
 			d = 1.0;
 			if (equation[i].kind == CONSTANT) {
@@ -404,11 +421,8 @@ break_cont:
 				}
 			}
 			if ((minimum < 1.0 && fmod(d, 1.0) == 0.0) || (fmod(d, minimum) != 0.0)) {
-				if (neg_flag) {
-					minimum = 1.0;
-					break;
-				}
-				return modified;
+				minimum = 1.0;
+				break;
 			}
 			i++;
 			for (; i < *np && equation[i].level > level; i += 2)
@@ -420,7 +434,9 @@ break_cont:
 	}
 	if (neg_flag)
 		minimum = -minimum;
-	if (*np + ((count + 2) * 2) > n_tokens) {
+	if (minimum == 1.0)
+		return modified;
+	if (*np + ((op_count + 2) * 2) > n_tokens) {
 		error_huge();
 	}
 	for (i = loc; i < *np && equation[i].level >= level; i++) {

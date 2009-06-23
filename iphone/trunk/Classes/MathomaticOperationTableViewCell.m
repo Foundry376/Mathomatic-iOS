@@ -16,9 +16,9 @@
 @synthesize height;
 @synthesize delegate;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d
+- (id)initWithReuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d
 {
-    if (self = [super initWithFrame:frame reuseIdentifier:reuseIdentifier]) {
+    if (self = [super initWithStyle:UITableViewStylePlain reuseIdentifier:reuseIdentifier]) {
         operation = nil;
         height = 0;
         self.delegate = d;
@@ -130,6 +130,12 @@
 - (void)setEditing:(BOOL)editing animated:(BOOL)animated
 {
     if ((editing != [self isEditing]) && [self shouldIndentWhileEditing]){
+        
+        // ensure this only happens once
+        if (editing == contentShifted)
+            return;
+        contentShifted = editing;
+        
         if (animated){
             [UIView beginAnimations:nil context:nil];
             [UIView setAnimationDuration: 0.30];
@@ -140,9 +146,9 @@
             if ([v isKindOfClass: [ExpressionButtonView class]] || [v isKindOfClass: [UIImageView class]]){
                 CGRect f = [v frame];
                 if (editing)
-                    f.origin.x = 3 + 35;
+                    f.origin.x = f.origin.x + 35;
                 else
-                    f.origin.x = 3;
+                    f.origin.x = f.origin.x - 35;
                 [v setFrame: f];            }
         }
         

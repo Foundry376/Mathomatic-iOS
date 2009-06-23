@@ -1,7 +1,7 @@
 /*
  * Mathomatic simplifying routines.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -30,17 +30,15 @@ token_type	*equation;	/* equation side pointer */
 int		*np;		/* pointer to length of equation side */
 {
 	if (*np <= 0 || (*np & 1) != 1) {
-		error("Internal error: organize() called with bad expression size.");
-		longjmp(jmp_save, 13);
+		error_bug("Internal error: organize() called with bad expression size.");
 	}
 	if (*np > n_tokens) {
-		error("Internal error: expression array overflow detected in organize().");
-		longjmp(jmp_save, 13);
+		error_bug("Internal error: expression array overflow detected in organize().");
 	}
 	org_recurse(equation, np, 0, 1, NULL);
 }
 
-static inline void
+static void
 org_up_level(bp, ep, level, invert)
 token_type	*bp, *ep;
 int		level, invert;
@@ -230,7 +228,7 @@ simp_side(equation, np)
 token_type	*equation;	/* pointer to the beginning of equation side to simplify */
 int		*np;		/* pointer to length of equation side */
 {
-	simp_ssub(equation, np, 0L, /* 0.0 */ 1.0, true, true, 1);
+	simp_ssub(equation, np, 0L, 1.0, true, true, 1);
 }
 
 /*
@@ -261,28 +259,6 @@ long		v;		/* variable to factor, 0 for all variables */
 	if (*np == 0)
 		return;
 	simp_ssub(equation, np, v, 0.0, v == 0, true, 2);
-}
-
-/*
- * Convert expressions with any algebraic fractions into a single simple fraction.
- * Used by the fraction and simplify commands.
- *
- * Globals tlhs[] and trhs[] are wiped out.
- */
-void
-simple_frac_side(equation, np)
-token_type	*equation;	/* pointer to the beginning of equation side */
-int		*np;		/* pointer to length of equation side */
-{
-	if (*np == 0)
-		return;
-	do {
-		do {
-			do {
-				simp_ssub(equation, np, 0L, 1.0, false, true, 2);
-			} while (poly_gcd_simp(equation, np));
-		} while (uf_power(equation, np));
-	} while (super_factor(equation, np, 2));
 }
 
 /*
@@ -420,7 +396,7 @@ int		fc_level;
  * Compare function for qsort(3) within simpb_side().
  */
 static int
-vcmp(p1, p2)
+simpb_vcmp(p1, p2)
 sort_type	*p1, *p2;
 {
 	if (((p1->v & VAR_MASK) == SIGN) == ((p2->v & VAR_MASK) == SIGN)) {
@@ -442,30 +418,29 @@ sort_type	*p1, *p2;
 }
 
 /*
- * Beauty simplifier.
- * Neat simplify and factor routine.
+ * Beauty simplifier for equation sides.
+ * This is the neat simplify and variable factor routine, to make a pleasing display.
  * Factors variables in order: "sign" variables first, then by frequency.
  */
 void
-simpb_side(equation, np, power_flag, fc_level)
+simpb_side(equation, np, uf_power_flag, power_flag, fc_level)
 token_type	*equation;	/* pointer to the beginning of equation side */
 int		*np;		/* pointer to length of equation side */
+int		uf_power_flag;	/* uf_allpower() flag */
 int		power_flag;	/* factor_power() flag */
 int		fc_level;	/* factor constants code, passed to factor_constants() */
 {
 	int		i;
-	int		vc, cnt;
-	long		v1, last_v;
-	sort_type	va[MAX_VARS];
+	int		vc, cnt;	/* counts */
+	long		v1, last_v;	/* Mathomatic variables */
+	sort_type	va[MAX_VARS];	/* array of all real variables found in equation side */
 
 	simp_loop(equation, np);
-	if (true) {
-		uf_pplus(equation, np);
-	} else {
+	if (uf_power_flag) {
 		uf_allpower(equation, np);
 	}
 	last_v = 0;
-	for (vc = 0; vc < ARR_CNT(va); vc++) {
+	for (vc = 0; vc < ARR_CNT(va);) {
 		cnt = 0;
 		v1 = -1;
 		for (i = 0; i < *np; i += 2) {
@@ -481,27 +456,60 @@ int		fc_level;	/* factor constants code, passed to factor_constants() */
 		if (v1 == -1)
 			break;
 		last_v = v1;
-		va[vc].v = v1;
-		va[vc].count = cnt;
+		if (v1 > IMAGINARY) {	/* ignore constant variables */
+			va[vc].v = v1;
+			va[vc].count = cnt;
+			vc++;
+		}
 	}
 	if (vc) {
-		qsort((char *) va, vc, sizeof(*va), vcmp);
+		/* sort variable array va[] */
+		qsort((char *) va, vc, sizeof(*va), simpb_vcmp);
+		/* factor division by most frequently occurring variables first */
 		simp2_divide(equation, np, va[0].v, fc_level);
 		for (i = 1; i < vc; i++) {
 			if (factor_divide(equation, np, va[i].v, 0.0))
 				simp2_divide(equation, np, va[i].v, fc_level);
 		}
 		simp2_divide(equation, np, 0L, fc_level);
+		/* factor all subexpressions in order of most frequently occurring variables */
 		for (i = 0; i < vc; i++) {
 			while (factor_plus(equation, np, va[i].v, 0.0)) {
 				simp2_divide(equation, np, 0L, fc_level);
 			}
 		}
+		/* make sure equation side is completely factored */
 		while (factor_plus(equation, np, MATCH_ANY, 0.0)) {
 			simp2_divide(equation, np, 0L, fc_level);
 		}
 	}
 	simp_ssub(equation, np, MATCH_ANY, 0.0, power_flag, true, fc_level);
+}
+
+/*
+ * Convert expressions with any algebraic fractions into a single simple fraction.
+ * Used by the fraction command.
+ *
+ * Globals tlhs[] and trhs[] are wiped out.
+ */
+void
+simple_frac_side(equation, np)
+token_type	*equation;	/* pointer to the beginning of equation side */
+int		*np;		/* pointer to length of equation side */
+{
+	if (*np == 0)
+		return;
+	do {
+		do {
+			do {
+				simp_ssub(equation, np, 0L, 1.0, false, true, 1);
+			} while (poly_gcd_simp(equation, np));
+		} while (uf_power(equation, np));
+	} while (super_factor(equation, np, 2));
+	display_fractions_and_group(equation, np);
+	uf_tsimp(equation, np);
+	poly_factor(equation, np);
+	simpb_side(equation, np, true, false, 2);
 }
 
 /*
@@ -526,17 +534,21 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	if (*np <= 1)	/* no need to simplify a single constant or variable */
 		return;
 	side_debug(2, equation, *np);
-	simpb_side(equation, np, true, 1);
-	rationalize(equation, np);
+	simpb_side(equation, np, false, true, 1);
+	if (rationalize_denominators) {
+		rationalize(equation, np);
+	}
 	unsimp_power(equation, np);
 	uf_times(equation, np);
 	simp_loop(equation, np);
+
 /* Here is the only place in Mathomatic that we do modulus (%) simplification: */
 	uf_pplus(equation, np);
 	uf_repeat(equation, np);
 	do {
 		elim_loop(equation, np);
 	} while (mod_simp(equation, np));
+
 /* Here we try to simplify out unnecessary negative constants and imaginary numbers: */
 	simp_i(equation, np);
 	unsimp_power(equation, np);
@@ -545,7 +557,13 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	unsimp_power(equation, np);
 	uf_neg_help(equation, np);
 	uf_times(equation, np);
-	simple_frac_side(equation, np);
+	do {
+		do {
+			do {
+				simp_ssub(equation, np, 0L, 1.0, false, true, 2);
+			} while (poly_gcd_simp(equation, np));
+		} while (uf_power(equation, np));
+	} while (super_factor(equation, np, 2));
 	unsimp_power(equation, np);
 	uf_times(equation, np);
 	factorv(equation, np, IMAGINARY);
@@ -555,7 +573,13 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	uf_pplus(equation, np);
 	factorv(equation, np, IMAGINARY);
 	uf_power(equation, np);
-	simple_frac_side(equation, np);
+	do {
+		do {
+			do {
+				simp_ssub(equation, np, 0L, 1.0, false, true, 2);
+			} while (poly_gcd_simp(equation, np));
+		} while (uf_power(equation, np));
+	} while (super_factor(equation, np, 2));
 
 /* Here we do the greatest expansion; if it fails, do less expansion. */
 	partial_flag = frac_flag;
@@ -570,7 +594,7 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 		/* an error occurred, restore the original expression */
 		*np = n_tlhs;
 		blt(equation, tlhs, n_tlhs * sizeof(token_type));
-		debug_string(1, "Simplify not expanding fully.");
+		debug_string(1, "Simplify not expanding fully, due to oversized expression.");
 		partial_flag = true;	/* expand less */
 		uf_tsimp(equation, np);
 	} else {
@@ -587,34 +611,30 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	}
 	partial_flag = true;
 
-	simpb_side(equation, np, true, 3);
+	simpb_side(equation, np, true, true, 2);
 	debug_string(1, "Simplify result before applying polynomial operations:");
 	side_debug(1, equation, *np);
 	for (flag = false;;) {
 		/* divide top and bottom of fractions by any polynomial GCD found */
 		if (poly_gcd_simp(equation, np)) {
 			flag = false;
-			simpb_side(equation, np, true, 3);
+			simpb_side(equation, np, false, true, 3);
 		}
-		if (!flag) {
-			/* factor polynomials */
-			while (poly_factor(equation, np)) {
-				flag = true;
-				simpb_side(equation, np, true, 3);
-			}
-			if (flag) {
-				continue;
-			}
+		/* factor polynomials */
+		if (!flag && poly_factor(equation, np)) {
+			flag = true;
+			simpb_side(equation, np, false, true, 3);
+			continue;
 		}
 		/* simplify algebraic fractions with polynomial and smart division */
 		if (!frac_flag && div_remainder(equation, np, poly_flag, quick_flag)) {
 			flag = false;
-			simpb_side(equation, np, true, 3);
+			simpb_side(equation, np, false, true, 3);
 			continue;
 		}
 		break;
 	}
-	simpb_side(equation, np, true, 1);
+	simpb_side(equation, np, true, true, 1);
 	simp_constant_power(equation, np);
 	simp_loop(equation, np);
 	unsimp_power(equation, np);
@@ -624,20 +644,15 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	make_fractions(equation, np);
 	uf_power(equation, np);
 	integer_root_simp(equation, np);
-	simpb_side(equation, np, true, 3);
-	if (!frac_flag) {
-		while (div_remainder(equation, np, poly_flag, quick_flag)) {
-			simpb_side(equation, np, true, 3);
-		}
-	}
+	simpb_side(equation, np, true, true, 3);
 	poly_factor(equation, np);
-	simpb_side(equation, np, true, 2);
+	simpb_side(equation, np, true, !frac_flag, 2);
 }
 
 /*
  * Commonly used quick simplify routine that doesn't factor.
  *
- * Return true if factor_times() simplified something.
+ * Return true if factor_times() did something.
  */
 int
 simp_loop(equation, np)
@@ -663,7 +678,12 @@ int		*np;		/* pointer to length of equation side */
 }
 
 /*
- * Convert (x^n)^m to x^(n*m).
+ * Convert (x^n)^m to x^(n*m) when appropriate.
+ * Recently fixed to work the same as Maxima when symb_flag is false,
+ * otherwise always converts (x^n)^m to x^(n*m),
+ * which sometimes simplifies more.
+ * Earlier versions of Mathomatic always converted (x^n)^m to x^(n*m),
+ * which is the wrong thing to do, because they are not always equivalent.
  *
  * Return true if expression was modified.
  */
@@ -673,52 +693,52 @@ token_type	*equation;
 int		*np;
 {
 	int		i, j, k;
-	int		level;
-	int		left_level;
-	int		diff;
+	int		ilevel, jlevel;
 	int		modified = false;
 	double		numerator, denominator;
 
 	for (i = 1; i < *np; i += 2) {
 		if (equation[i].token.operatr != POWER)
 			continue;
-		level = equation[i].level;
-		left_level = 1;
-		for (j = i - 2; j >= 0; j -= 2) {
-			if (equation[j].level < level) {
-				left_level = equation[j].level;
-				break;
-			}
-		}
+		ilevel = equation[i].level;
 		for (j = i + 2; j < *np; j += 2) {
-			if (equation[j].level <= level) {
-				if (left_level <= equation[j].level && equation[j].token.operatr == POWER) {
-					if (!symb_flag) {
-						if ((i + 2) == j && equation[i+1].kind == CONSTANT
-						    && equation[j].level == equation[j+1].level
-						    && equation[j+1].kind == CONSTANT) {
-							f_to_fraction(equation[i+1].token.constant, &numerator, &denominator);
-							if (fmod(numerator, 2.0) == 0.0) {
-								f_to_fraction(equation[j+1].token.constant, &numerator, &denominator);
-								if (fmod(denominator, 2.0) == 0.0) {
+			jlevel = equation[j].level;
+			if (jlevel == ilevel - 1 && equation[j].token.operatr == POWER) {
+				if (!symb_flag) {
+					if (jlevel == equation[j+1].level
+					    && equation[j+1].kind == CONSTANT) {
+						f_to_fraction(equation[j+1].token.constant, &numerator, &denominator);
+						if (fmod(denominator, 2.0) == 0.0) {
+							if ((i + 2) == j && equation[i+1].kind == CONSTANT) {
+								f_to_fraction(equation[i+1].token.constant, &numerator, &denominator);
+								if (fmod(numerator, 2.0) == 0.0) {
 									break;
 								}
+							} else
+								break;
+						}
+					} else {
+						if ((i + 2) == j && equation[i+1].kind == CONSTANT) {
+							f_to_fraction(equation[i+1].token.constant, &numerator, &denominator);
+							if (fmod(numerator, 2.0) == 0.0) {
+								break;
 							}
 						} else
 							break;
 					}
-					equation[j].token.operatr = TIMES;
-					for (k = i + 1; k < j; k++)
-						equation[k].level++;
-					diff = (level - equation[j].level) + 1;
-					level = equation[j].level;
-					for (k = j; k < *np && equation[k].level >= level; k++) {
-						equation[k].level += diff;
-					}
-					modified = true;
 				}
+				equation[j].token.operatr = TIMES;
+				for (k = j; k < *np && equation[k].level >= jlevel; k++) {
+					equation[k].level += 2;
+				}
+				for (k = i + 1; k < j; k++)
+					equation[k].level++;
+				i -= 2;
+				modified = true;
 				break;
 			}
+			if (jlevel <= ilevel)
+				break;
 		}
 	}
 	return modified;
@@ -1053,12 +1073,6 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 			/* it's probably imaginary; pow() will give a domain error, so skip these calculations */
 			break;
 		}
-#if	false
-		if (*k1p == 0.0 && k2 < 0.0) {
-			error(_("Divide by zero (0 raised to negative power)."));
-			longjmp(jmp_save, 2);
-		}
-#endif
 		domain_check = true;
 		if (*k1p == 0.0 && k2 == 0.0) {
 			warning(_("0^0 encountered, might be considered indeterminate."));
@@ -2134,16 +2148,16 @@ int		*np, loc, level;
 	}
 	return modified;
 corrupt:
-	error(_("Expression is corrupt!  Please send a bug report."));
-	longjmp(jmp_save, 13);
+	error_bug("Expression is corrupt!  Please send a bug report.");
+	return modified;	/* not reached */
 }
 
 /*
- * Rationalize the denominator of algebraic fractions.
- * Only works with square roots.
+ * Try to rationalize the denominator of algebraic fractions.
+ * Only works with square roots and sometimes helps with their simplification.
  *
  * Returns true if something was done.
- * Unfactoring needs to be done immediately, if it returns true.
+ * Unfactoring needs to be done immediately, if this returns true.
  */
 int
 rationalize(equation, np)

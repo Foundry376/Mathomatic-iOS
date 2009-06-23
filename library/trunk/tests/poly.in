@@ -9,13 +9,13 @@ y3=a+b*x3+c*x3^2
 2 ; select equation number 2 as the current equation
 eliminate a ; eliminate variable (a) from the current equation
 3 ; select equation number 3
-eliminate a b ; eliminate variables (a) and (b)
-c ; find (c)
+eliminate a b ; eliminate variables (a) and then (b) from the current equation
+c ; solve and find (c)
 simplify
 2 ; select equation number 2 again
-eliminate c using 3 ; find (b)
+eliminate c using 3 ; find (b) by combining equation numbers 2 and 3
 simplify
 1 ; select equation number 1
-eliminate b c ; find (a)
-simplify
-fraction all ; list all solutions, converting to simple fractions
+eliminate c using 3 b using 2 ; find (a)
+
+simplify fraction all ; list all solutions, converting to simple fractions

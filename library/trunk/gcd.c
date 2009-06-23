@@ -1,20 +1,20 @@
 /*
  * General floating point GCD routine and associated code for Mathomatic.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
 
 /*
- * Return the Greatest Common Divisor (GCD) of doubles "d1" and "d2",
+ * Return the Greatest Common Divisor (GCD) of doubles d1 and d2,
  * by using the Euclidean GCD algorithm.
  *
  * The GCD is defined as the largest positive number that evenly divides both "d1" and "d2".
  * Will usually work with non-integers, but there may be some floating point error.
  * Always works perfectly with integers up to MAX_K_INTEGER.
  *
- * Return 0 on failure or if either parameter is 0, otherwise return the positive GCD.
+ * Returns 0 on failure, otherwise returns the positive GCD.
  */
 double
 gcd(d1, d2)
@@ -28,6 +28,12 @@ double	d1, d2;
 	}
 	d1 = fabs(d1);
 	d2 = fabs(d2);
+#if	true	/* true for standard gcd(), otherwise returns 0 (failure) if either parameter is 0 */
+	if (d1 == 0)
+		return d2;
+	if (d2 == 0)
+		return d1;
+#endif
 	if (d1 > d2) {
 		larger = d1;
 		divisor = d2;
@@ -53,9 +59,9 @@ double	d1, d2;
 }
 
 /*
- * Return the verified exact Greatest Common Divisor (GCD) of doubles "d1" and "d2".
+ * Return the verified exact Greatest Common Divisor (GCD) of doubles d1 and d2.
  *
- * Return 0 on failure or if either parameter is 0, otherwise return the positive GCD.
+ * Returns 0 on failure, otherwise returns the verified positive GCD.
  */
 double
 gcd_verified(d1, d2)
@@ -87,17 +93,18 @@ double	d1;	/* value to round */
 }
 
 /*
- * Convert the passed double "d" to a fully reduced fraction.
+ * Convert the passed double d to an equivalent fully reduced fraction.
  * This done by the following simple algorithm:
  *
  * divisor = gcd(d, 1.0)
  * numerator = d / divisor
  * denominator = 1.0 / divisor
  *
- * Return true with integers in numerator and denominator if conversion was successful.
- * Otherwise return false with numerator = "d" and denominator = "1.0".
+ * Return true with integers in numerator and denominator
+ * if conversion to a fraction was successful.
+ * Otherwise return false with numerator = d and denominator = 1.0
  *
- * True return indicates "d" is rational and finite, otherwise "d" is probably irrational.
+ * True return indicates d is rational and finite, otherwise d is probably irrational.
  */
 int
 f_to_fraction(d, numeratorp, denominatorp)
@@ -152,9 +159,36 @@ double	*denominatorp;	/* returned denominator */
 }
 
 /*
- * Convert non-integer constants in an equation side to fractions, when appropriate.
+ * Display the specified value.
+ * If it is equal to a simple fraction, display that too.
+ *
+ * Return true if a fraction was displayed.
  */
-void
+int
+display_fraction(value)
+double	value;
+{
+	double	d4, d5;
+	int	rv = false;
+
+	f_to_fraction(value, &d4, &d5);
+	fprintf(gfp, "%.*g", precision, value);
+	if (d5 != 1.0) {
+		fprintf(gfp, " = %.*g/%.*g", precision, d4, precision, d5);
+		rv = true;
+	}
+	fprintf(gfp, "\n");
+	return rv;
+}
+
+/*
+ * Convert non-integer constants in an equation side to fractions,
+ * when exactly equal to simple fractions.
+ * Uses f_to_fraction() above.
+ *
+ * Return true if any fractions were created.
+ */
+int
 make_fractions(equation, np)
 token_type	*equation;	/* equation side pointer */
 int		*np;		/* pointer to length of equation side */
@@ -162,7 +196,7 @@ int		*np;		/* pointer to length of equation side */
 	int	i, j, k;
 	int	level;
 	double	numerator, denominator;
-	int	inc_level;
+	int	inc_level, modified = false;
 
 	for (i = 0; i < *np; i += 2) {
 		if (equation[i].kind == CONSTANT) {
@@ -178,6 +212,7 @@ int		*np;		/* pointer to length of equation side */
 			if ((*np + 2) > n_tokens) {
 				error_huge();
 			}
+			modified = true;
 			inc_level = (*np > 1);
 			if ((i + 1) < *np && equation[i+1].level == level) {
 				switch (equation[i+1].token.operatr) {
@@ -229,4 +264,5 @@ int		*np;		/* pointer to length of equation side */
 			}
 		}
 	}
+	return modified;
 }

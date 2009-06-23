@@ -2,7 +2,7 @@
  * Mathomatic expression and equation display routines.
  * Color mode routines, too.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -141,15 +141,11 @@ int	export_flag;	/* non-zero for exportable format (readable by other math progr
 	if (export_flag == 1) {
 		len += fprintf(gfp, ";");
 	}
-	if (high_prec || export_flag) {
 #if	CYGWIN
-		fprintf(gfp, "\r\n");	/* might be redirecting to a Microsoft text file */
+	fprintf(gfp, "\r\n");	/* might be redirecting to a Microsoft text file */
 #else
-		fprintf(gfp, "\n");
+	fprintf(gfp, "\n");
 #endif
-	} else {
-		fprintf(gfp, "\n\n");
-	}
 	return len;
 }
 
@@ -165,18 +161,15 @@ int	n;	/* equation space number */
 {
 	if (n_lhs[n] <= 0)
 		return 0;
+	make_fractions_and_group(n);
+	if (factor_int_flag) {
+		factor_int_sub(n);
+	}
 	if (display2d) {
 		/* display in fraction format */
-		make_fractions_and_group(n);
-		if (factor_int_flag) {
-			factor_int_sub(n);
-		}
 		return flist_equation(n);
 	} else {
 		/* display in single-line format */
-		if (factor_int_flag) {
-			factor_int_sub(n);
-		}
 		return list1_sub(n, false);
 	}
 }
@@ -220,13 +213,12 @@ long	v;		/* variable to convert */
 int	lang_code;	/* language code */
 {
 	int		j;
-	char		*cp, buf[100];
+	char		*cp = NULL, buf[100];
 
-	cp = NULL;
+	var_str[0] = '\0';
 	switch (v & VAR_MASK) {
 	case V_NULL:
-		cp = "null";
-		break;
+		return(0);
 	case SIGN:
 		cp = "sign";
 		break;
@@ -305,13 +297,13 @@ int	lang_code;	/* language code */
 	}
 	if (cp) {
 		my_strlcpy(var_str, cp, sizeof(var_str));
+		j = (v >> VAR_SHIFT) & SUBSCRIPT_MASK;
+		if (j) {
+			snprintf(buf, sizeof(buf), "%d", j - 1);
+			strcat(var_str, buf);
+		}
 	} else {
 		my_strlcpy(var_str, "bad_variable", sizeof(var_str));
-	}
-	j = (v >> VAR_SHIFT) & SUBSCRIPT_MASK;
-	if (j) {
-		snprintf(buf, sizeof(buf), "%d", j - 1);
-		strcat(var_str, buf);
 	}
 	return(strlen(var_str));
 }
@@ -688,16 +680,14 @@ int		int_flag;	/* integer arithmetic flag, should work with any language */
 								if (int_flag || language > 1)
 									break;
 								if (language) {
-									cp = "Math.pow";
+									len += fprintf(gfp, "Math.pow");
 								} else {
-									cp = "pow";
+									len += fprintf(gfp, "pow");
 								}
-								len += fprintf(gfp, cp);
 							}
 							break;
 						case FACTORIAL:
-							cp = "fact";
-							len += fprintf(gfp, cp);
+							len += fprintf(gfp, "fact");
 							break;
 						}
 						break;
@@ -715,7 +705,7 @@ int		int_flag;	/* integer arithmetic flag, should work with any language */
 			if (int_flag) {
 				snprintf(buf, sizeof(buf), "%.0f", equation[i].token.constant);
 			} else {
-				snprintf(buf, sizeof(buf), "%#.*g", MAX_PRECISION, equation[i].token.constant);
+				snprintf(buf, sizeof(buf), "%#.*g", DBL_DIG, equation[i].token.constant);
 				j = strlen(buf) - 1;
 				for (; j >= 0; j--) {
 					if (buf[j] == '0')
@@ -833,7 +823,13 @@ make_smaller:
 	width = max(len + len2, len3);
 	if (screen_columns && gfp == stdout && width >= screen_columns) {
 		/* output too wide to fit screen, output in single-line format */
-		return list1_sub(n, false);
+		width = list1_sub(n, false);
+#if	CYGWIN
+		fprintf(gfp, "\r\n");	/* Be consistent with list1_sub() output. */
+#else
+		fprintf(gfp, "\n");
+#endif
+		return width;
 	}
 	fprintf(gfp, "\n");
 	for (cur_line = max_line; cur_line >= min_line; cur_line--) {

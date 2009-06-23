@@ -17,7 +17,7 @@
 
 @property (nonatomic, retain, setter=setExpression:) MathomaticExpression * expression;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier;
+- (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 - (int)height;
 - (void)setExpression:(MathomaticExpression*)exp;
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated;

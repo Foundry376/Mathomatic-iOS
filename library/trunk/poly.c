@@ -1,5 +1,5 @@
 /*
- * Mathomatic simplifying and polynomial routines.
+ * Mathomatic simplifying and general polynomial routines.
  * Includes polynomial and smart division, polynomial factoring, etc.
  * Globals tlhs[] and trhs[] are wiped out by most of these routines.
  *
@@ -8,12 +8,10 @@
  * This also does not allow their use during solving.
  * So far, these limitations have been a good thing, making Mathomatic faster and more stable.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
-
-#define	DISABLE_DIVISION	false
 
 #define	REMAINDER_IS_ZERO()	(n_trhs == 1 && trhs[0].kind == CONSTANT && trhs[0].token.constant == 0.0)
 
@@ -49,7 +47,7 @@ static int
 poly_in_v_sub(p1, n, v, allow_divides)
 token_type	*p1;		/* expression pointer */
 int		n;		/* expression length */
-long		v;		/* variable */
+long		v;		/* Mathomatic variable */
 int		allow_divides;	/* if true, allow division by variable */
 {
 	int	i, k;
@@ -104,7 +102,7 @@ int
 poly_in_v(p1, n, v, allow_divides)
 token_type	*p1;		/* expression pointer */
 int		n;		/* expression length */
-long		v;		/* variable */
+long		v;		/* Mathomatic variable */
 int		allow_divides;	/* allow variable to be right of a divide (negative exponents) as a polynomial term */
 {
 	int	i, j;
@@ -234,7 +232,7 @@ int		level;		/* level of additive operators in polynomial */
 		}
 /* create a variable list with counts of the number of times each variable occurs: */
 		last_v = 0;
-		for (vc = 0; vc < ARR_CNT(va); vc++) {
+		for (vc = 0; vc < ARR_CNT(va);) {
 			cnt = 0;
 			v1 = -1;
 			for (i = 0; i < n_trhs; i += 2) {
@@ -252,6 +250,7 @@ int		level;		/* level of additive operators in polynomial */
 			last_v = v1;
 			va[vc].v = v1;
 			va[vc].count = cnt;
+			vc++;
 		}
 		side_debug(3, &equation[loc1], len);
 		side_debug(3, trhs, n_trhs);
@@ -470,7 +469,7 @@ remove_factors()
 	debug_string(3, "Entering remove_factors() with:");
 	side_debug(3, tlhs, n_tlhs);
 	do {
-		simp_ssub(tlhs, &n_tlhs, 0L, 1.0, false, true, 1 /* formerly 0 */);
+		simp_ssub(tlhs, &n_tlhs, 0L, 1.0, false, true, 1 /* formerly 2 */);
 	} while (uf_power(tlhs, &n_tlhs));
 	for (i = 1, j = 0, k = 0;; i += 2) {
 		if (i >= n_tlhs) {
@@ -709,10 +708,19 @@ int		n;	/* length of expression */
 
 	parse_var(&v, V_INTEGER_NAME);
 	for (i = 0; i < n; i++) {
-		if ((p1[i].kind == OPERATOR && p1[i].token.operatr == DIVIDE)
-		    || (p1[i].kind == CONSTANT && fmod(p1[i].token.constant, 1.0))
-		    || (p1[i].kind == VARIABLE && p1[i].token.variable != v && (p1[i].token.variable & VAR_MASK) != SIGN)) {
-			return false;
+		switch (p1[i].kind) {
+		case OPERATOR:
+			if (p1[i].token.operatr == DIVIDE)
+				return false;
+			break;
+		case CONSTANT:
+			if (fmod(p1[i].token.constant, 1.0))
+				return false;
+			break;
+		case VARIABLE:
+			if (p1[i].token.variable != v && (p1[i].token.variable & VAR_MASK) != SIGN)
+				return false;
+			break;
 		}
 	}
 	return true;
@@ -742,6 +750,7 @@ int		*np, loc, level;
 	int	op, last_op2;
 	int	len1, len2, len3;
 	int	diff_sign;
+	long	v;		/* Mathomatic variable */
 
 	for (i = loc; i < *np && equation[i].level >= level;) {
 		if (equation[i].level > level) {
@@ -858,11 +867,10 @@ int		*np, loc, level;
 					}
 					break;
 				}
-#if	true
 				/* Remove integer*n multiples in x for x%n by doing */
 				/* polynomial division x/n and replacing with remainder%n. */
 				/* Globals tlhs[] and trhs[] are wiped out by the polynomial division here. */
-				long v = 0;
+				v = 0;
 				if (poly_div(&equation[j], len2, &equation[i+1], len1, &v)) {
 					uf_pplus(tlhs, &n_tlhs);	/* so integer%(integer^integer) isn't simplified to 0 */
 					if (is_integer_expr(tlhs, n_tlhs)) {
@@ -876,7 +884,6 @@ int		*np, loc, level;
 						return true;
 					}
 				}
-#endif
 			}
 		}
 	}
@@ -1100,7 +1107,7 @@ next_thingy:
 						tlhs[k].level += 2;
 					side_debug(3, &equation[j], len2);
 					side_debug(3, &equation[i+1], len1);
-					simpb_side(tlhs, &n_tlhs, true, 3);
+					simpb_side(tlhs, &n_tlhs, false, true, 3);	/* parameters should match what's used in simpa_side() */
 					side_debug(3, tlhs, n_tlhs);
 					if (power_flag) {
 						k = (var_count(tlhs, n_tlhs) <= var_count(&equation[j], len2));
@@ -1194,12 +1201,10 @@ long		*vp;		/* variable pointer to base variable */
 	int		old_partial, old_symb;
 	jmp_buf		save_save;
 
-	if (DISABLE_DIVISION)
-		return false;
 	old_partial = partial_flag;
 	old_symb = symb_flag;
 	partial_flag = false;	/* We want full unfactoring during polynomial division. */
-//	symb_flag = true;
+/*	symb_flag = true; */
 	blt(save_save, jmp_save, sizeof(jmp_save));
 	if ((i = setjmp(jmp_save)) != 0) {	/* Trap errors so we almost always return normally. */
 		blt(jmp_save, save_save, sizeof(jmp_save));
@@ -1395,7 +1400,7 @@ long		*vp;
  * Do smart division.
  *
  * Smart division is heuristic division much like polynomial division,
- * however instead of basing the division on the highest powers,
+ * however instead of basing the division on the highest powers of a base variable,
  * every term in the dividend is tried, and if a trial makes the
  * expression smaller, we go with that.
  *
@@ -1429,8 +1434,6 @@ int		len2;		/* length of divisor */
 	int		dcount = 0;		/* divisor term count */
 	int		flag;
 
-	if (DISABLE_DIVISION)
-		return false;
 	blt(trhs, d1, len1 * sizeof(token_type));
 	n_trhs = len1;
 	blt(tlhs, d2, len2 * sizeof(token_type));
@@ -1728,7 +1731,7 @@ long		*vp1;		/* variable pointer */
 	int		count1, count2;
 
 	last_v = 0;
-	for (vc = 0; vc < ARR_CNT(va); vc++) {
+	for (vc = 0; vc < ARR_CNT(va);) {
 		cnt = 0;
 		v1 = -1;
 		for (i = 0; i < n1; i += 2) {
@@ -1746,6 +1749,7 @@ long		*vp1;		/* variable pointer */
 		last_v = v1;
 		va[vc].v = v1;
 		va[vc].count = cnt;
+		vc++;
 	}
 	if (vc <= 0)
 		return 0;

@@ -1,5 +1,5 @@
 /*
- * Tested long integer square root functions.
+ * Tested long integer square root function.
  */
 
 #include <stdio.h>
@@ -21,11 +21,13 @@ verify_lsqrt(long y, long x)
 }
 #endif
 
-#if	false
 /*
- * Returns the truncated integer square root of y using the Babylonian iterative approximation method.
- * Return -1 on error.
- * This particular lsqrt() function is placed in the public domain by George Gesslein II.
+ * Returns the truncated integer square root of y using
+ * the Babylonian iterative approximation method, derived from Newton's method.
+ * Returns -1 on error.
+ *
+ * This lsqrt() function was written by George Gesslein II
+ * and is placed in the public domain.
  */
 long
 lsqrt(long y)
@@ -60,46 +62,3 @@ lsqrt(long y)
 	}
 	return x_old;
 }
-#else
-/*
- * Faster and simpler binary digit algorithm for calculating the truncated integer square root.
- * Copied from Wikipedia and modified.
- *
- * Returns the truncated integer square root of num.
- * Return -1 on error.
- */
-long
-lsqrt(long num)
-{
-	long op = num;
-	long result = 0;
-	long one = 1L << (sizeof(num) * 8 - 2); // The second-to-top bit is set
-
-	if (num <= 0) {
-		if (num != 0) {
-			fprintf(stderr, "Domain error in %s().\n", __func__);
-			return -1L;
-		}
-		return 0L;
-	}
-// "one" starts at the highest power of four <= the argument.
-	while (one > op)
-		one >>= 2;
-
-	while (one != 0) {
-		if (op >= result + one) {
-			op -= result + one;
-			result += 2 * one;
-		}
-		result >>= 1;
-		one >>= 2;
-	}
-#if	VERIFY
-	if (!verify_lsqrt(num, result)) {
-		fprintf(stderr, "Error in %s().\n", __func__);
-		return -1L;
-	}
-#endif
-	return result;
-}
-#endif

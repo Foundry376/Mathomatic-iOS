@@ -1,7 +1,7 @@
 /*
  * Floating point complex number routines specifically for Mathomatic.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -19,7 +19,6 @@ double	x, y, *radiusp, *thetap;
 	*thetap = atan2(y, x);
 }
 
-#if	!LIBRARY
 /*
  * The roots command.
  */
@@ -54,7 +53,7 @@ char	*cp;
 	}
 	c.re = strtod(cp, &cp);
 	if (*cp && !isspace(*cp)) {
-		printf(_("Invalid number.\n"));
+		error(_("Number expected."));
 		return false;
 	}
 	cp = skip_space(cp);
@@ -65,7 +64,7 @@ char	*cp;
 	}
 	c.im = strtod(cp, &cp);
 	if (*cp) {
-		printf(_("Invalid number.\n"));
+		error(_("Number expected."));
 		return false;
 	}
 	if (c.re == 0.0 && c.im == 0.0) {
@@ -96,6 +95,7 @@ char	*cp;
 			} else {
 				fprintf(gfp, "%.12g %+.12g*i\n", c2.re, c2.im);
 			}
+#if	!SILENT
 			check = c2;
 			for (d = 1.0; d < root; d += 1.0) {
 				check = complex_mult(check, c2);
@@ -106,11 +106,11 @@ char	*cp;
 			} else {
 				printf(_("Inverse check: %.12g %+.12g*i\n\n"), check.re, check.im);
 			}
+#endif
 		}
 	}
 	return true;
 }
-#endif
 
 /*
  * Approximate roots of complex numbers in an equation side:
@@ -127,7 +127,7 @@ int		*np;		/* pointer to length of equation side */
 	int		i, j;
 	int		level;
 	int		len;
-	complexs	c, p;
+	complexs	c, p, r;
 	int		modified = false;
 
 start_over:
@@ -148,7 +148,12 @@ start_over:
 		if (c.im == 0.0 && p.im == 0.0)
 			continue;
 		i += len + 1;
-		c = complex_pow(c, p);
+		r = complex_pow(c, p);
+
+#if	false
+		printf("(%.14g+%.14gi)^(%.14g+%.14gi) = %.14g+%.14gi\n", c.re, c.im, p.re, p.im, r.re, r.im);
+#endif
+
 		if (*np + 5 - (i - j) > n_tokens) {
 			error_huge();
 		}
@@ -156,7 +161,7 @@ start_over:
 		*np += 5 - (i - j);
 		equation[j].level = level;
 		equation[j].kind = CONSTANT;
-		equation[j].token.constant = c.re;
+		equation[j].token.constant = r.re;
 		j++;
 		equation[j].level = level;
 		equation[j].kind = OPERATOR;
@@ -165,7 +170,7 @@ start_over:
 		level++;
 		equation[j].level = level;
 		equation[j].kind = CONSTANT;
-		equation[j].token.constant = c.im;
+		equation[j].token.constant = r.im;
 		j++;
 		equation[j].level = level;
 		equation[j].kind = OPERATOR;
@@ -178,7 +183,7 @@ start_over:
 		goto start_over;
 	}
 	if (modified) {
-		warning(_("Complex number root approximated."));
+		warning(_("Complex number roots approximated."));
 	}
 	return modified;
 }
@@ -200,6 +205,9 @@ double		*dp;	/* pointer to returned double */
 	double	d1, d2;
 	int	prev_approx_flag;
 
+	if (n < 1 || (n & 1) != 1) {
+		error_bug("Call to get_constant() has invalid expression length.");
+	}
 	if (n == 1) {
 		switch (p1[0].kind) {
 		case CONSTANT:
@@ -244,10 +252,7 @@ double		*dp;	/* pointer to returned double */
 }
 
 /*
- * Parse a constant complex number expression.
- *
- * This routine should be fixed to work with multiple constant expressions,
- * like the above get_constant() does.
+ * Get the value of a constant complex number expression.
  *
  * If successful return true with complex number in *cp.
  */
@@ -260,13 +265,14 @@ complexs	*cp;	/* pointer to returned complex number */
 	int		j;
 	int		imag_cnt = 0, plus_cnt = 0, times_cnt = 0;
 	complexs	c;
-	int		level2;
+	int		level, level2;
 
 	if (get_constant(p1, n, &c.re)) {
 		c.im = 0.0;
 		*cp = c;
 		return true;
 	}
+	level = min_level(p1, n);
 	c.re = 0.0;
 	c.im = 1.0;
 	for (j = n - 1; j >= 0; j--) {
@@ -316,12 +322,12 @@ complexs	*cp;	/* pointer to returned complex number */
 					c.im = -c.im;
 				}
 			case PLUS:
-				if (++plus_cnt > 1)
+				if (++plus_cnt > 1 || level != level2)
 					return false;
-				if (p1[j-1].level == level2 && get_constant(&p1[j-1], 1, &c.re)) {
-					continue;
+				if (get_constant(p1, j, &c.re)) {
+					goto done;
 				}
-				if (p1[j+1].level == level2 && get_constant(&p1[j+1], 1, &c.re)) {
+				if (get_constant(&p1[j+1], n - (j + 1), &c.re)) {
 					if (p1[j].token.operatr == MINUS)
 						c.re = -c.re;
 					continue;
@@ -331,6 +337,7 @@ complexs	*cp;	/* pointer to returned complex number */
 			return false;
 		}
 	}
+done:
 	if (imag_cnt != 1)
 		return false;
 	*cp = c;

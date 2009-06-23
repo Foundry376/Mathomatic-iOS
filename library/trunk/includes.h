@@ -1,27 +1,36 @@
 /*
- * Standard include files for Mathomatic.
+ * Standard C include files for Mathomatic.
+ * Automatically includes all necessary C include files for
+ * any Mathomatic C source code.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #define	true	1
 #define	false	0
 
+#if	HANDHELD
+#undef	UNIX		/* Don't include the extra Unix desktop features. */
+#endif
+
 #if	LIBRARY
-#define	SILENT	true
-#undef	READLINE
+#define	SILENT	true	/* Stop messages going to stdout. */
+#undef	READLINE	/* Readline shouldn't be included in the library code. */
+#endif
+
+#if	__CYGWIN__ && !CYGWIN
+#warning "Compiling under Cygwin without proper defines.  Please define CYGWIN"
 #endif
 
 /* Include files from /usr/include: */
 #include <stdio.h>
 #include <stdlib.h>
-#if	UNIX || CYGWIN
 #include <unistd.h>
-#endif
 #if	UNIX
 #include <libgen.h>
 #endif
 #include <limits.h>
+#include <float.h>
 #include <math.h>
 #include <setjmp.h>
 #include <ctype.h>
@@ -39,5 +48,6 @@
 /* Include files from the current directory: */
 #include "am.h"		/* the main include file for Mathomatic, contains tunable parameters */
 #include "complex.h"	/* floating point complex number arithmetic function prototypes */
-#include "proto.h"	/* global function prototypes */
+#include "proto.h"	/* global function prototypes made with cproto utility */
+#include "altproto.h"	/* backup global function prototypes */
 #include "externs.h"	/* global variable extern definitions */

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Program to display primorials.
-# Uses the programs "matho-primes" and "./multiply".
+# Uses the programs "matho-primes" and "matho-mult".
 
 import os
 import sys
@@ -20,7 +20,7 @@ if (args == []):
 else:
 	for arg in args:
 		try:
-			if (int(arg) < 2):
+			if (int(arg) < 1):
 				print >>sys.stderr, "Number too small."
 				sys.exit(1)
 		except:
@@ -28,5 +28,9 @@ else:
 			sys.exit(1)
 		sys.stdout.write(arg + "# = ")
 		sys.stdout.flush()
-		if (os.system("matho-primes 0 " + arg + "|./multiply") != 0):
+		if (os.access("matho-mult", os.X_OK)):
+			mult_string = "./matho-mult";
+		else:
+			mult_string = "matho-mult";
+		if (os.system("matho-primes 0 " + arg + "|" + mult_string) != 0):
 			sys.exit(1)

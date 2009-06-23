@@ -36,8 +36,11 @@ main(int argc, char **argv)
 			printf("%s\n", ocp);
 			if (rv) {
 				free((void *) ocp);
+			} else {
+				printf("Error return.\n");
 			}
 		}
 	}
+	printf("\n");
 	exit(0);
 }

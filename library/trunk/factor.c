@@ -1,7 +1,7 @@
 /*
  * Mathomatic symbolic factorizing routines, not polynomial factoring.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  *
  * There are proper mathematical names for many algebraic rules.
  * I obviously don't know what they are.
@@ -62,7 +62,7 @@ int
 factor_plus(equation, np, v, d)
 token_type	*equation;	/* pointer to beginning of equation side */
 int		*np;		/* pointer to length of equation side */
-long		v;		/* variable */
+long		v;		/* Mathomatic variable */
 double		d;		/* control exponent */
 {
 	return fplus_recurse(equation, np, 0, 1, v, d, false, false);

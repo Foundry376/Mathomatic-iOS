@@ -3,7 +3,7 @@
  * C initializes global variables and arrays to zero by default.
  * This is required for proper operation.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  *
  * Most global variables for Mathomatic are defined here and duplicated in "externs.h".
  */
@@ -40,36 +40,46 @@ int		case_sensitive_flag = true;		/* "set case_sensitive" flag */
 int		factor_int_flag;			/* factor integers when displaying expressions */
 int		display2d = true;			/* "set display2d" flag */
 int		preserve_surds = true;			/* set option to preserve roots like (2^.5) */
+int		rationalize_denominators = true;	/* try to rationalize denominators if true */
 int		modulus_mode = 2;				/* true for mathematically correct modulus */
 volatile int	screen_columns = STANDARD_SCREEN_COLUMNS;	/* screen width of the terminal; 0 = infinite */
 volatile int	screen_rows = STANDARD_SCREEN_ROWS;		/* screen height of the terminal; 0 = infinite */
 int		finance_option;				/* for displaying dollars and cents */
-int		autosolve = true;			/* Allows solving by typing the variable name at the prompt */
+int		autosolve = true;			/* Allows solving by typing the variable name at the main prompt */
 int		autocalc = true;			/* Allows automatically calculating a numerical expression */
+int		autoselect = true;			/* Allows selecting equation spaces by typing the number */
 char		special_variable_characters[256] = "\\"; /* user defined characters for variable names, 0 terminated */
-int		integer_coefficients = false;		/* if true, factor out the GCD of integer coefficients */
+int		integer_coefficients = true;		/* if true, factor out the GCD of integer coefficients */
 int		right_associative_power;		/* if true, evaluate power operators right to left */
-int		negate_high_precedence = true;		/* if true, negation (-x) has the highest precedence */
+int		negate_highest_precedence = true;	/* if true, negation (-x) has the highest precedence */
 int		power_starstar;				/* if true, display power operator as "**", otherwise "^" */
 #if	!SILENT
 int		debug_level;				/* current debug level */
 #endif
 
 /* variables having to do with color mode */
+#if	LIBRARY
+int		color_flag = false;		/* library doesn't default to color mode */
+#else
 int		color_flag = true;		/* "set color" flag, true for color mode */
-int		bold_colors;			/* "set bold_colors" flag, true for bold colors if ANSI color mode */
+#endif
+int		bold_colors;			/* "set bold_colors" flag */
 int		cur_color = -1;			/* current color on the terminal */
 int		html_flag;			/* true for HTML output mode */
 
-/* epsilon constants */
-double		small_epsilon	= 0.000000000000005;	/* for small round-off errors */
-double		epsilon		= 0.00000000000005;	/* for larger, accumulated round-off errors */
+/* double precision floating point epsilon constants for number comparisons for equivalency */
+double		small_epsilon	= 0.000000000000005;	/* for ignoring small, floating point round-off errors */
+double		epsilon		= 0.00000000000005;	/* for ignoring larger, accumulated round-off errors */
 
 /* string variables */
 char		*prog_name = "mathomatic";	/* name of this program */
 char		*var_names[MAX_VAR_NAMES];	/* index for storage of variable name strings */
 char		var_str[MAX_VAR_LEN+80];	/* temp storage for listing a variable name */
 char		prompt_str[MAX_PROMPT_LEN];	/* temp storage for the prompt string */
+#if	!SECURE && !LIBRARY
+char		rc_file[PATH_MAX];		/* pathname for the set options startup file */
+#endif
+
 #if	CYGWIN
 char		*dir_path;			/* directory path to the executable, only set and used in CYGWIN version */
 #endif
@@ -100,7 +110,10 @@ int		sign_cmp_flag;		/* true when all "sign" variables are to compare equal */
 int		domain_check;		/* flag to track domain errors in the pow() function */
 int		approximate_roots;	/* true if in calculate command (force approximation of roots like (2^.5)) */
 volatile int	abort_flag;		/* if true, abort current operation */
+int		pull_number;		/* equation space number to pull when using the library */
+int		secure_flag;		/* don't allow shelling out and writing files if true */
 
 /* library variables go here */
 const char	*error_str;		/* last error string */
 char		*result_str;		/* returned result when using as library */
+const char	*warning_str;		/* last warning string */

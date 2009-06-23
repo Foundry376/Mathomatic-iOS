@@ -1,5 +1,5 @@
-                         Ideas to code in Mathomatic
-                         ---------------------------
+             Ideas to code in Mathomatic when I am feeling better
+             ----------------------------------------------------
 
 Simplify nested radicals like ((9 + 4*(2^.5))^.5) to (1 + 2*(2^.5)).  This
 may be difficult, I don't know how this is generally done.  Heuristics are
@@ -10,13 +10,20 @@ not acceptable for this.  Test expression:
 should simplify to 2.
 
 Use the GNU Scientific Library (GSL) to automatically numerically solve any
-degree numeric polynomial equation, like "polyroots.c" does, when symbolic
+degree numeric polynomial equation, like "misc/roots.c" does, when symbolic
 solving fails.  Unfortunately, this will make Mathomatic dependent on the
-GSL, so I may not do this.
+GSL, so I may not do this.  Instead, the general cubic formula in
+"tests/cubic.in" could be hard-coded as a solve routine function, so any
+cubic equation could be automatically solved.
 
 Implement complex number factorials, when an accurate floating point complex
 number gamma calculating function is found.  The GSL does this.
 
-Have "solve verify" verify individual solutions instead of the whole set of
-solutions at once.  This will show which solutions are correct instead of
-just saying yes or no.
+Implement natural logarithms as the "log()" function, using a dummy operand
+internally.  The dummy operand can be the NULL variable and should be first.
+The rules for logarithms can be slowly added later.  This is a large project.
+
+Make polynomial gcd calculation partially recursive.  This is difficult, the
+expression storage areas are currently static globals.  If successful, this
+will make polynomial gcd calculation multivariate, so it will succeed with
+large expressions with many variables.

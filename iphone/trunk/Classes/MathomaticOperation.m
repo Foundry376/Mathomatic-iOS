@@ -133,7 +133,7 @@
     char * buffer = NULL;
     matho_process([[i mathomaticText] cStringUsingEncoding: NSStringEncodingConversionAllowLossy], &buffer);
     if (buffer != NULL){
-        NSString * result = [NSString stringWithCString: buffer];
+        NSString * result = [NSString stringWithCString:buffer encoding:NSStringEncodingConversionAllowLossy];
         free(buffer);
         return result;
     }else

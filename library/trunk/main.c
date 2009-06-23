@@ -1,8 +1,8 @@
 /*
  * This file contains main() and the startup code for Mathomatic,
- * which is an algebraic manipulator written entirely in C.
+ * which is a small computer algebra system written entirely in C.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  *
  * Output to stderr is only done in this file.  The rest of the Mathomatic code
  * should not output to stderr; error messages should use error() or go to stdout.
@@ -31,11 +31,16 @@
  * Most of the expression manipulation and comparison routines are recursive,
  * calling themselves for each level of parentheses.
  *
+ * Note that equation space numbers internally are 1 less than the equation
+ * space numbers displayed.  That is because internal equation space numbers
+ * are origin 0 array indexes, while displayed equation numbers are origin 1.
+ *
  * See the file "am.h" to start understanding the Mathomatic code and
  * to adjust memory usage.
  */
 
-#if	!LIBRARY
+#if	!LIBRARY	/* This comments out this whole file if using as symbolic math library. */
+
 #include "includes.h"
 #if	UNIX || CYGWIN
 #include <sys/ioctl.h>
@@ -45,10 +50,29 @@
 #include <fenv.h>
 #endif
 
-static void usage();
-static int set_signals();
-
-static char	rc_file[PATH_MAX];
+/*
+ * Display invocation usage info.
+ */
+void
+usage()
+{
+	printf(_("\nMathomatic version %s computer algebra system\n\n"), VERSION);
+	printf(_("Usage: %s [ options ] [ input_files ]\n\n"), prog_name);
+	printf(_("Options:\n"));
+	printf(_("  -b            Enable bold color mode.\n"));
+	printf(_("  -c            Toggle color mode.\n"));
+	printf(_("  -h            Display this help and exit.\n"));
+	printf(_("  -m number     Specify a memory size multiplier.\n"));
+	printf(_("  -q            Set quiet mode (don't display prompts).\n"));
+	printf(_("  -r            Disable readline.\n"));
+	printf(_("  -s            Enable secure mode.\n"));
+	printf(_("  -t            Set test mode.\n"));
+	printf(_("  -u            Set unbuffered output.\n"));
+	printf(_("  -v            Display version information, then exit.\n"));
+	printf(_("  -w            Wide output mode, sets unlimited width.\n"));
+	printf(_("  -x            Enable HTML/XHTML output mode.\n"));
+	printf(_("\nPlease refer to the %s man page for more information.\n"), prog_name);
+}
 
 int
 main(argc, argv)
@@ -61,8 +85,8 @@ char	**argv;
 	int		i;
 	char		*cp = NULL;
 	double		numerator, denominator;
-	double		multiplier;
-	int		coption = false;
+	double		new_size;
+	int		coption = false, boption = false, wide_flag = false;
 
 #if	CYGWIN
 	dir_path = strdup(dirname_win(argv[0]));	/* set dir_path to this executable's directory */
@@ -81,21 +105,31 @@ char	**argv;
 #endif
 
 	/* process command line options */
-	while ((i = getopt(argc, argv, "qrtchuvm:")) >= 0) {
+	while ((i = getopt(argc, argv, "sbqrtchuvwxm:")) >= 0) {
 		switch (i) {
+		case 's':
+			secure_flag = true;
+			break;
+		case 'w':
+			wide_flag = true;
+			break;
+		case 'b':
+			boption = true;
+			break;
 		case 'c':
 			coption++;
 			break;
-		case 'h':
+		case 'x':
 			html_flag = true;
+			wide_flag = true;
 			break;
 		case 'm':
-			multiplier = strtod(optarg, &cp) * DEFAULT_N_TOKENS;
-			if (cp == NULL || *cp || multiplier <= 0 || multiplier >= (INT_MAX / 3)) {
+			new_size = strtod(optarg, &cp) * DEFAULT_N_TOKENS;
+			if (cp == NULL || *cp || new_size <= 0 || new_size >= (INT_MAX / 3)) {
 				fprintf(stderr, _("%s: Invalid memory size multiplier specified.\n"), prog_name);
 				exit(2);
 			}
-			n_tokens = (int) multiplier;
+			n_tokens = (int) new_size;
 			break;
 		case 'q':
 			quiet_mode = true;
@@ -105,30 +139,27 @@ char	**argv;
 			break;
 		case 't':
 			readline_enabled = false;
+			wide_flag = true;
 			test_mode = true;
 			break;
 		case 'u':
 			setbuf(stdout, NULL);	/* make output unbuffered */
 			setbuf(stderr, NULL);
 			break;
+		case 'h':
+			usage();
+			exit(0);
 		case 'v':
 			version_report();
 			exit(0);
 		default:
 			usage();
+			exit(2);
 		}
 	}
 	if (n_tokens < 100) {
 		fprintf(stderr, _("%s: Improper equation space size.\n"), prog_name);
 		exit(2);
-	}
-	if (test_mode || html_flag) {
-		screen_columns = 0;
-		screen_rows = 0;
-#if	UNIX || CYGWIN
-	} else {
-		get_screen_size();
-#endif
 	}
 	if (!init_mem()) {
 		fprintf(stderr, _("%s: Not enough memory.\n"), prog_name);
@@ -145,10 +176,13 @@ char	**argv;
 	if (!test_mode && !quiet_mode) {
 #if	SECURE
 		printf(_("Secure "));
+#else
+		if (secure_flag)
+			printf(_("Secure "));
 #endif
-		printf(_("Mathomatic version %s (www.mathomatic.org)\n"), VERSION);
-		printf(_("Copyright (C) 1987-2008 George Gesslein II.\n"));
-		printf(_("%d equation spaces available, %ld kilobytes per equation space.\n"),
+		printf("Mathomatic version %s (www.mathomatic.org)\n", VERSION);
+		printf("Copyright (C) 1987-2009 George Gesslein II.\n");
+		printf(_("%d equation spaces available, %ld Kbytes per equation space.\n"),
 		    N_EQUATIONS, (long) n_tokens * sizeof(token_type) * 2L / 1000L);
 	}
 #if	!SECURE
@@ -157,13 +191,30 @@ char	**argv;
 		fprintf(stderr, _("%s: Error loading set options from \"%s\".\n"), prog_name, rc_file);
 	}
 #endif
+	if (wide_flag) {
+		screen_columns = 0;
+		screen_rows = 0;
+#if	UNIX || CYGWIN
+	} else {
+		get_screen_size();
+#endif
+	}
 	if (test_mode) {
 		color_flag = false;
 	} else if (coption & 1) {
 		color_flag = !color_flag;
 	}
+	if (boption) {
+		bold_colors = true;
+		color_flag = true;
+	}
 	if (!quiet_mode && color_flag) {
-		printf(_("%s%s color mode enabled.\n"), html_flag ? "HTML" : "ANSI", bold_colors ? " bold" : "");
+		printf(_("%s%s color mode enabled"), html_flag ? "HTML" : "ANSI", bold_colors ? " bold" : "");
+		if (!boption) {
+			printf(_("; disable with the -c option.\n"));
+		} else {
+			printf(".\n");
+		}
 	}
 	if ((i = setjmp(jmp_save)) != 0) {
 		/* for error handling */
@@ -176,7 +227,9 @@ char	**argv;
 			break;
 		}
 	} else {
-		set_signals();
+		if (!set_signals()) {
+			fprintf(stderr, _("signal(2) setting failed.\n"));
+		}
 		if (!f_to_fraction(0.5, &numerator, &denominator)
 		    || numerator != 1.0 || denominator != 2.0
 		    || !f_to_fraction(1.0/3.0, &numerator, &denominator)
@@ -185,7 +238,7 @@ char	**argv;
 			fprintf(stderr, _("Roots will not work properly.\n"));
 		}
 #if	!SECURE
-		/* read in files on the command line, exit if error */
+		/* read in files specified on the command line, exit if error */
 		for (i = optind; i < argc; i++) {
 			if (!read_cmd(argv[i])) {
 				exit_program(1);
@@ -196,7 +249,7 @@ char	**argv;
 	/* main input/output loop */
 	for (;;) {
 		default_color();
-		snprintf(prompt_str, sizeof(prompt_str), "%d%s", cur_equation + 1, html_flag ? HTML_PROMPT : PROMPT);
+		snprintf(prompt_str, sizeof(prompt_str), "%d%s", cur_equation + 1, html_flag ? HTML_PROMPT_STR : PROMPT_STR);
 		if ((cp = get_string((char *) tlhs, n_tokens * sizeof(token_type))) == NULL)
 			break;
 		process(cp);
@@ -206,32 +259,11 @@ char	**argv;
 }
 
 /*
- * Display invocation usage info and exit with error.
- */
-static void
-usage()
-{
-	printf(_("Mathomatic version %s - automatic algebraic manipulator\n\n"), VERSION);
-	printf(_("Usage: %s [ options ] [ input_files ]\n\n"), prog_name);
-	printf(_("Options:\n"));
-	printf(_("  -c            Toggle color mode.\n"));
-	printf(_("  -h            Enable HTML output mode.\n"));
-	printf(_("  -m number     Specify a memory size multiplier.\n"));
-	printf(_("  -q            Set quiet mode (don't display prompts).\n"));
-	printf(_("  -r            Disable readline.\n"));
-	printf(_("  -t            Set test mode.\n"));
-	printf(_("  -u            Set unbuffered output.\n"));
-	printf(_("  -v            Display version information, then exit.\n"));
-	printf(_("\nPlease refer to the man page for more information.\n"));
-	exit(2);
-}
-
-/*
  * All signal(2) initialization goes here.
  *
  * Return true on success.
  */
-static int
+int
 set_signals()
 {
 	int	rv = true;
@@ -244,6 +276,8 @@ set_signals()
 #endif
 	if (signal(SIGINT, inthandler) == SIG_ERR)
 		rv = false;
+	if (signal(SIGQUIT, inthandler) == SIG_ERR)
+		rv = false;
 #if	UNIX || CYGWIN
 	if (signal(SIGWINCH, resizehandler) == SIG_ERR)
 		rv = false;
@@ -253,9 +287,6 @@ set_signals()
 		rv = false;
 	alarm(TIMEOUT_SECONDS);
 #endif
-	if (!rv) {
-		perror("signal(2) setting failed");
-	}
 	return rv;
 }
 
@@ -263,7 +294,7 @@ set_signals()
 /*
  * dirname(3) function for Windows.
  */
-char	*
+char *
 dirname_win(cp)
 char	*cp;
 {
@@ -281,9 +312,10 @@ char	*cp;
 
 #if	!SECURE
 /*
- * Load set options from "~/.mathomaticrc".
+ * Load set options from startup file "~/.mathomaticrc".
  *
- * Return false if error encountered.
+ * Return false if there was an error reading the startup file,
+ * otherwise return true.
  */
 int
 load_rc()
@@ -305,7 +337,6 @@ load_rc()
 	}
 #endif
 	if (fp == NULL) {
-		rc_file[0] = '\0';
 		return true;
 	}
 	while ((cp = fgets(buf, sizeof(buf), fp)) != NULL) {
@@ -320,7 +351,7 @@ load_rc()
 
 /*
  * Floating point exception handler.
- * I do not know the proper function calls that should be here to make the GNU TRAP_FPERRORS define work.
+ * I do not know the proper function calls that should be here to make the TRAP_FPERRORS define work.
  * Currently it goes in an endless loop when an FP exception occurs and TRAP_FPERRORS is true,
  * because when this function returns, the exception immediately happens again.
  * Therefore, do not define TRAP_FPERRORS!
@@ -331,15 +362,11 @@ int	sig;
 {
 #if	TRAP_FPERRORS
 	warning(_("Floating point exception."));
-/*
-	feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
-	signal(SIGFPE, fphandler);
-*/
 #endif
 }
 
 /*
- * Control-C (interrupt) signal handler.
+ * Fancy Control-C (interrupt) signal handler.
  * Interrupts processing and returns to main prompt through a polling mechanism.
  * If it can't, repeated calls terminate this program.
  */
@@ -352,13 +379,14 @@ int	sig;
 	case 0:
 	case 1:
 		/* wait for graceful abort */
+		printf(_("\nUser interrupt signal received.\n"));
 		return;
 	case 2:
 		printf(_("\nPress Control-C once more to quit program.\n"));
-		break;
+		return;
 	default:
 		/* abruptly quit this program */
-		printf(_("\nControl-C repeatedly pressed; Quitting...\n"));
+		printf(_("\nRepeatedly interrupted; Quitting...\n"));
 		exit_program(1);
 	}
 }
@@ -407,7 +435,7 @@ int	sig;
 #endif
 
 /*
- * Exit this program and return to the Operating System.
+ * Properly exit this program and return to the operating system.
  */
 void
 exit_program(exit_value)
@@ -422,6 +450,8 @@ int	exit_value;	/* zero if OK, non-zero indicates error return */
 		write_history(history_filename);	/* save readline history */
 	}
 #endif
+	if (exit_value == 0 && !quiet_mode)
+		printf(_("Thank you for using Mathomatic!\n"));
 	exit(exit_value);
 }
 #endif

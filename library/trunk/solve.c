@@ -1,7 +1,7 @@
 /*
  * Mathomatic symbolic solve routines.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -508,7 +508,7 @@ zero_simp:
 					if (inc_count > MAX_RAISE_POWER)
 						return false;
 #if	!SILENT
-					printf(_("Raising both equation sides to the power of %.*g and unfactoring...\n"), precision, 1.0 / b1->token.constant);
+					fprintf(gfp, _("Raising both equation sides to the power of %.*g and unfactoring...\n"), precision, 1.0 / b1->token.constant);
 #endif
 					zero_solved = false;
 					qtries = 0;
@@ -783,7 +783,7 @@ long	v;	/* solve variable */
 		return false;
 #if	!SILENT
 	list_var(v, 0);
-	printf(_("Equation is a degree %.*g polynomial in (%s).\n"), precision, high_power, var_str);
+	fprintf(gfp, _("Equation is a degree %.*g polynomial in (%s).\n"), precision, high_power, var_str);
 #endif
 	if (a1p > trhs && (a1p - 1)->token.operatr == MINUS)
 		opx1 = MINUS;
@@ -995,11 +995,11 @@ big_bbreak:
 	list_tdebug(1);
 #if	!SILENT
 	if (high_power == 2.0) {
-		printf(_("Equation was quadratic.\n"));
+		fprintf(gfp, _("Equation was quadratic.\n"));
 	} else if (high_power == 4.0) {
-		printf(_("Equation was biquadratic.\n"));
+		fprintf(gfp, _("Equation was biquadratic.\n"));
 	} else {
-		printf(_("Equation was solved with the quadratic formula.\n"));
+		fprintf(gfp, _("Equation was solved with the quadratic formula.\n"));
 	}
 #endif
 	return true;
@@ -1140,11 +1140,15 @@ int		*side2np;	/* pointer to the length of "side2p" */
 	if (*side1np + operandn + 3 > n_tokens || *side2np + operandn + 5 > n_tokens) {
 		error_huge();
 	}
-	for (p2 = side1p; p2 < ep; p2++)
-		p2->level++;
+	if (min_level(side1p, oldn) <= 1) {
+		for (p2 = side1p; p2 < ep; p2++)
+			p2->level++;
+	}
 	ep = &side2p[*side2np];
-	for (p2 = side2p; p2 < ep; p2++)
-		p2->level++;
+	if (min_level(side2p, *side2np) <= 1) {
+		for (p2 = side2p; p2 < ep; p2++)
+			p2->level++;
+	}
 	p2 = &side1p[oldn];
 	switch (op) {
 	case MODULUS:

@@ -2,13 +2,13 @@
  * Generate batches of consecutive prime numbers using a modified sieve of Eratosthenes
  * algorithm that doesn't use much memory by using a windowing sieve buffer.
  *
- * Copyright (C) 2007 George Gesslein II.
+ * Copyright (C) 2009 George Gesslein II.
  */
 
 /*
 Usage: matho-primes [start [stop]] ["twin"] ["pal" [base]]
 
-Generate batches of consecutive prime numbers up to 19 digits.
+Generate batches of consecutive prime numbers up to 18 decimal digits.
 If "twin" is specified, output only twin primes.
 If "pal" is specified, output only palindromic primes.
 The palindromic base may be specified, the default is base 10.
@@ -17,7 +17,7 @@ or
 
 Usage: matho-primes [options] [start [stop]]
 
-Generate batches of consecutive prime numbers up to 19 digits.
+Generate batches of consecutive prime numbers up to 18 decimal digits.
 Options:
   -t               Output only twin primes.
   -p base          Output only palindromic primes.
@@ -29,6 +29,7 @@ Options:
  * 11/22/05 - converted everything to long doubles.  Now uses C99 long double functions.
  * 3/25/06 - made primes buffer variable size.
  * 3/30/08 - Allow long double to be aliased to double when long double isn't supported.
+ * 2/11/09 - Cleanup calculation of number of decimal digits and max_integer.
  */
 
 #include <stdio.h>
@@ -40,6 +41,7 @@ Options:
 #include <limits.h>
 #include <errno.h>
 #include <math.h>
+#include <float.h>
 #include <assert.h>
 
 #define	true	1
@@ -66,7 +68,7 @@ int		test_pal(long double d, long double base);
 void		usage(void);
 void		usage2(void);
 int		get_long_double_int(char *cp, long double *dp);
-long double	ceill(), sqrtl(), fmodl(), strtold();
+long double	powl(), ceill(), sqrtl(), fmodl(), strtold();
 
 long double max_integer;		/* largest value of a long double integral value */
 long double start_value;		/* where to start finding primes */
@@ -101,20 +103,14 @@ main(int argc, char *argv[])
 	int		i;
 	char		buf[1000];
 
-        prog_name = strdup(basename(argv[0]));
+/*	prog_name = strdup(basename(argv[0])); */
+
 	start_value = -1.0;
 /* set the highest number this program will work with: */
-	if (sizeof(long double) >= 12) {
-		max_integer = 1.0e19L;	/* 19 digits for long doubles */
-	} else if (sizeof(long double) == 8) {
-		max_integer = 1.0e14L;	/* 14 digits for doubles */
-	} else {
-		fprintf(stderr, "%s: Unsupported size of long double = %u bytes.\n", prog_name, sizeof(long double));
-		exit(2);
-	}
+	max_integer = powl(10.0L, (long double) (LDBL_DIG));
 	end_value = max_integer;
 	if (end_value == end_value + 1.0) {
-		fprintf(stderr, "Warning: max_integer is too large; size of long double = %u bytes.\n", sizeof(long double));
+		fprintf(stderr, "Warning: max_integer (%Lg) is too large; size of long double = %u bytes.\n", max_integer, (unsigned) sizeof(long double));
 	}
 	number = 0;
 /* process command line options: */
@@ -341,11 +337,11 @@ get_long_double_int(char *cp, long double *dp)
 		return false;
 	}
 	if (*dp > max_integer) {
-		fprintf(stderr, "Number is too large.\n");
+		fprintf(stderr, "Number is too large, maximum is %Lg.\n", max_integer);
 		return false;
 	}
 	if (*dp < 0.0 || fmodl(*dp, 1.0L) != 0.0) {
-		fprintf(stderr, "Number must be a positive integer.\n");
+		fprintf(stderr, "Number must be a positive integer or zero.\n");
 		return false;
 	}
 	return true;
@@ -379,9 +375,9 @@ test_pal(long double d, long double base)
 void
 usage(void)
 {
-	printf("Prime number generator version 1.0\n");
+	printf("\nPrime number generator version 1.0\n");
 	printf("Usage: %s [start [stop]] [\"twin\"] [\"pal\" [base]]\n\n", prog_name);
-	printf("Generate batches of consecutive prime numbers up to %Lg.\n", max_integer);
+	printf("Generate consecutive prime numbers from start to stop up to %Lg.\n", max_integer);
 	printf("If \"twin\" is specified, output only twin primes.\n");
 	printf("If \"pal\" is specified, output only palindromic primes.\n");
 	printf("The palindromic base may be specified, the default is base 10.\n");
@@ -391,9 +387,9 @@ usage(void)
 void
 usage2(void)
 {
-	printf("Prime number generator version 1.0\n");
+	printf("\nPrime number generator version 1.0\n");
 	printf("Usage: %s [options] [start [stop]]\n\n", prog_name);
-	printf("Generate batches of consecutive prime numbers up to %Lg.\n", max_integer);
+	printf("Generate consecutive prime numbers from start to stop up to %Lg.\n", max_integer);
 	printf("Options:\n");
 	printf("  -t               Output only twin primes.\n");
 	printf("  -p base          Output only palindromic primes.\n");

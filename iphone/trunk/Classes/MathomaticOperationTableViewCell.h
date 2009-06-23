@@ -18,7 +18,10 @@
 @interface MathomaticOperationTableViewCell : UITableViewCell {
 
     MathomaticOperation * operation;
+    
     int height;
+    BOOL contentShifted;
+    
     NSObject<MathomaticOperationTableViewCellDelegate>* delegate;
 }
 
@@ -26,7 +29,7 @@
 @property (nonatomic, assign) int height;
 @property (nonatomic, retain) NSObject<MathomaticOperationTableViewCellDelegate>* delegate;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d;
+- (id)initWithReuseIdentifier:(NSString *)reuseIdentifier delegate:(NSObject<MathomaticOperationTableViewCellDelegate>*)d;
 - (void)setOperation:(MathomaticOperation*)op;
 
 - (void)attachText:(NSString*)text withSize:(int)size andColor:(UIColor*)color;

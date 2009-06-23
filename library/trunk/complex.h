@@ -2,7 +2,7 @@
  * Include file for floating point complex number arithmetic in C.
  * Goes with "complex_lib.c".
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 typedef struct complexs {	/* complex number structure */

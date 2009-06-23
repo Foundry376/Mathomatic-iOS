@@ -1,10 +1,11 @@
 #!/bin/sh
-# Compile polyroots.c and move the executable to ~/bin if it exists
+# Compile roots.c and move the executable to ~/bin if it exists
 
-echo Compiling polyroots.c
-cc $* -s -O2 -Wall -o polyroots polyroots.c -lgsl -lgslcblas || exit
-if [ -d ~/bin ] ; then
+echo Compiling roots.c
+cc $* -s -O2 -Wall -o roots roots.c -lgsl -lgslcblas || exit
+if [ -d ~/bin ]
+then
 	echo Moving result to ~/bin
-	mv polyroots ~/bin || exit
+	mv roots ~/bin || exit
 fi
 echo Done.

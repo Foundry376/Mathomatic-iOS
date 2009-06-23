@@ -24,7 +24,7 @@
         equationCells = [[NSMutableArray alloc] init];
         for (MathomaticExpression * expression in e)
         {
-            MathomaticExpressionTableViewCell * cell = [[MathomaticExpressionTableViewCell alloc] initWithFrame:CGRectMake(0,0,320,0) reuseIdentifier:@"mathomatic_cell"];
+            MathomaticExpressionTableViewCell * cell = [[MathomaticExpressionTableViewCell alloc] initWithReuseIdentifier:@"mathomatic_cell"];
             [cell setExpression: expression];
             [equations addObject: expression];
             [equationCells addObject: cell];
@@ -161,7 +161,7 @@
             [cell setAccessoryType: UITableViewCellAccessoryCheckmark];
         else
             [cell setAccessoryType: UITableViewCellAccessoryNone];
-        [cell setText: c];
+        [cell.textLabel setText: c];
         return cell;
     }
     

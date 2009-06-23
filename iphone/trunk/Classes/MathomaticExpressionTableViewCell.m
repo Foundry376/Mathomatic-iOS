@@ -13,8 +13,8 @@
 
 @synthesize expression;
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier {
-    if (self = [super initWithFrame:frame reuseIdentifier:reuseIdentifier]) {
+- (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
+    if (self = [super initWithStyle: UITableViewStyleGrouped reuseIdentifier:reuseIdentifier]) {
         expression = nil;
         expressionImageView = [[UIImageView alloc] initWithFrame: CGRectZero];
         [self addSubview: expressionImageView];

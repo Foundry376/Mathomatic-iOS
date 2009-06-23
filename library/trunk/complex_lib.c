@@ -2,7 +2,7 @@
  * A small, independent, floating point complex number arithmetic library for C.
  * Include "complex.h" if you use this.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "complex.h"

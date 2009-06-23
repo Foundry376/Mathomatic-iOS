@@ -1,7 +1,7 @@
 /*
- * Group and combine denominators.
+ * Group and combine denominators symbolically for Mathomatic.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -11,13 +11,15 @@ static int	sf_sub();
 
 static void
 group_recurse(equation, np, loc, level)
-token_type	*equation;
-int		*np, loc, level;
+token_type	*equation;	/* equation side pointer */
+int		*np;		/* pointer to length of equation side */
+int		loc;		/* starting location within equation side */
+int		level;		/* current level of parentheses within the subexpression starting at "loc" */
 {
 	int		i;
 	int		len;
 	int		di, edi;
-	int		grouper = false;
+	int		group_flag = false;
 	int		e1;
 
 	for (i = loc; i < *np && equation[i].level >= level;) {
@@ -40,7 +42,7 @@ int		*np, loc, level;
 					di = i;
 					continue;
 				}
-				grouper = true;
+				group_flag = true;
 				for (len = i + 2; len < e1; len += 2) {
 					if (equation[len].level == level && equation[len].token.operatr != DIVIDE)
 						break;
@@ -62,14 +64,18 @@ int		*np, loc, level;
 			}
 		}
 	}
-	if (!grouper) {
-		return;
-	}
-	for (i = di + 1; i < edi; i++) {
-		if (equation[i].level == level && equation[i].kind == OPERATOR) {
-			equation[i].token.operatr = TIMES;
+	if (group_flag) {
+		for (i = di + 1; i < edi; i++) {
+			if (equation[i].level == level && equation[i].kind == OPERATOR) {
+#if	false
+				if (equation[i].token.operatr != DIVIDE) {
+					error_bug("Bug in group_recurse().");
+				}
+#endif
+				equation[i].token.operatr = TIMES;
+			}
+			equation[i].level++;
 		}
-		equation[i].level++;
 	}
 }
 
@@ -80,10 +86,23 @@ int		*np, loc, level;
  */
 void
 group_proc(equation, np)
+token_type	*equation;	/* equation side pointer */
+int		*np;		/* pointer to length of equation side */
+{
+	group_recurse(equation, np, 0, 1);
+}
+
+/*
+ * Make equation side ready for display.
+ */
+void
+display_fractions_and_group(equation, np)
 token_type	*equation;
 int		*np;
 {
-	group_recurse(equation, np, 0, 1);
+	elim_loop(equation, np);
+	make_fractions(equation, np);
+	group_proc(equation, np);
 }
 
 /*
@@ -95,44 +114,28 @@ int	n;	/* equation space number */
 {
 	if (n_lhs[n] <= 0)
 		return;
-	elim_loop(lhs[n], &n_lhs[n]);
-	make_fractions(lhs[n], &n_lhs[n]);
-	group_proc(lhs[n], &n_lhs[n]);
-
+	display_fractions_and_group(lhs[n], &n_lhs[n]);
 	if (n_rhs[n]) {
-		elim_loop(rhs[n], &n_rhs[n]);
-		make_fractions(rhs[n], &n_rhs[n]);
-		group_proc(rhs[n], &n_rhs[n]);
+		display_fractions_and_group(rhs[n], &n_rhs[n]);
 	}
 }
 
 /*
- * Make equation side ready for display.
- */
-void
-display_fractions_and_group(equation, np)
-token_type	*equation;
-int		*np;
-{
-	if (display2d) {
-		elim_loop(equation, np);
-		make_fractions(equation, np);
-		group_proc(equation, np);
-	}
-}
-
-/*
- * Combine fractions by making the denominators all the same.
- * This means converting "a/b+c/d" to "(a*d+c*b)/b/d".
+ * Combine algebraic fractions added together by making the denominators all the same.
+ * This means converting "(a/b)+(c/d)+f" to "(a*d+c*b+b*d*f)/b/d".
  *
  * If start_flag is 0, only combine denominators to convert complex fractions to simple fractions.
+ * Level one addition of fractions will be unchanged.
+ * Can make an expression over-complicated.
  *
  * If start_flag is 1, always combine denominators.
+ * This can easily make an expression large and complicated.
  *
- * If start_flag is 2, always combine denominators and remove any polynomial GCD between them.
- * Note that this wipes out tlhs and trhs.  This simplifies all algebraic fractions
- * into a single simple fraction and prevents making a more complicated (or larger)
- * algebraic fraction.
+ * If start_flag is 2, always combine denominators
+ * and reduce the result by removing any polynomial GCD between them.
+ * Note that this wipes out globals tlhs[] and trhs[].
+ * This simplifies all algebraic fractions into a single simple fraction
+ * and prevents making a more complicated (or larger) algebraic fraction.
  *
  * Return true if equation side was modified.
  */
@@ -162,7 +165,11 @@ int		*np, loc, level, start_flag;
 
 	if (!start_flag) {
 		for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
+#if	true
 			if (equation[i].level == level && equation[i].token.operatr == DIVIDE) {
+#else
+			if (equation[i].level == level && (equation[i].token.operatr == DIVIDE || equation[i].token.operatr == POWER)) {
+#endif
 				start_flag = true;
 				break;
 			}

@@ -6,7 +6,6 @@ s=(a+b+c)/2 ; semiperimeter
 ; radius of a circle inscribed in a triangle, called an incircle:
 inradius=(s*(s-a)*(s-b)*(s-c))^.5/s
 eliminate s
-unfactor
 simplify
 ; The following is the equation for the radius of a circle circumscribing
 ; a triangle, called a circumcircle, which is a circle that passes through

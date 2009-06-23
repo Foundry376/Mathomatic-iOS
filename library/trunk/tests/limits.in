@@ -23,6 +23,9 @@ limit x inf ; answer should be 1/2
 1/x^2+1/x
 limit x inf ; result should be 0
 
+((2*(x^2)) - x - 6)/((x^2) + (2*x) - 8)
+limit x inf ; result should be 2
+
 ; The following currently give wrong answers:
 x^2+x
 limit x inf ; result should be inf

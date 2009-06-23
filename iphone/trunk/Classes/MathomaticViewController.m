@@ -77,7 +77,7 @@
     // create command stack cells for each existing item in the commandStack
     commandStackCells = [[NSMutableArray alloc] init];
     for (MathomaticOperation * operation in commandStack){
-        MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"command" delegate: self] autorelease];
+        MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithReuseIdentifier:@"command" delegate: self] autorelease];
         [row setOperation: operation];
         [commandStackCells addObject: row];
     }
@@ -230,7 +230,7 @@
     // create a new row to represent the operation and keep it cached for future use. We need to keep
     // this array ourselves (and not just let the TableView manage it as usual) so that we can respond to
     // heightForRowAtIndexPath without calling cellForIndexPath (which causes an infinite loop... apparently.)
-    MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"command" delegate: self] autorelease];
+    MathomaticOperationTableViewCell * row = [[[MathomaticOperationTableViewCell alloc] initWithReuseIdentifier:@"command" delegate: self] autorelease];
     [row setOperation: c];
     
     // add the item. If there are more than kMaxStackLength, remove the first object 

@@ -11,15 +11,16 @@ matho-primes \- generate consecutive prime numbers
 [\-t] [\-p base] [start [stop]]
 
 .SH DESCRIPTION
-This utility is part of the
+This utility is optionally part of the
 .BR mathomatic (1)
 package.
 It quickly computes any number of consecutive prime numbers using a memory efficient
 sieve of Eratosthenes algorithm, dumping them to standard output.
-Generates up to 19 digit primes.
 They are displayed one prime per line in ascending order,
-unless the "twin" option is specified,
-which displays two primes per line.
+unless the "twin" option is specified, which displays two primes per line.
+
+Generates up to 18 decimal digit primes,
+or whatever is the number of digits of precision for a long double.
 
 A range may be
 specified on the command line, otherwise the starting number and

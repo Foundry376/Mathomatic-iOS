@@ -68,6 +68,7 @@ matho_process(char *input, const char **outputp)
 	}
 	result_str = NULL;
 	error_str = NULL;
+	warning_str = NULL;
 	set_error_level(input);
 	if ((rv = process(input))) {
 		*outputp = result_str;
@@ -108,6 +109,7 @@ matho_parse(char *input, const char **outputp)
 	}
 	result_str = NULL;
 	error_str = NULL;
+	warning_str = NULL;
 	set_error_level(input);
 	i = next_espace();
 #if	true	/* set this true if you want to be able to enter single variable expressions with no solving */

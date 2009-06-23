@@ -1,4 +1,4 @@
-; Demonstration of eliminate command usage.
+; Demonstration of eliminate command usage from a Mathomatic user.
 
 ; John Hopper example from the paper:
 ; WITTE, J.S., CARLIN, J.B., HOPPER, J.L. A likelihood approach to 
@@ -18,7 +18,7 @@
 ; Probandwise concordance = 2*x_a/(2*x_a+x_d) = Pr(D in Y | D in X)
 ; in the original paper a,b,c,d were left unsimplified
 ;
-clear all
+clear all ; restart Mathomatic
 P_c=2*x_a/(x_a+S)
 S=x_a+x_d
 N=x_a+x_u+x_d

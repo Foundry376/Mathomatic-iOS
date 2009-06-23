@@ -1,9 +1,9 @@
 /*
  * Mathomatic integration routines and commands.
  *
- * These are very low level, so they don't do much, polynomials only.
+ * These are very low level, so they don't do much.
  *
- * Copyright (C) 1987-2008 George Gesslein II.
+ * Copyright (C) 1987-2009 George Gesslein II.
  */
 
 #include "includes.h"
@@ -22,7 +22,7 @@ void
 make_powers(equation, np, v)
 token_type	*equation;	/* pointer to beginning of equation side */
 int		*np;		/* pointer to length of equation side */
-long		v;		/* variable */
+long		v;		/* Mathomatic variable */
 {
 	int	i;
 	int	level;
@@ -58,8 +58,9 @@ long		v;		/* variable */
 }
 
 /*
- * Integration dispatch routine.
- * Handles the level 1 additive operators.
+ * Integration dispatch routine for polynomials.
+ * Handles the level 1 additive operators,
+ * sending each polynomial term to the specified integration function.
  *
  * Return true if successful.
  */
@@ -235,18 +236,26 @@ char	*cp;
 	int		n1, n2, *nps, *np;
 	int		definite_flag = false, constant_flag = false;
 	double		d1, integrate_order = 1.0;
-	char		temp_buf[50];
+	char		var_name_buf[MAX_VAR_LEN];
 
 	if (current_not_defined()) {
 		return false;
 	}
 	i = next_espace();
-	if (strcmp_tospace(cp, "definite") == 0) {
-		definite_flag = true;
-		cp = skip_param(cp);
-	} else if (strcmp_tospace(cp, "constant") == 0) {
-		constant_flag = true;
-		cp = skip_param(cp);
+	for (;; cp = skip_param(cp)) {
+		if (strcmp_tospace(cp, "definite") == 0) {
+			definite_flag = true;
+			continue;
+		}
+		if (strcmp_tospace(cp, "constant") == 0) {
+			constant_flag = true;
+			continue;
+		}
+		break;
+	}
+	if (constant_flag && definite_flag) {
+		error(_("Conflicting options given."));
+		return false;
 	}
 	if (n_rhs[cur_equation]) {
 		source = rhs[cur_equation];
@@ -279,6 +288,17 @@ char	*cp;
 			return false;
 		}
 	}
+#if	!SILENT
+	if (debug_level >= 0) {
+		list_var(v, 0);
+		if (n_rhs[cur_equation]) {
+			printf(_("Integrating the RHS with respect to (%s)"), var_str);
+		} else {
+			printf(_("Integrating with respect to (%s)"), var_str);
+		}
+		printf(_(" and simplifying...\n"));
+	}
+#endif
 	partial_flag = false;
 	uf_simp(source, nps);
 	partial_flag = true;
@@ -303,8 +323,8 @@ char	*cp;
 			n1++;
 			dest[n1].kind = VARIABLE;
 			dest[n1].level = 1;
-			snprintf(temp_buf, sizeof(temp_buf), "C_%d", constant_var_number);
-			if (parse_var(&dest[n1].token.variable, temp_buf) == NULL) {
+			snprintf(var_name_buf, sizeof(var_name_buf), "C_%d", constant_var_number);
+			if (parse_var(&dest[n1].token.variable, var_name_buf) == NULL) {
 				return false;
 			}
 			n1++;
@@ -580,7 +600,6 @@ char	*cp;
 	return return_result(cur_equation);
 }
 
-#if	!LIBRARY
 /*
  * Numerical integrate command.
  */
@@ -591,14 +610,12 @@ char	*cp;
 	long		v = 0;
 	int		i, j, k, i1, i2;
 	int		level;
-	int		iterations;
-	int		first_size;
+	int		iterations = 1000;	/* must be even */
+	int		first_size = 0;
 	int		trap_flag, singularity;
 	token_type	*ep, *source, *dest;
 	int		n1, *nps, *np;
 
-	iterations = 1000;	/* must be even */
-	first_size = 0;
 	if (current_not_defined()) {
 		return false;
 	}
@@ -669,10 +686,11 @@ char	*cp;
 		error_huge();
 	}
 #if	!SILENT
+	printf(_("Approximating the definite integral\n"));
 	if (trap_flag) {
-		printf(_("Approximating the definite integral using the trapezoid method (%d partitions)...\n"), iterations);
+		printf(_("using the trapezoid method (%d partitions)...\n"), iterations);
 	} else {
-		printf(_("Approximating the definite integral using Simpson's rule (%d partitions)...\n"), iterations);
+		printf(_("using Simpson's rule (%d partitions)...\n"), iterations);
 	}
 #endif
 	subst_constants(source, nps);
@@ -841,7 +859,7 @@ char	*cp;
 	approximate_roots = false;
 
 #if	!SILENT
-	printf(_("Numerical integration successful.\n"));
+	printf(_("Numerical integration successful:\n"));
 #endif
 	if (n_rhs[cur_equation]) {
 		blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
@@ -851,4 +869,3 @@ char	*cp;
 	cur_equation = i;
 	return return_result(cur_equation);
 }
-#endif

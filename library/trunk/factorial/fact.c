@@ -1,10 +1,12 @@
 #include <math.h>
 
 /*
- * Factorial function in C for double precision floating point.
- * Uses the lgamma(3) function, like Mathomatic does.
+ * General factorial function in C for double precision floating point.
+ * Uses the lgamma_r(3) function, like Mathomatic does,
+ * so it works for any floating point value.
  *
- * Return (arg!).  Sets "errno" on overflow.
+ * Returns (arg!) (same as gamma(arg+1)).
+ * Sets "errno" external variable on overflow.
  */
 double
 fact(double arg)

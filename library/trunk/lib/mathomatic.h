@@ -7,4 +7,4 @@ int matho_process(char *input, const char **outputp);
 int matho_parse(char *input, const char **outputp);
 void clear_all(void);
 
-extern int	cur_equation;			/* current equation space number (origin 0) */
+extern int	cur_equation;	/* current equation space number (origin 0) */

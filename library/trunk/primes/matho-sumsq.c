@@ -67,7 +67,7 @@ try_again:
 			d2 += squared(squares[i]);
 		}
 		if (d2 != d1) {
-			fprintf(stderr, "Result doesn't compare identical to original number!\n");
+			fprintf(stderr, "Error: Result doesn't compare identical to original number!\n");
 			exit(1);
 		}
 		for (i = 0; i < (n - 1); i++) {
@@ -139,13 +139,14 @@ main(int argc, char *argv[])
 {
 	int	i;
 	long	d1 = 0;
+	char	*cp;
 
 	if (argc > 1) {
 		for (i = 1; i < argc; i++) {
 			errno = 0;
-			d1 = strtol(argv[i], NULL, 10);
-			if (errno || d1 <= 0) {
-				fprintf(stderr, "Invalid number.\n");
+			d1 = strtol(argv[i], &cp, 10);
+			if (errno || argv[i][0] == '\0' || *cp || d1 <= 0) {
+				fprintf(stderr, "Invalid number: \"%s\".\n", argv[i]);
 				exit(1);
 			}
 			findsq(d1);
