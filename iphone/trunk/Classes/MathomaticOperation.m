@@ -134,7 +134,12 @@
     matho_process([[i mathomaticText] cStringUsingEncoding: NSStringEncodingConversionAllowLossy], &buffer);
     if (buffer != NULL){
         NSString * result = [NSString stringWithCString:buffer encoding:NSStringEncodingConversionAllowLossy];
-        free(buffer);
+        
+        BOOL containsVowelsAndIsConstantString = (([result rangeOfString:@"a"].location != NSNotFound)
+            || ([result rangeOfString:@"o"].location != NSNotFound) || ([result rangeOfString:@"u"].location != NSNotFound));
+        
+        if (!containsVowelsAndIsConstantString)
+            free(buffer);
         return result;
     }else
         return nil;

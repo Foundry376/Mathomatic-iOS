@@ -24,8 +24,13 @@
         
         self.innerEquations = [NSMutableArray array];
         self.backgroundColor = [UIColor clearColor];
-        self.userInteractionEnabled = NO;
+        self.userInteractionEnabled = NO; 
         self.clipsToBounds = YES;
+        
+        if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+            float s = [[UIScreen mainScreen] scale];
+            self.contentScaleFactor = s;
+        }
         
         innerEquationsMax = -1;
         self.parent = p;
@@ -146,8 +151,11 @@
     if ([innerEquations count] == 0)
         heightAboveBaseline = minHeight;
      
+    CGSize pSize = CGSizeMake(8, 10);
+    float pPadding = kParenthesisPadding;
+    
     int height = fmax(heightAboveBaseline + heightBelowBaseline, minHeight);
-    int parenthesis_width = fmin((height-kParenthesisPadding*2)/20.0, 1)*8;
+    int parenthesis_width = fmin((height-kParenthesisPadding*2)/20.0, 1)*pSize.width;
     
     if (openParen)
         x = parenthesis_width;
@@ -181,21 +189,26 @@
 
 - (void)drawRect:(CGRect)rect
 {
-    CGSize size = [self frame].size;
+    CGSize size = rect.size;
     CGContextRef c = UIGraphicsGetCurrentContext();
-
-    float scale = fmin((size.height-kParenthesisPadding*2)/20.0, 1);
+    CGSize pSize = CGSizeMake(8, 10);
+    float pPadding = kParenthesisPadding;
+    float pWidth = 2;
+    
+    
+    float scale = fmin((size.height-pPadding*2)/20.0, 1);
     if (openParen){
-        CGContextDrawImage(c, CGRectMake(0,kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_bl.png"] CGImage]);
+        CGContextDrawImage(c, CGRectMake(0,pPadding,pSize.width*scale,pSize.height*scale), [[UIImage imageNamed: @"parenthesis_bl.png"] CGImage]);
         if (scale == 1)
-             CGContextFillRect(c, CGRectMake(2, 10+kParenthesisPadding, 2, size.height-20-kParenthesisPadding*2));
-        CGContextDrawImage(c, CGRectMake(0,size.height-10*scale-kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_tl.png"] CGImage]);
+             CGContextFillRect(c, CGRectMake((pSize.width - pWidth)/2-1, pSize.height+pPadding, pWidth, size.height-pSize.height*2-pPadding*2));
+        CGContextDrawImage(c, CGRectMake(0,size.height-pSize.height*scale-pPadding,pSize.width*scale,pSize.height*scale), [[UIImage imageNamed: @"parenthesis_tl.png"] CGImage]);
     }
     if (closeParen){
-        CGContextDrawImage(c, CGRectMake(size.width-8*scale,kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_br.png"] CGImage]);
+        CGContextDrawImage(c, CGRectMake(size.width-pSize.width*scale,pPadding,pSize.width*scale,pSize.height*scale), [[UIImage imageNamed: @"parenthesis_br.png"] CGImage]);
         if (scale == 1)
-            CGContextFillRect(c, CGRectMake(size.width-4, 10+kParenthesisPadding, 2, size.height-20-kParenthesisPadding*2));
-        CGContextDrawImage(c, CGRectMake(size.width-8*scale,size.height-10*scale-kParenthesisPadding,8*scale,10*scale), [[UIImage imageNamed: @"parenthesis_tr.png"] CGImage]);    
+            CGContextFillRect(c, CGRectMake(size.width-(pSize.width - pWidth)/2, pSize.height+pPadding, pWidth, size.height-pSize.height*2-pPadding*2));
+        CGContextDrawImage(c, CGRectMake(size.width-pSize.width*scale,size.height-pSize.height*scale-pPadding,pSize.width*scale,pSize.height
+        *scale), [[UIImage imageNamed: @"parenthesis_tr.png"] CGImage]);    
     }
 }
 

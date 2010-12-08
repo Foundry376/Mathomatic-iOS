@@ -15,15 +15,15 @@
 
 - (id)awakeFromNib
 {
-    expressionImageView = [[UIImageView alloc] initWithFrame: [self frame]];
-    [self addSubview: expressionImageView];
-    
     [self setClipsToBounds: NO];
     [self setOpaque: NO];
     [self setBackgroundColor: [UIColor clearColor]];
     [self setShowsHorizontalScrollIndicator:YES];
     [self setShowsVerticalScrollIndicator: NO];
     [self setUserInteractionEnabled: YES];
+    
+    expressionImageView = [[UIImageView alloc] initWithFrame: [self frame]];
+    [self addSubview: expressionImageView];
     
     return self;
 }

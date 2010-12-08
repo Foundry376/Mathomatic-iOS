@@ -150,7 +150,11 @@
 - (UIImage*)equationImage
 {
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    float fontSize = 21;
     
+    //if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)])
+    //  fontSize *= [[UIScreen mainScreen] scale];
+
     // computing the image is expensive, so we only want to do it once.
     if (equationImage == nil)
     {
@@ -239,7 +243,7 @@
             // in the parenthesis, but it is good for auto-generated output from mathomatic, which contains
             // a lot of extra parenthesis.
             [root finalizeEquationTree: optimizeEquationImageParenthesis];
-            [root finalizeTextSize: 21];
+            [root finalizeTextSize: fontSize];
             [root finalizeFrame];
             failed = ![root isTreeLegal];
         }
@@ -251,7 +255,7 @@
             UILabel * l = [[[UILabel alloc] initWithFrame: CGRectZero] autorelease];
             [l setBackgroundColor: [UIColor clearColor]];
             [l setText: [equationText stringByReplacingOccurrencesOfString:@"•" withString:@""]];
-            [l setFont: [UIFont fontWithName:@"Courier" size: 21.0]];
+            [l setFont: [UIFont fontWithName:@"Courier" size: fontSize]];
             
             CGSize textSize = [l.text sizeWithFont: l.font];
             [l setFrame: CGRectMake(5, 0, textSize.width, textSize.height)];
@@ -264,7 +268,7 @@
             equationImage = nil;
         }
         CGSize imageSize = equationView.bounds.size;
-        UIGraphicsBeginImageContext(imageSize);
+        UIGraphicsBeginImageContextWithOptions(imageSize, NO, 2);
         [equationView.layer renderInContext: UIGraphicsGetCurrentContext()];
         equationImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();

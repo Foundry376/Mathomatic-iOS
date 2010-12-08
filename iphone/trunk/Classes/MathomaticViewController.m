@@ -275,7 +275,7 @@
     if ([expression isValidExpression]){
         MathomaticOperation * operation = [[[MathomaticOperation alloc] init] autorelease];
         [operation addInput: expression];
-        [self performCommand: operation];
+        [self performCommandThreaded: operation]; // NOTE: NOT USING THREADED VERSION - CALLING THROUGH ON THE SAME THREAD
         [keyboard clear];
         return YES;
     } else {
