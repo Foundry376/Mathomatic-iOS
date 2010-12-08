@@ -1,11 +1,26 @@
 /*
  * Mathomatic global variables and arrays.
+ * Most global variables for Mathomatic are defined here and duplicated in "externs.h".
+ *
  * C initializes global variables and arrays to zero by default.
  * This is required for proper operation.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
- *
- * Most global variables for Mathomatic are defined here and duplicated in "externs.h".
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -39,6 +54,7 @@ int		precision = 14;				/* the display precision for doubles (number of digits) 
 int		case_sensitive_flag = true;		/* "set case_sensitive" flag */
 int		factor_int_flag;			/* factor integers when displaying expressions */
 int		display2d = true;			/* "set display2d" flag */
+int		fractions_display = true;		/* "set fraction" flag */
 int		preserve_surds = true;			/* set option to preserve roots like (2^.5) */
 int		rationalize_denominators = true;	/* try to rationalize denominators if true */
 int		modulus_mode = 2;				/* true for mathematically correct modulus */
@@ -48,20 +64,24 @@ int		finance_option;				/* for displaying dollars and cents */
 int		autosolve = true;			/* Allows solving by typing the variable name at the main prompt */
 int		autocalc = true;			/* Allows automatically calculating a numerical expression */
 int		autoselect = true;			/* Allows selecting equation spaces by typing the number */
-char		special_variable_characters[256] = "\\"; /* user defined characters for variable names, 0 terminated */
-int		integer_coefficients = true;		/* if true, factor out the GCD of integer coefficients */
+#if	LIBRARY
+char		special_variable_characters[256] = "\\"; /* allow backslash in variable names for Latex compatibility */
+#else
+char		special_variable_characters[256] = "'\\"; /* user defined characters for variable names, '\0' terminated */
+#endif
+char		plot_prefix[256] = "set xlabel \"X\"; set ylabel \"Y\";";	/* prefix fed into gnuplot before the plot command */
+int		integer_coefficients = false;		/* if true, factor out the GCD of rational coefficients */
 int		right_associative_power;		/* if true, evaluate power operators right to left */
-int		negate_highest_precedence = true;	/* if true, negation (-x) has the highest precedence */
 int		power_starstar;				/* if true, display power operator as "**", otherwise "^" */
 #if	!SILENT
 int		debug_level;				/* current debug level */
 #endif
 
-/* variables having to do with color mode */
-#if	LIBRARY
-int		color_flag = false;		/* library doesn't default to color mode */
+/* variables having to do with color output mode */
+#if	LIBRARY || NO_COLOR
+int		color_flag = false;		/* library shouldn't default to color mode */
 #else
-int		color_flag = true;		/* "set color" flag, true for color mode */
+int		color_flag = true;		/* "set color" flag, true for color output mode */
 #endif
 int		bold_colors;			/* "set bold_colors" flag */
 int		cur_color = -1;			/* current color on the terminal */
@@ -96,14 +116,18 @@ int		uno;			/* number of unique factors stored in unique[] */
 
 /* misc. variables */
 sign_array_type	sign_array;		/* for keeping track of unique "sign" variables */
+FILE		*default_out;		/* file pointer where all gfp output goes by default */
 FILE		*gfp;			/* global output file pointer, for dynamically redirecting Mathomatic output */
 jmp_buf		jmp_save;		/* for setjmp(3) to longjmp(3) to when an error happens deep within this code */
+int		eoption;		/* -e option flag */
 int		test_mode;		/* test mode flag (-t) */
+int		demo_mode;		/* demo mode flag (-d), don't load rc file when true */
 int		quiet_mode;		/* quiet mode (-q, don't display prompts) */
-int		echo_input;		/* if true, echo input and don't use readline */
+int		echo_input;		/* if true, echo input */
 int		readline_enabled = true;	/* set to false (-r) to disable readline */
-int		partial_flag;		/* normally true for partial unfactoring, false for "unfactor fully" */
-int		symb_flag;		/* true during "simplify symbolic" */
+int		partial_flag;		/* normally true for partial unfactoring, false for "unfactor fraction" */
+int		symb_flag;		/* true during "simplify symbolic", which is not 100% mathematically correct */
+int		symblify = true;	/* if true, set symb_flag when helpful during solving, etc. */
 int		high_prec;		/* flag to output constants in higher precision (used when saving equations) */
 int		input_column;		/* current column number on the screen at the beginning of a parse */
 int		sign_cmp_flag;		/* true when all "sign" variables are to compare equal */
@@ -111,9 +135,13 @@ int		domain_check;		/* flag to track domain errors in the pow() function */
 int		approximate_roots;	/* true if in calculate command (force approximation of roots like (2^.5)) */
 volatile int	abort_flag;		/* if true, abort current operation */
 int		pull_number;		/* equation space number to pull when using the library */
-int		secure_flag;		/* don't allow shelling out and writing files if true */
+#if	!SECURE
+int		security_level;		/* current enforced security level for session  */
+#endif
+int		repeat_flag;		/* true if the command is to repeat its function */
 
 /* library variables go here */
+char		*result_str;		/* returned result text string when using as library */
+int		result_en = -1;		/* equation number of the returned result, if stored in an equation space */
 const char	*error_str;		/* last error string */
-char		*result_str;		/* returned result when using as library */
 const char	*warning_str;		/* last warning string */

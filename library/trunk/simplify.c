@@ -1,15 +1,32 @@
 /*
  * Mathomatic simplifying routines.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
 
 /*
- * The following defines the maximum number of terms on the same level that can be compared.
- * Most of the stack usage is related this value,
- * this many pointers are pushed onto the stack with each level of parentheses while comparing two expressions.
+ * MAX_COMPARE_TERMS defines the maximum number of terms
+ * on the same level of parentheses that can be compared.
+ * Most of the stack usage is related this value.
+ * Space for this many pointers is reserved on the stack
+ * with each level of parentheses while comparing two expressions.
  */
 #define	MAX_COMPARE_TERMS	(DEFAULT_N_TOKENS / 6)
 
@@ -29,7 +46,8 @@ organize(equation, np)
 token_type	*equation;	/* equation side pointer */
 int		*np;		/* pointer to length of equation side */
 {
-	if (*np <= 0 || (*np & 1) != 1) {
+	if (*np <= 0 || (*np & 1) == 0) {
+		printf("Bad expression size = %d.\n", *np);
 		error_bug("Internal error: organize() called with bad expression size.");
 	}
 	if (*np > n_tokens) {
@@ -38,7 +56,7 @@ int		*np;		/* pointer to length of equation side */
 	org_recurse(equation, np, 0, 1, NULL);
 }
 
-static void
+static inline void
 org_up_level(bp, ep, level, invert)
 token_type	*bp, *ep;
 int		level, invert;
@@ -143,7 +161,7 @@ int		loc, level, *elocp;
 }
 
 /*
- * The most basic simplification loop.
+ * The quickest, most basic simplification loop.
  * Just does constant simplification.
  */
 void
@@ -152,7 +170,7 @@ token_type	*equation;	/* pointer to the beginning of equation side to simplify *
 int		*np;		/* pointer to length of equation side */
 {
 	if (abort_flag) {
-		/* Control-C pressed, return to main prompt and leave unsimplified */
+		/* Control-C pressed, gracefully return to main prompt and leave unsimplified */
 		abort_flag = false;
 		longjmp(jmp_save, 13);
 	}
@@ -209,7 +227,7 @@ int		fc_level;	/* factor constants code, passed to factor_constants() */
  * No factoring is done.
  */
 void
-simp_sub(n)
+simp_equation(n)
 int	n;	/* equation space number to simplify */
 {
 	if (n_lhs[n] <= 0)
@@ -221,14 +239,15 @@ int	n;	/* equation space number to simplify */
 }
 
 /*
- * For quick, mid-range simplification of an expression.
+ * For quick, mid-range simplification of an equation side.
+ * Trivial factoring is done.
  */
 void
 simp_side(equation, np)
 token_type	*equation;	/* pointer to the beginning of equation side to simplify */
 int		*np;		/* pointer to length of equation side */
 {
-	simp_ssub(equation, np, 0L, 1.0, true, true, 1);
+	simp_ssub(equation, np, 0L, 1.0, true, true, 6);
 }
 
 /*
@@ -243,7 +262,7 @@ int		zsolve;		/* true for solving for zero */
 	elim_loop(equation, np);
 	simp_constant_power(equation, np);
 	do {
-		simp_ssub(equation, np, 0L, 0.0, !zsolve, true, 2);
+		simp_ssub(equation, np, 0L, 0.0, !zsolve, true, 6);
 	} while (super_factor(equation, np, 0));
 }
 
@@ -258,7 +277,7 @@ long		v;		/* variable to factor, 0 for all variables */
 {
 	if (*np == 0)
 		return;
-	simp_ssub(equation, np, v, 0.0, v == 0, true, 2);
+	simp_ssub(equation, np, v, 0.0, v == 0, true, 6);
 }
 
 /*
@@ -272,9 +291,7 @@ int		*np;		/* pointer to equation side length */
 long		v;		/* variable to factor */
 {
 	if (v == IMAGINARY) {
-		do {
-			elim_loop(equation, np);
-		} while (complex_root_simp(equation, np));
+		approximate_complex_roots(equation, np);
 	}
 	do {
 		do {
@@ -302,7 +319,8 @@ int		*np;
 	uf_simp(equation, np);
 	factorv(equation, np, IMAGINARY);
 	simp_side(equation, np);
-	uf_simp(equation, np);
+	make_fractions(equation, np);
+	uf_tsimp(equation, np);
 	approximate_roots = false;
 }
 
@@ -472,7 +490,7 @@ int		fc_level;	/* factor constants code, passed to factor_constants() */
 				simp2_divide(equation, np, va[i].v, fc_level);
 		}
 		simp2_divide(equation, np, 0L, fc_level);
-		/* factor all subexpressions in order of most frequently occurring variables */
+		/* factor all sub-expressions in order of most frequently occurring variables */
 		for (i = 0; i < vc; i++) {
 			while (factor_plus(equation, np, va[i].v, 0.0)) {
 				simp2_divide(equation, np, 0L, fc_level);
@@ -497,24 +515,34 @@ simple_frac_side(equation, np)
 token_type	*equation;	/* pointer to the beginning of equation side */
 int		*np;		/* pointer to length of equation side */
 {
-	if (*np == 0)
+	if (*np <= 0)
 		return;
+
 	do {
 		do {
 			do {
-				simp_ssub(equation, np, 0L, 1.0, false, true, 1);
+				simp_ssub(equation, np, 0L, 1.0, false, true, 5);
 			} while (poly_gcd_simp(equation, np));
 		} while (uf_power(equation, np));
 	} while (super_factor(equation, np, 2));
-	display_fractions_and_group(equation, np);
+	side_debug(2, equation, *np);
+
+	make_fractions(equation, np);
 	uf_tsimp(equation, np);
-	poly_factor(equation, np);
+#if	0	/* Not really needed, but makes it end up the same as the simplify command. */
+	make_fractions(equation, np);
+	uf_power(equation, np);
+	integer_root_simp(equation, np);
+	simpb_side(equation, np, true, true, 3);
+#endif
+	poly_factor(equation, np, true);
 	simpb_side(equation, np, true, false, 2);
+	simpb_side(equation, np, true, false, 2);	/* Added for thoroughness, making sure everything is uf_power()ed. */
+	fractions_and_group(equation, np);
 }
 
 /*
- * Main simplify code used by the simplify command.
- * This is the slowest and most thorough simplify of all.
+ * This is the slow and thorough simplify of the simplify command.
  * Applies many equivalent algebraic transformations and their inverses (like unfactor and factor),
  * then does generalized polynomial simplifications.
  *
@@ -576,7 +604,7 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	do {
 		do {
 			do {
-				simp_ssub(equation, np, 0L, 1.0, false, true, 2);
+				simp_ssub(equation, np, 0L, 1.0, false, true, 6);
 			} while (poly_gcd_simp(equation, np));
 		} while (uf_power(equation, np));
 	} while (super_factor(equation, np, 2));
@@ -594,7 +622,11 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 		/* an error occurred, restore the original expression */
 		*np = n_tlhs;
 		blt(equation, tlhs, n_tlhs * sizeof(token_type));
-		debug_string(1, "Simplify not expanding fully, due to oversized expression.");
+		if (i == 14) {
+			debug_string(1, "Simplify not expanding fully, due to oversized expression.");
+		} else {
+			debug_string(0, "Simplify not expanding fully, due to some error.");
+		}
 		partial_flag = true;	/* expand less */
 		uf_tsimp(equation, np);
 	} else {
@@ -621,7 +653,7 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 			simpb_side(equation, np, false, true, 3);
 		}
 		/* factor polynomials */
-		if (!flag && poly_factor(equation, np)) {
+		if (!flag && poly_factor(equation, np, true)) {
 			flag = true;
 			simpb_side(equation, np, false, true, 3);
 			continue;
@@ -634,9 +666,9 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 		}
 		break;
 	}
-	simpb_side(equation, np, true, true, 1);
+/*	simpb_side(equation, np, true, true, 1); */
 	simp_constant_power(equation, np);
-	simp_loop(equation, np);
+	simp_ssub(equation, np, 0L, 1.0, true, true, 5);
 	unsimp_power(equation, np);
 	make_fractions(equation, np);
 	factor_power(equation, np);
@@ -645,8 +677,37 @@ int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two poly
 	uf_power(equation, np);
 	integer_root_simp(equation, np);
 	simpb_side(equation, np, true, true, 3);
-	poly_factor(equation, np);
+	poly_factor(equation, np, false);
 	simpb_side(equation, np, true, !frac_flag, 2);
+}
+
+/*
+ * This routine is used by the simplify command,
+ * and is the slowest and most thorough simplify of all.
+ * It repeats the simplification until the smallest expression is achieved,
+ * if repeat_flag is true.
+ *
+ * Globals tes[], tlhs[], and trhs[] are wiped out.
+ */
+void
+simpa_repeat_side(equation, np, quick_flag, frac_flag)
+token_type	*equation;	/* pointer to the beginning of equation side to simplify */
+int		*np;		/* pointer to length of the equation side */
+int		quick_flag;	/* "simplify quick" option, simpler fractions with no (x+1)^2 expansion */
+int		frac_flag;	/* "simplify fraction" option, simplify to the ratio of two polynomials */
+{
+	simpa_side(equation, np, quick_flag, frac_flag);
+	if (repeat_flag) {
+		do {
+			n_tes = *np;
+			blt(tes, equation, n_tes * sizeof(token_type));
+			simpa_side(equation, np, quick_flag, frac_flag);
+		} while (*np < n_tes);
+		if (*np != n_tes) {
+			*np = n_tes;
+			blt(equation, tes, n_tes * sizeof(token_type));
+		}
+	}
 }
 
 /*
@@ -1052,7 +1113,7 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 		if (k2 == 0) {
 			warning(_("Modulo 0 encountered, might be considered undefined."));
 		}
-#if	false	/* If fmod() always works.  It doesn't. */
+#if	0	/* If fmod() always works.  It doesn't. */
 		*k1p = fmod(*k1p, k2);
 #else
 		/* Another way to get the remainder of division: */
@@ -1091,17 +1152,32 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 				}
 			}
 		}
+#if	1
+		if (errno == ERANGE) {	/* preserve overflowed powers rather than aborting with an error message */
+			domain_check = false;
+			return false;
+		}
+#endif
 		check_err();
 		if (domain_check)
 			*k1p = d;
 		break;
 	case FACTORIAL:
-#if	true	/* set this to false if lgamma() doesn't exist */
+#if	_XOPEN_SOURCE >= 600 || _ISOC99_SOURCE || __USE_ISOC99
+		/* Use true gamma for factorial if available, it is the nicest gamma() function. */
+		d = tgamma(*k1p + 1.0);
+		if (errno) {	/* don't evaluate if overflow */
+			return false;
+		}
+#else
+#if	1	/* Set this to 0 if lgamma() (logarithm of gamma) doesn't exist. */
+		/* Not threadsafe, but neither is most of Mathomatic with its global static data areas. */
 		d = exp(lgamma(*k1p + 1.0)) * signgam;
 		if (errno) {	/* don't evaluate if overflow */
 			return false;
 		}
 #else
+		/* calculate integer factorial if gamma() functions don't exist */
 		if (*k1p > 170.0 || *k1p < 0.0 || fmod(*k1p, 1.0) != 0.0) {
 			return false;
 		}
@@ -1109,6 +1185,7 @@ double	k2;	/* Operand 2; ignored for unary operators. */
 		for (d1 = 2.0; d1 <= *k1p; d1 += 1.0) {
 			d *= d1;
 		}
+#endif
 #endif
 		*k1p = d;
 		break;
@@ -1396,7 +1473,7 @@ int		*np;		/* pointer to length of equation side */
 				}
 			}
 			if ((p1 + 1)->level == level && (p1 + 1)->kind == CONSTANT) {
-/* Move any constant to the beginning of a multiplicative subexpression. */
+/* Move any constant to the beginning of a multiplicative sub-expression. */
 				d = (p1 + 1)->token.constant;
 				for (p2 = p1 - 1; p2 > equation; p2--) {
 					if ((p2 - 1)->level < level)
@@ -1525,7 +1602,12 @@ int		*diff_signp;	/* different sign flag pointer */
 {
 	int	l1, l2;
 
-	/* First, find the proper ground levels of parentheses for the two sub-expressions. */
+	if (((n1 > n2) ? ((n1 + 1) / (n2 + 1)) : ((n2 + 1) / (n1 + 1))) > 3) {
+		/* expressions are grossly different in size, no need to compare, they are different */
+		*diff_signp = false;
+		return false;
+	}
+	/* Find the proper ground levels of parentheses for the two sub-expressions: */
 	l1 = min_level(p1, n1);
 	l2 = min_level(p2, n2);
 	return compare_recurse(p1, n1, l1, p2, n2, l2, diff_signp);
@@ -1541,6 +1623,8 @@ int		n1, l1;
 token_type	*p2;
 int		n2, l2, *diff_signp;
 {
+#define	compare_epsilon	epsilon
+
 	token_type	*pv1, *ep1, *ep2;
 	int		i, j;
 	int		len;
@@ -1548,10 +1632,9 @@ int		n2, l2, *diff_signp;
 	int		oc2;				/* operand count 2 */
 	token_type	*opa2[MAX_COMPARE_TERMS];	/* operand pointer array 2 */
 	char		used[MAX_COMPARE_TERMS];	/* operand used flag array 2 */
-	int		last_op1, op1, op2;
-	int		diff_op;
+	int		last_op1, op1 = 0, op2 = 0;
+	int		diff_op = false;
 	double		d1, c1, c2;
-	double		compare_epsilon = epsilon;
 
 	*diff_signp = false;
 	if (n1 == 1 && n2 == 1) {
@@ -1585,27 +1668,30 @@ int		n2, l2, *diff_signp;
 			}
 			break;
 		case OPERATOR:
+			error_bug("Programming error in call to compare_recurse().");
 			break;
 		}
 		return false;
 	}
+#if	0
+	if ((n1 & 1) != 1 || (n2 & 1) != 1) {
+		error_bug("Programming error in call to compare_recurse().");
+	}
+#endif
 	ep1 = &p1[n1];
 	ep2 = &p2[n2];
-	op1 = 0;
 	for (pv1 = p1 + 1; pv1 < ep1; pv1 += 2) {
 		if (pv1->level == l1) {
 			op1 = pv1->token.operatr;
 			break;
 		}
 	}
-	op2 = 0;
 	for (pv1 = p2 + 1; pv1 < ep2; pv1 += 2) {
 		if (pv1->level == l2) {
 			op2 = pv1->token.operatr;
 			break;
 		}
 	}
-	diff_op = false;
 	if (op2 == 0) {
 		if (op1 != TIMES && op1 != DIVIDE)
 			return false;
@@ -1665,8 +1751,8 @@ no_op2:
 			opa2[oc2] = pv1 + 1;
 			used[oc2] = false;
 			if (++oc2 >= ARR_CNT(opa2)) {
-				debug_string(1, "Expression too big to compare, because MAX_COMPARE_TERMS may be too small.");
-				return false;	/* expression too big to compare */
+				debug_string(1, "Expression too big to compare, because MAX_COMPARE_TERMS exceeded.");
+				return false;
 			}
 		}
 	}
@@ -1782,6 +1868,8 @@ int		*np;
 
 	for (i = 1; i < *np; i += 2) {
 		level = equation[i].level;
+#if	1	/* This code makes complex number calculations give different (maybe wrong) results. */
+		/* It converts x/i to x*-1*i.  Might be better to do this only when symb_flag is true. */
 		if (equation[i].token.operatr == DIVIDE) {
 			if (equation[i+1].level == level
 			    && equation[i+1].kind == VARIABLE
@@ -1805,6 +1893,7 @@ int		*np;
 				modified = true;
 			}
 		}
+#endif
 		if (equation[i].token.operatr == POWER
 		    && equation[i+1].level == level
 		    && equation[i+1].kind == CONSTANT) {
@@ -2044,7 +2133,8 @@ int		i1, i2;
 }
 
 /*
- * Recursively check and possibly reorder a "level" subexpression which starts at "loc" in an equation side.
+ * Recursively check and possibly reorder a "level" sub-expression
+ * which starts at "loc" in an equation side.
  */
 static int
 order_recurse(equation, np, loc, level)
@@ -2055,7 +2145,7 @@ int		*np, loc, level;
 	int	op = 0;
 	int	modified = false;
 
-/* check passed subexpression for validity: */
+/* check passed sub-expression for validity: */
 	if ((loc & 1) != 0) {
 		goto corrupt;
 	}
@@ -2073,11 +2163,8 @@ int		*np, loc, level;
 				;
 			continue;
 		} else {
-			if (((i & 1) == 1) != (equation[i].kind == OPERATOR)) {
-				goto corrupt;
-			}
 			if (equation[i].kind == OPERATOR) {
-				if (!equation[i].token.operatr) {
+				if ((i & 1) == 0 || equation[i].token.operatr == 0) {
 					goto corrupt;
 				}
 				if (op) {
@@ -2097,14 +2184,17 @@ int		*np, loc, level;
 				} else {
 					op = equation[i].token.operatr;
 				}
+			} else {
+				if ((i & 1) != 0)
+					goto corrupt;
 			}
 		}
 		i++;
 	}
-	if ((i & 1) != 1) {	/* "i" should be at the end of the current subexpression */
+	if ((i & 1) == 0) {	/* "i" should be at the end of the current sub-expression */
 		goto corrupt;
 	}
-/* reorder subexpression if needed: */
+/* reorder sub-expression if needed: */
 	switch (op) {
 	case PLUS:
 	case MINUS:
@@ -2148,13 +2238,14 @@ int		*np, loc, level;
 	}
 	return modified;
 corrupt:
-	error_bug("Expression is corrupt!  Please send a bug report.");
+	error_bug("Internal representation of expression is corrupt!");
 	return modified;	/* not reached */
 }
 
 /*
  * Try to rationalize the denominator of algebraic fractions.
- * Only works with square roots and sometimes helps with their simplification.
+ * Only works with a square root in the denominator
+ * and sometimes helps with simplification.
  *
  * Returns true if something was done.
  * Unfactoring needs to be done immediately, if this returns true.
@@ -2222,13 +2313,13 @@ do_again:
 					    && equation[k].level == equation[k+1].level
 					    && equation[k+1].kind == CONSTANT
 					    && fmod(equation[k+1].token.constant, 1.0) == 0.5) {
-						if (count != 1) {
-							for (k1 = i + 2; k1 < end_loc; k1 += 2) {
-								if (equation[k1].token.operatr == POWER
-								    && equation[k1].level == equation[k1+1].level
-								    && equation[k1+1].kind == CONSTANT
-								    && fmod(equation[k1+1].token.constant, 1.0) == 0.5
-								    && k != k1) {
+						for (k1 = i + 2; k1 < end_loc; k1 += 2) {
+							if (equation[k1].token.operatr == POWER
+							    && equation[k1].level == equation[k1+1].level
+							    && equation[k1+1].kind == CONSTANT
+							    && fmod(equation[k1+1].token.constant, 1.0) == 0.5
+							    && k != k1) {
+								if (!(equation[k1].level == (div_level + 2) && count == 1)) {
 									i += 2;
 									goto be_thorough;
 								}
@@ -2266,8 +2357,9 @@ do_again:
 						equation[k1].token.operatr = DIVIDE;
 						k1++;
 						blt(&equation[k1], scratch, k * sizeof(token_type));
-						modified = true;
 						i = k1 + k;
+						debug_string(1, "Square roots in denominator rationalized.");
+						modified = true;
 						goto be_thorough;
 					}
 				}

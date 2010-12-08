@@ -16,7 +16,8 @@ eliminate all
 u1+u2=u3+u4
 eliminate all
 clear 1-4
-elim velocity1_new
+eliminate velocity1_new
 velocity2_new
-#5 velocity2_new = ((sign*((mass1*(velocity1_old-velocity2_old))^2)^.5)+(mass1*velocity1_old)+(mass2*velocity2_old))/(mass1+mass2)
+simplify
+velocity2_new = ((sign*((mass1*(velocity1_old-velocity2_old))^2)^.5)+(mass1*velocity1_old)+(mass2*velocity2_old))/(mass1+mass2)
 compare 6

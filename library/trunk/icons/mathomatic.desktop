@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Version=1.0
 Name=Mathomatic
 GenericName=Computer Algebra System
-Comment=A computer algebra system for the console
+Comment=Do symbolic mathematics and quick calculations
 Exec=mathomatic
 Icon=mathomatic
 Terminal=true
-Categories=Utility;Calculator;Science;Math;ConsoleOnly;
+Categories=Education;Science;Math;
+StartupNotify=false

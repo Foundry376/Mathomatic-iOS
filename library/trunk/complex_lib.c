@@ -1,8 +1,24 @@
 /*
- * A small, independent, floating point complex number arithmetic library for C.
- * Include "complex.h" if you use this.
+ * A handy, tested, small, stand-alone, double precision floating point
+ * complex number arithmetic library for C.
+ * Just include "complex.h" if you use this.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "complex.h"
@@ -35,7 +51,8 @@ complexs	*ap;	/* complex number pointer */
 }
 
 /*
- * Add two complex numbers (a + b) and return result.
+ * Add two complex numbers (a + b)
+ * and return the complex number result.
  *
  * Complex number subtraction (a - b) is done by
  * complex_add(a, complex_negate(b)).
@@ -50,7 +67,8 @@ complexs	a, b;
 }
 
 /*
- * Negate a complex number (-a) and return result.
+ * Negate a complex number (-a)
+ * and return the complex number result.
  */
 complexs
 complex_negate(a)
@@ -62,7 +80,8 @@ complexs	a;
 }
 
 /*
- * Multiply two complex numbers (a * b) and return result.
+ * Multiply two complex numbers (a * b)
+ * and return the complex number result.
  */
 complexs
 complex_mult(a, b)
@@ -76,7 +95,8 @@ complexs	a, b;
 }
 
 /*
- * Divide two complex numbers (a / b) and return result.
+ * Divide two complex numbers (a / b)
+ * and return the complex number result.
  */
 complexs
 complex_div(a, b)
@@ -95,7 +115,8 @@ complexs	b;	/* divisor */
 }
 
 /*
- * Take the natural logarithm of a complex number and return result.
+ * Take the natural logarithm of a complex number
+ * and return the complex number result.
  */
 complexs
 complex_log(a)
@@ -109,8 +130,8 @@ complexs	a;
 }
 
 /*
- * Raise the natural number to the power of a complex number (e ^ a)
- * and return result.
+ * Raise the natural number (e) to the power of a complex number (e^a)
+ * and return the complex number result.
  */
 complexs
 complex_exp(a)
@@ -126,8 +147,8 @@ complexs	a;
 }
 
 /*
- * Raise complex number "a" to the power of complex number "b" (a ^ b)
- * and return result.
+ * Raise complex number "a" to the power of complex number "b" (a^b)
+ * and return the complex number result.
  */
 complexs
 complex_pow(a, b)

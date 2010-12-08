@@ -1,12 +1,12 @@
 clear all
 ; This Mathomatic script shows two derivations of Heron's formula.
 ; This is Heron's formula for the area of any triangle,
-; given side lengths a, b, and c.
+; given side lengths "a", "b", and "c".
 
 2s = a+b+c
 triangle_area = (s*(s-a)*(s-b)*(s-c))^.5
-eliminate s
-simplify ; Heron's formula simplified:
+eliminate s ; Heron's formula:
+simplify ; Heron's formula simplified by Mathomatic:
 pause
 ; This is how we arrive at Heron's formula for the area
 ; of any triangle, given side lengths a, b, and c, using the formula
@@ -21,8 +21,8 @@ trapezoid_area=(a+c)/(4*(a-c))*((a+b-c+d)*(a-b-c+d)*(a+b-c-d)*(-a+b+c+d))^.5
 pause
 copy
 replace c with 0 ; make the shorter parallel side length = 0
-replace d with c ; Heron's formula:
-pause Please press the Enter key to verify result.
+replace d with c ; Heron's formula in its simplest form:
+pause Please press the Enter key to verify the result.
 compare 2 ; simplify and compare the result with Heron's formula:
 clear
 pause
@@ -40,7 +40,7 @@ eliminate s ; Brahmagupta's formula:
 pause
 copy
 replace d with 0 ; make one side length zero to get Heron's formula:
-pause Please press the Enter key to verify result.
+pause Please press the Enter key to verify the result.
 compare 2 ; simplify and compare the result with Heron's formula:
 clear
 clear 1 3

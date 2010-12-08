@@ -1,26 +1,58 @@
 /*
  * Mathomatic simplifying and general polynomial routines.
  * Includes polynomial and smart division, polynomial factoring, etc.
- * Globals tlhs[] and trhs[] are wiped out by most of these routines.
+ * Globals tlhs[] and trhs[] are used and wiped out by most of these routines.
  *
- * The polynomial division and GCD routines here are not recursive, due to static storage areas.
- * This limits the polynomial GCD routine to mostly univariate operation.
+ * The polynomial division and GCD routines here are not recursive,
+ * due to the global static expression storage areas.
+ * This limits the polynomial GCD routines to mostly univariate operation.
  * This also does not allow their use during solving.
- * So far, these limitations have been a good thing, making Mathomatic faster and more stable.
+ * So far, these limitations have been a good thing,
+ * making Mathomatic faster and more stable and reliable.
+ * Making polynomial GCD calculations partially recursive
+ * with one level of recursion would enable multivariate operation for most cases, I think.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Mathomatic has proved it is practical and efficient to do
+ * generalized polynomial operations.  By generalized, I mean that
+ * the coefficients of polynomials are not specially treated or stored in any way.
+ * They are not separated out from the main variable of the polynomial.
+ * Maximum simplification of all expressions is not possible unless everything is generalized.
+ *
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
 
 #define	REMAINDER_IS_ZERO()	(n_trhs == 1 && trhs[0].kind == CONSTANT && trhs[0].token.constant == 0.0)
 
-/* These are a non-standard size and must only be used for temp storage: */
-token_type	divisor[DIVISOR_SIZE];		/* static data areas for polynomial and smart division */
+/*
+ * The following static expression storage areas are of non-standard size
+ * and must only be used for temporary storage.
+ * Most Mathomatic expression manipulation and simplification routines should not be used
+ * on non-standard or constant size expression storage areas.
+ * Standard size expression storage areas that may be
+ * manipulated or simplified are the equation spaces, tlhs[], trhs[], and tes[] only.
+ */
+token_type	divisor[DIVISOR_SIZE];		/* static expression storage areas for polynomial and smart division */
 int		n_divisor;			/* length of expression in divisor[] */
 token_type	quotient[DIVISOR_SIZE];
 int		n_quotient;			/* length of expression in quotient[] */
-token_type	gcd_divisor[DIVISOR_SIZE];	/* static data area for polynomial GCD routine */
+token_type	gcd_divisor[DIVISOR_SIZE];	/* static expression storage area for polynomial GCD routine */
 int		len_d;				/* length of expression in gcd_divisor[] */
 
 static int	do_gcd(), pf_recurse(), pf_sub(), mod_recurse(), polydiv_recurse(), pdiv_recurse(), poly_div_sub();
@@ -122,46 +154,52 @@ int		allow_divides;	/* allow variable to be right of a divide (negative exponent
 }
 
 /*
- * Factor polynomials by calling pf_sub() for every additive subexpression.
- * Factors repeated factor polynomials (like (x+1)^5)
- * and symbolic factor polynomials (like (x+a)*(x+b)).
+ * Factor polynomials by calling pf_sub() for every additive sub-expression.
+ * Factors repeated factor polynomials (like (x+1)^5) if "do_repeat".
+ * And factors polynomials with symbolic factors (like (x+a)*(x+b)).
+ *
+ * Does not factor polynomials with different numeric factors (like (x+1)*(x+2)).
+ * Because of floating point round-off error,
+ * this routine does not succeed at factoring very large polynomials.
  *
  * Return true if equation side was modified (factored).
  */
 int
-poly_factor(equation, np)
+poly_factor(equation, np, do_repeat)
 token_type	*equation;	/* pointer to the beginning of equation side */
 int		*np;		/* pointer to length of equation side */
+int		do_repeat;	/* factor repeated factors flag */
 {
-	return pf_recurse(equation, np, 0, 1);
+	return pf_recurse(equation, np, 0, 1, do_repeat);
 }
 
 static int
-pf_recurse(equation, np, loc, level)
+pf_recurse(equation, np, loc, level, do_repeat)
 token_type	*equation;
 int		*np, loc, level;
+int		do_repeat;
 {
 	int	modified = false;
 	int	i;
-	int	op;
-	int	len;
+	int	count = 0, level_count = 0;
 
-	op = 0;
 	for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
-		if (equation[i].level == level) {
-			op = equation[i].token.operatr;
+		switch (equation[i].token.operatr) {
+		case PLUS:
+		case MINUS:
+			count++;
+			if (equation[i].level == level) {
+				level_count++;
+			}
 		}
 	}
-	len = i - loc;
-	switch (op) {
-	case PLUS:
-	case MINUS:
-		modified = pf_sub(equation, np, loc, len, level);
-		break;
+	if (level_count && count > 1) {	/* so we don't factor expressions with only one additive operator */
+		/* try to factor the sub-expression */
+		modified = pf_sub(equation, np, loc, i - loc, level, do_repeat);
 	}
 	for (i = loc; i < *np && equation[i].level >= level;) {
 		if (equation[i].level > level) {
-			modified |= pf_recurse(equation, np, i, level + 1);
+			modified |= pf_recurse(equation, np, i, level + 1, do_repeat);
 			i++;
 			for (; i < *np && equation[i].level > level; i += 2)
 				;
@@ -180,20 +218,20 @@ int		*np, loc, level;
  * Return true if expression was modified (factored).
  */
 static int
-pf_sub(equation, np, loc, len, level)
+pf_sub(equation, np, loc, len, level, do_repeat)
 token_type	*equation;	/* equation side holding the possible polynomial to factor */
 int		*np,		/* pointer to length of equation side */
 		loc,		/* index of start of polynomial in equation side */
 		len;		/* length of polynomial */
 int		level;		/* level of additive operators in polynomial */
+int		do_repeat;	/* factor repeated factors flag */
 {
 	token_type	*p1;
 	int		modified = false, symbolic_modified = false;
 	int		i, j, k;
 	long		v = 0, v1, last_v;
 	int		len_first = 0;
-	int		loc1;
-	int		loc2, len2 = 0;
+	int		loc1, loc2, len2 = 0;
 	int		loct, lent;
 	int		count;
 	jmp_buf		save_save;
@@ -220,7 +258,7 @@ int		level;		/* level of additive operators in polynomial */
 	}
 /* First factor polynomials with repeated factors */
 /* using poly_gcd(polynomial, v * differentiate(polynomial, v)) to discover the factors: */
-	for (count = 1;; count++) {
+	for (count = 1; do_repeat; count++) {
 		blt(trhs, &equation[loc1], len * sizeof(token_type));
 		n_trhs = len;
 		partial_flag = false;
@@ -277,7 +315,7 @@ int		level;		/* level of additive operators in polynomial */
 		if (cnt <= 1)
 			goto skip_factor;
 		if (v == 0) {
-#if	true
+#if	1
 			goto skip_factor;
 #else
 /* no polynomial variables found, try differentiating with respect to each variable until one works */
@@ -469,7 +507,7 @@ remove_factors()
 	debug_string(3, "Entering remove_factors() with:");
 	side_debug(3, tlhs, n_tlhs);
 	do {
-		simp_ssub(tlhs, &n_tlhs, 0L, 1.0, false, true, 1 /* formerly 2 */);
+		simp_ssub(tlhs, &n_tlhs, 0L, 1.0, false, true, 4 /* was 0 */);
 	} while (uf_power(tlhs, &n_tlhs));
 	for (i = 1, j = 0, k = 0;; i += 2) {
 		if (i >= n_tlhs) {
@@ -558,7 +596,8 @@ long		*vp;
 }
 
 /*
- * Compute polynomial Greatest Common Divisor of "larger" and "smaller".
+ * Compute the polynomial Greatest Common Divisor of the expressions in "larger" and "smaller".
+ * This GCD routine is used for polynomial factoring, etc.
  *
  * Return true if successful.
  * Return the GCD in trhs[].
@@ -600,7 +639,7 @@ long		v;
 		blt(gcd_divisor, tlhs, n_tlhs * sizeof(token_type));
 		len_d = n_tlhs;
 		if (poly_div(larger, llen, gcd_divisor, len_d, &v) != 2) {
-			warning("Polynomial GCD found, but larger divide failed in poly_gcd().");
+			debug_string(1, "Polynomial GCD found, but larger divide failed in poly_gcd().");
 			return 0;
 		}
 	}
@@ -615,7 +654,8 @@ long		v;
 }
 
 /*
- * Compute polynomial Greatest Common Divisor of "larger" and "smaller".
+ * Compute the polynomial Greatest Common Divisor of the expressions in "larger" and "smaller".
+ * This GCD routine is used by division simplifiers.
  *
  * Return true if successful.
  * Return larger/GCD in tlhs[].
@@ -641,7 +681,7 @@ long		v;
 	n_trhs = llen;
 	blt(tlhs, smaller, slen * sizeof(token_type));
 	n_tlhs = slen;
-#if	true
+#if	1
 	blt(save_save, jmp_save, sizeof(jmp_save));
 	if ((i = setjmp(jmp_save)) != 0) {	/* trap errors */
 		blt(jmp_save, save_save, sizeof(jmp_save));
@@ -666,7 +706,7 @@ long		v;
 		if (!level1_plus_count(gcd_divisor, len_d))
 			return 0;
 		if (poly_div(smaller, slen, gcd_divisor, len_d, &v) != 2) {
-			warning("Polynomial GCD found, but smaller divide failed in poly2_gcd().");
+			debug_string(1, "Polynomial GCD found, but smaller divide failed in poly2_gcd().");
 			return 0;
 		}
 		blt(trhs, gcd_divisor, len_d * sizeof(token_type));
@@ -678,7 +718,7 @@ long		v;
 		blt(tlhs, trhs, n_trhs * sizeof(token_type));
 		n_tlhs = n_trhs;
 		if (poly_div(larger, llen, tlhs, n_tlhs, &v) != 2) {
-			warning("Polynomial GCD found, but larger divide failed in poly2_gcd().");
+			debug_string(1, "Polynomial GCD found, but larger divide failed in poly2_gcd().");
 			return 0;
 		}
 		blt(trhs, gcd_divisor, len_d * sizeof(token_type));
@@ -692,11 +732,38 @@ long		v;
 }
 
 /*
- * Return true if passed expression is entirely integer and all variables are
- * integer like "integer" and "sign".
+ * This function returns true if the passed Mathomatic variable
+ * is of type integer.
+ *
+ * Integer variable names start with "integer".
+ */
+int
+is_integer_var(v)
+long	v;
+{
+	char	*cp;
+	int	(*strncmpfunc)();
+
+	if (case_sensitive_flag) {
+		strncmpfunc = strncmp;
+	} else {
+		strncmpfunc = strncasecmp;
+	}
+
+	cp = var_name(v);
+	if (cp && strncmpfunc(cp, V_INTEGER_PREFIX, strlen(V_INTEGER_PREFIX)) == 0)
+		return true;
+	else
+		return false;
+}
+
+/*
+ * This function is a strict test that
+ * returns true if passed expression is entirely integer and all variables
+ * are either "integer" or "sign".
  *
  * The result of evaluating the expression must be integer if this returns true.
- * Should be unfactored with uf_pplus() first for a proper determination.
+ * Should first be unfactored with uf_pplus() for a proper determination.
  */
 int
 is_integer_expr(p1, n)
@@ -704,9 +771,7 @@ token_type	*p1;	/* expression pointer */
 int		n;	/* length of expression */
 {
 	int	i;
-	long	v;
 
-	parse_var(&v, V_INTEGER_NAME);
 	for (i = 0; i < n; i++) {
 		switch (p1[i].kind) {
 		case OPERATOR:
@@ -714,11 +779,12 @@ int		n;	/* length of expression */
 				return false;
 			break;
 		case CONSTANT:
-			if (fmod(p1[i].token.constant, 1.0))
+			if (fmod(p1[i].token.constant, 1.0) != 0.0)
 				return false;
 			break;
 		case VARIABLE:
-			if (p1[i].token.variable != v && (p1[i].token.variable & VAR_MASK) != SIGN)
+			if (!is_integer_var(p1[i].token.variable)
+			    && (p1[i].token.variable & VAR_MASK) != SIGN)
 				return false;
 			break;
 		}
@@ -727,7 +793,7 @@ int		n;	/* length of expression */
 }
 
 /*
- * This routine is a modulus (%) simplifier for equation sides.
+ * This routine is a modulus operator (%) simplifier for equation sides.
  *
  * Return true if expression was modified.
  */
@@ -892,8 +958,10 @@ int		*np, loc, level;
 
 /*
  * This routine is a division simplifier for equation sides.
+ * It reduces algebraic fractions.
  *
- * Return true if a Greatest Common Divisor was found and
+ * Return true if any polynomial Greatest Common Divisor (GCD)
+ * between a numerator and denominator was found and
  * the expression was simplified by dividing the numerator
  * and denominator by the GCD.
  */
@@ -1198,18 +1266,15 @@ long		*vp;		/* variable pointer to base variable */
 {
 	int		i;
 	int		rv;
-	int		old_partial, old_symb;
+	int		old_partial;
 	jmp_buf		save_save;
 
 	old_partial = partial_flag;
-	old_symb = symb_flag;
 	partial_flag = false;	/* We want full unfactoring during polynomial division. */
-/*	symb_flag = true; */
 	blt(save_save, jmp_save, sizeof(jmp_save));
 	if ((i = setjmp(jmp_save)) != 0) {	/* Trap errors so we almost always return normally. */
 		blt(jmp_save, save_save, sizeof(jmp_save));
 		partial_flag = old_partial;
-		symb_flag = old_symb;
 		if (i == 13) {	/* critical error code */
 			longjmp(jmp_save, i);
 		}
@@ -1218,7 +1283,6 @@ long		*vp;		/* variable pointer to base variable */
 	rv = poly_div_sub(d1, len1, d2, len2, vp);
 	blt(jmp_save, save_save, sizeof(jmp_save));
 	partial_flag = old_partial;
-	symb_flag = old_symb;
 	return rv;
 }
 
@@ -1646,7 +1710,7 @@ end_div2:
 }
 
 /*
- * Return the size of a subexpression,
+ * Return the size of a sub-expression,
  * minus any constant multiplier.
  */
 int
@@ -1875,6 +1939,7 @@ int		*dcodep;	/* divide flag pointer indicates if term is a denominator */
 	int		rv;
 	int		count = 0;
 
+	CLEAR_ARRAY(last_va);
 	*pp1 = 0.0;
 	*tp1 = -1;
 	rv = *dcodep;

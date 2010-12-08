@@ -1,14 +1,8 @@
 clear all
 y = .6666 - (4*(((10*(pi^2)*(r^3)/((d^2)*g*m*epsilon)) - 1)^(1/2))/15)
-simp
-simp symbolic
-copy
+simplify
+simplify symbolic
 r
-simp
-simp
+repeat simplify
 y
-simp
-simp
-simp symbolic
-replace sign with 1
-compare 2
+repeat simplify symbolic

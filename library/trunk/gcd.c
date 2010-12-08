@@ -1,7 +1,22 @@
 /*
  * General floating point GCD routine and associated code for Mathomatic.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -10,9 +25,9 @@
  * Return the Greatest Common Divisor (GCD) of doubles d1 and d2,
  * by using the Euclidean GCD algorithm.
  *
- * The GCD is defined as the largest positive number that evenly divides both "d1" and "d2".
+ * The GCD is defined as the largest positive number that evenly divides both d1 and d2.
+ * This should always works perfectly and exactly with two integers up to MAX_K_INTEGER.
  * Will usually work with non-integers, but there may be some floating point error.
- * Always works perfectly with integers up to MAX_K_INTEGER.
  *
  * Returns 0 on failure, otherwise returns the positive GCD.
  */
@@ -28,7 +43,7 @@ double	d1, d2;
 	}
 	d1 = fabs(d1);
 	d2 = fabs(d2);
-#if	true	/* true for standard gcd(), otherwise returns 0 (failure) if either parameter is 0 */
+#if	1	/* true for standard gcd(), otherwise returns 0 (failure) if either parameter is 0 */
 	if (d1 == 0)
 		return d2;
 	if (d2 == 0)
@@ -61,17 +76,22 @@ double	d1, d2;
 /*
  * Return the verified exact Greatest Common Divisor (GCD) of doubles d1 and d2.
  *
- * Returns 0 on failure, otherwise returns the verified positive GCD.
+ * Returns 0 on failure or inexactness, otherwise returns the verified positive GCD result.
+ * Result is not necessarily integer unless both d1 and d2 are integer.
  */
 double
 gcd_verified(d1, d2)
 double	d1, d2;
 {
-	double	divisor;
+	double	divisor, d3, d4;
 
 	divisor = gcd(d1, d2);
 	if (divisor != 0.0) {
-		if (gcd(d1 / divisor, d2 / divisor) != 1.0)
+		d3 = d1 / divisor;
+		d4 = d2 / divisor;
+		if (fmod(d3, 1.0) != 0.0 || fmod(d4, 1.0) != 0.0)
+			return 0.0;
+		if (gcd(d3, d4) != 1.0)
 			return 0.0;
 	}
 	return divisor;
@@ -156,29 +176,6 @@ double	*denominatorp;	/* returned denominator */
 		return true;
 	}
 	return false;
-}
-
-/*
- * Display the specified value.
- * If it is equal to a simple fraction, display that too.
- *
- * Return true if a fraction was displayed.
- */
-int
-display_fraction(value)
-double	value;
-{
-	double	d4, d5;
-	int	rv = false;
-
-	f_to_fraction(value, &d4, &d5);
-	fprintf(gfp, "%.*g", precision, value);
-	if (d5 != 1.0) {
-		fprintf(gfp, " = %.*g/%.*g", precision, d4, precision, d5);
-		rv = true;
-	}
-	fprintf(gfp, "\n");
-	return rv;
 }
 
 /*

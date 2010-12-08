@@ -13,6 +13,8 @@ clear all
 read fraction.in
 clear all
 read pie.in
+1
+fraction
 read demo.in
 read limits.in
 read how_limit_works
@@ -20,6 +22,7 @@ read poly.in
 read linear.in
 3
 copy
+; Here we test by quickly solving for every variable in the linear equation.
 a1
 a2
 a3
@@ -44,9 +47,6 @@ read simplify.in
 read heron.in
 clear all
 read radius.in
-clear all
-read trig.in
-simplify all
 clear all
 read pyth3d.in
 clear all

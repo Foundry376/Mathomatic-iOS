@@ -16,6 +16,6 @@ if rlwrap -v
 then
 	rlwrap -H ~/.mathomatic_history "$MATHOPATH" "$@"
 else
-	echo Readline support not available.
+	echo readline support not loaded because rlwrap utility was not found.
 	"$MATHOPATH" "$@"
 fi

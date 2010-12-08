@@ -1,7 +1,22 @@
 /*
  * Mathomatic global variable extern definitions, from file "globals.c".
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 extern int		n_tokens;
@@ -31,6 +46,7 @@ extern int		precision;
 extern int		case_sensitive_flag;
 extern int		factor_int_flag;
 extern int		display2d;
+extern int		fractions_display;
 extern int		approximate_roots;
 extern int		preserve_surds;
 extern int		rationalize_denominators;
@@ -42,9 +58,9 @@ extern int		autosolve;
 extern int		autocalc;
 extern int		autoselect;
 extern char		special_variable_characters[256];
+extern char		plot_prefix[256];
 extern int		integer_coefficients;
 extern int		right_associative_power;
-extern int		negate_highest_precedence;
 extern int		power_starstar;
 extern int		debug_level;
 extern int		domain_check;
@@ -55,6 +71,7 @@ extern int		html_flag;
 extern int		readline_enabled;
 extern int		partial_flag;
 extern int		symb_flag;
+extern int		symblify;
 extern int		high_prec;
 extern int		input_column;
 extern int		sign_cmp_flag;
@@ -77,15 +94,20 @@ extern int		ucnt[];
 extern int		uno;
 
 extern sign_array_type	sign_array;
+extern FILE		*default_out;
 extern FILE		*gfp;
 extern jmp_buf		jmp_save;
+extern int		eoption;
 extern int		test_mode;
+extern int		demo_mode;
 extern int		quiet_mode;
 extern int		echo_input;
 extern volatile int	abort_flag;
 extern int		pull_number;
-extern int		secure_flag;
+extern int		security_level;
+extern int		repeat_flag;
 
-extern const char	*error_str;
 extern char		*result_str;
+extern int		result_en;
+extern const char	*error_str;
 extern const char	*warning_str;

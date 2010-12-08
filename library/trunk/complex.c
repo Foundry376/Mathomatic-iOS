@@ -1,7 +1,22 @@
 /*
  * Floating point complex number routines specifically for Mathomatic.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -26,15 +41,17 @@ int
 roots_cmd(cp)
 char	*cp;
 {
-#define	MAX_ROOT	10000.0	/* root limit needed because more roots become more inaccurate and take longer to calculate */
+#define	MAX_ROOT	10000.0	/* Root limit needed because more roots become more inaccurate and take longer to check. */
 
-	complexs	c, c2, check;
-	double		d, k;
-	double		root;
-	double		radius, theta;
-	double		radius_root = 0.0;
+	complexs	c, c2;
+#if	!SILENT
+	complexs	check;
+	double		d;
+#endif
+	double		k, root, radius, theta, radius_root = 0.0;
 	char		buf[MAX_CMD_LEN];
 
+do_repeat:
 	if (*cp == '\0') {
 		my_strlcpy(prompt_str, _("Enter root (positive integer): "), sizeof(prompt_str));
 		if ((cp = get_string(buf, sizeof(buf))) == NULL)
@@ -42,6 +59,7 @@ char	*cp;
 	}
 	root = strtod(cp, &cp);
 	if ((*cp && !isspace(*cp)) || root < 0.0 || root > MAX_ROOT || fmod(root, 1.0) != 0.0) {
+		error(_("Root invalid or out of range."));
 		printf(_("Root must be a positive integer less than or equal to %.0f.\n"), MAX_ROOT);
 		return false;
 	}
@@ -68,7 +86,7 @@ char	*cp;
 		return false;
 	}
 	if (c.re == 0.0 && c.im == 0.0) {
-		return false;
+		return repeat_flag;
 	}
 /* convert to polar coordinates */
 	errno = 0;
@@ -90,32 +108,40 @@ char	*cp;
 			c2.re = radius_root * cos((theta + 2.0 * k * M_PI) / root);
 			c2.im = radius_root * sin((theta + 2.0 * k * M_PI) / root);
 			complex_fixup(&c2);
-			if (c2.im == 0.0) {
-				fprintf(gfp, "%.12g\n", c2.re);
-			} else {
-				fprintf(gfp, "%.12g %+.12g*i\n", c2.re, c2.im);
+			if (c2.re || c2.im == 0.0) {
+				fprintf(gfp, "%.12g ", c2.re);
 			}
+			if (c2.im) {
+				fprintf(gfp, "%+.12g*i", c2.im);
+			}
+			fprintf(gfp, "\n");
 #if	!SILENT
 			check = c2;
 			for (d = 1.0; d < root; d += 1.0) {
 				check = complex_mult(check, c2);
 			}
 			complex_fixup(&check);
-			if (check.im == 0.0) {
-				printf(_("Inverse check: %.12g\n\n"), check.re);
-			} else {
-				printf(_("Inverse check: %.12g %+.12g*i\n\n"), check.re, check.im);
+			printf(_("Inverse check:"));
+			if (check.re || check.im == 0.0) {
+				printf(" %.10g", check.re);
 			}
+			if (check.im) {
+				printf(" %+.10g*i", check.im);
+			}
+			printf("\n\n");
 #endif
 		}
 	}
+	if (repeat_flag)
+		goto do_repeat;
 	return true;
 }
 
 /*
  * Approximate roots of complex numbers in an equation side:
- * (complex^real) and (real^complex) and (complex^complex).
+ * (complex^real) and (real^complex) and (complex^complex) all result in a complex number.
  * This only gives one root, even when there may be many roots.
+ * Works best when the equation side has been approximated before this.
  *
  * Return true and display a warning message if the equation side was modified.
  */
@@ -150,7 +176,7 @@ start_over:
 		i += len + 1;
 		r = complex_pow(c, p);
 
-#if	false
+#if	0
 		printf("(%.14g+%.14gi)^(%.14g+%.14gi) = %.14g+%.14gi\n", c.re, c.im, p.re, p.im, r.re, r.im);
 #endif
 
@@ -183,9 +209,22 @@ start_over:
 		goto start_over;
 	}
 	if (modified) {
-		warning(_("Complex number roots approximated."));
+		debug_string(1, _("Complex number roots approximated."));
 	}
 	return modified;
+}
+
+/*
+ * Approximate all roots of complex numbers in an equation side.
+ */
+void
+approximate_complex_roots(equation, np)
+token_type	*equation;	/* equation side pointer */
+int		*np;		/* pointer to length of equation side */
+{
+	do {
+		elim_loop(equation, np);
+	} while (complex_root_simp(equation, np));
 }
 
 /*
@@ -253,6 +292,8 @@ double		*dp;	/* pointer to returned double */
 
 /*
  * Get the value of a constant complex number expression.
+ * Doesn't always work unless expression is approximated first
+ * with something like the approximate command.
  *
  * If successful return true with complex number in *cp.
  */

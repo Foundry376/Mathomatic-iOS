@@ -5,10 +5,17 @@
 
 <title>Mathomatic User's Manual</title>
 
+<meta name="description" content="The User Manual for the Mathomatic computer algebra system.">
 <meta name="author" content="George Gesslein II">
 
-<link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link rel="author" href="http://mathomatic.org/math/donate.html">
+<link rel="copyright" href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">
+<link rel="home" href="http://www.mathomatic.org">
+<link rel="toc" href="index.html">
+<link rel="next" href="am.html">
+<link rel="previous" href="index.html">
+<link rel="shortcut icon" href="/favicon.ico">
+
 <link rel="stylesheet" type="text/css" href="doc.css">
 </head>
 
@@ -18,90 +25,205 @@
 <img src="greenfade.png" alt="decoration">
 </center>
 
+<h3>Table of Contents</h3>
+
+<ol>
+<li>
+<a href="#introduction">Introduction</a>
+<li>
+<a href="#history">History</a>
+<li>
+<a href="#developer">Developer Information</a>
+<li>
+<a href="#startup">Startup</a>
+<li>
+<a href="#equations">Equations and Expressions</a>
+<ol type="a">
+<li>
+<a href="#constants">Constants</a>
+<li>
+<a href="#symbols">Variables</a>
+<li>
+<a href="#operators">Operators</a>
+<ol>
+<li>
+<a href="#order">Order of Operations example</a>
+</ol>
+<li>
+<a href="#complex">Complex Numbers</a>
+</ol>
+<li>
+<a href="#commands">Commands</a>
+</ol>
+
+<p>
+<a href="am.html">Mathomatic Command Reference</a><br>
+<a href="mathomatic.1.html">Unix/Linux man page for Mathomatic</a>
+
+<hr>
+
+<a name="introduction"></a>
 <h2>Introduction</h2>
 <p>
-Mathomatic is a symbolic math interpreter that can generally:
+Mathomatic is an easy to use and colorful algebra calculator that can symbolically:
 
 <ul>
 <li>
-combine and solve equations containing many variables;
+combine and solve equations containing many variables,
+
 <li>
-completely simplify and compare expressions and equations;
+completely simplify and compare mathematical expressions and equations,
+
 <li>
-do calculus transformations and series;
+do simple calculus transformations and series,
+
 <li>
-perform standard, complex number, and polynomial arithmetic;
+perform quick real number, imaginary number, and polynomial arithmetic and GCD computations,
+
 <li>
-generate efficient C, Java, or Python language code from equations;
+generate efficient C, Java, or Python language code from simplified equations,
+
 <li>
-carry out quick calculations, etc.
+plot expressions with <a href="http://gnuplot.sourceforge.net">Gnuplot</a> in two or three dimensions,
+
+<li>
+&hellip; and much more.
 </ul>
 
 <p>
-Mathomatic development started in the year 1986 and it was originally written in
-Microsoft C for MS-DOS and released as shareware.
-It was later ported to the GNU C Compiler (GCC) under Linux and became free software by
-publishing under the GNU Lesser General Public License (LGPL version 2.1).
-It is now available for Linux, Mac OS X, MS-Windows,
-and any operating system with a C compiler.
+The name "Mathomatic" is a portmanteau of "math" and "automatic".
+It is a unique computer algebra system (CAS),
+in that all <a href="#constants">constants</a> are one or more floating point values.
+All numeric arithmetic is IEEE standard floating point arithmetic,
+which most computers do very quickly.
+Mathomatic is written entirely in C,
+which is like a CAS written in assembly language,
+running as fast as the computer allows
+without any high-level language overhead.
+<p>
+Mathomatic is exceptionally good at solving, differentiating,
+simplifying, and calculating elementary algebra.
+It is designed with a simple
+command-line interface (CLI) that tries to be helpful.
+All input and output is line at a time ASCII text.
+By default, input is standard input and output is standard output.
 
 <hr>
-<h2>Requirements</h2>
+
+<a name="history"></a>
+<h2>History</h2>
 <p>
-Building from source requires a C compiler with the standard C libraries.
-If compiled with the <a href="http://gcc.gnu.org">GCC</a> C compiler,
+Mathomatic development started in the year 1986,
+originally using the Microsoft C compiler for MS-DOS.
+Versions 1 and 2 were published by Dynacomp
+of Rochester, New York in 1987 and 1988 as a scientific software product for DOS.
+Afterwards it was released as shareware and emailware
+with a 2D equation graphing program
+written in Microsoft C for DOS.
+At the turn of the century Mathomatic was ported
+to the GNU C Compiler (GCC) under Linux and became
+free and open source software by publishing under the
+<a href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">GNU Lesser General Public License</a>.
+The graphing program was discontinued;
+2D/3D graphing of equations is now accomplished with Gnuplot.
+<p>
+Mathomatic is currently developed and maintained on a Ubuntu Linux x86-64-bit computer.
+
+<hr>
+
+<a name="developer"></a>
+<h2>Developer Information</h2>
+<p>
+Building Mathomatic from source requires a C compiler with the standard C libraries.
+If compiled with the <a href="http://gcc.gnu.org">GCC</a> C compiler
+for a Unix-like operating system,
 no changes need to be made to the source code.
+See the file <a href="http://mathomatic.org/README.txt"><i>README.txt</i></a>
+for compilation instructions.
 <p>
 Mathomatic can easily be ported to any computer with at least 1 megabyte of free RAM.
 In the standard distribution,
-found on the <a href="http://mathomatic.org">Mathomatic home page</a>,
-the maximum memory usage defaults to 100 megabytes
+found on the <a href="http://www.mathomatic.org">Mathomatic home page</a>,
+the maximum memory usage defaults to 400 megabytes
 (the <a href="am.html#version">version command</a> tells this).
 Maximum memory usage is not reached unless all equation spaces are filled.
+The default maximum memory usage should be less than the amount of free RAM,
+and is adjusted by changing the <code>DEFAULT_N_TOKENS</code> define
+in the C include file <i>am.h</i> and recompiling.
+Memory usage can also be adjusted at startup with the
+<a href="mathomatic.1.html"><b>-m</b> option</a>.
 <p>
-4 megabytes of disk space is required to compile, install, and run Mathomatic.
-The readline library must be installed to use readline input editing and history.
+The Mathomatic source code can also be compiled
+as a symbolic math library that is callable
+from any C compatible program.
+See the file <i>lib/README.txt</i> for more developer information
+and how to include Mathomatic in your program.
+<p>
+Very little disk space (a few megabytes) is required to compile, install, and run
+the Mathomatic application.
+A readline library must be installed to use readline,
+which allows editing and history recall of all
+Mathomatic line input by pressing the arrow keys.
 
 <hr>
+
+<a name="startup"></a>
 <h2>Startup</h2>
 <dl>
 <dt>
 SYNOPSIS
 <dd>
-<b>mathomatic [ options ] [ input_files ]</b>
+<b>mathomatic</b> [ options ] [ input_files or input ]
+<br>
+<b>rmath</b> [ input_files ]
 </dl>
 <p>
-To start the interactive Mathomatic interpreter,
-run a terminal emulator and type "mathomatic" at the shell prompt.
+To start the compiled, interactive Mathomatic application,
+run a terminal emulator which opens a shell window,
+and type "mathomatic" at the shell prompt (without double quotes).
+If m4 (macro) Mathomatic was installed, you may type "rmath" instead, to
+use Mathomatic with input of functions like <tt>sin(x)</tt> and <tt>sqrt(x)</tt>
+allowed and automatically expanded to equivalent algebraic expressions.
+Logarithm function input is currently not available,
+because the logarithm function has not yet been implemented
+in the Mathomatic symbolic math engine.
 <p>
-Color mode is toggled by the "-c" option.
+Color mode is toggled by the <b>-c</b> option on the shell command line,
+like this:
+
+<pre class="indent">
+$ mathomatic -c
+</pre>
+
 ANSI color mode outputs ANSI terminal escape sequences
-to make each level of parentheses a different color, to improve readability.
-ANSI color mode is on by default, requiring an ANSI compatible terminal emulator.
-If the colors are too hard to see,
-try typing "<a href="am.html#set">set</a> bold" at the Mathomatic prompt to increase the brightness.
+to make each level of parentheses a different color, improving readability.
+If ANSI color mode is on, an ANSI compatible terminal emulator is required.
+If the colors are hard to see,
+use the <b>-b</b> option (bold colors) instead,
+to enable color mode and increase the brightness.
 <p>
-The other options are described in the <a href="mathomatic.1.html">man page</a>.
-After any options, file names may be specified
-that will be read in with the <a href="am.html#read">read command</a>.
+The other options are described in the
+<a href="mathomatic.1.html">Unix/Linux man page for Mathomatic</a>.
+After any options, text files may be specified on the shell command line
+that will be automatically read in with the <a href="am.html#read">read command</a>,
+unless the <b>-e</b> option is specified, in which case
+mathematical expressions and Mathomatic commands are expected,
+separated by unquoted space characters.
 <p>
-It is recommended that the name <i>mathomatic</i> be shortened to <i>am</i> for quicker access.
-This can be done in the Bash shell by adding the following line to your <i>~/.bashrc</i> file:
+It is recommended that the name <i>mathomatic</i> be shortened to <i>am</i>
+and <i>e</i> for quicker and easier access from the shell command line.
+This can be done in the Bash shell by adding the following two lines to your <i>~/.bashrc</i> file:
 
 <pre class="indent">
 alias am=mathomatic
+alias e='mathomatic -e --'
 </pre>
 
 <p>
-Then just typing "am" at the shell prompt will bring up Mathomatic.
-If color mode doesn't work right, use this instead:
-
-<pre class="indent">
-alias am="mathomatic -c"
-</pre>
-
-<p>
-to turn off color.  "am" stands for algebraic manipulator.
+Then just typing "am" at the shell prompt will run Mathomatic as an interactive application.
+Typing "e" followed by a quoted mathematical expression at the shell prompt will
+quickly and silently bring up Mathomatic and calculate and display the result.
+"am" stands for "algebraic manipulator", and "e" stands for "evaluate".
 
 <hr>
 
@@ -109,7 +231,8 @@ to turn off color.  "am" stands for algebraic manipulator.
 <h2>Equations and Expressions</h2>
 <p>
 Mathematical equations and expressions are entered
-into <strong>equation spaces</strong>.
+into <strong>equation spaces</strong> by typing, pasting,
+or <a href="am.html#read">reading</a> them in.
 The maximum number and size of available equation spaces is displayed
 every time Mathomatic starts up.
 When an expression grows larger than half the equation space size,
@@ -118,19 +241,23 @@ returning you to the main prompt.
 <p>
 Each equation space is successively numbered with an <strong>equation number</strong> (starting at 1).
 The main prompt "<tt>1&mdash;&gt;&nbsp;</tt>" contains the equation number of the current equation space.
-The current equation number is easily changed by typing an existing equation number at the main prompt.
+The current equation can be changed by typing a valid equation number at the main prompt,
+or by entering another equation or expression, which becomes the current equation.
 <p>
-To enter an equation or expression into the first available equation space
+To enter an equation into the first available equation space
 and make it the current equation, simply type it in at the main prompt.
-Equations consist of a Left Hand Side (LHS) and a Right Hand Side (RHS),
+Each equation space consists of two equation sides,
+called the Left-Hand Side (LHS) and the Right-Hand Side (RHS),
 separated by an equals sign (<b>=</b>).
-An equation side consists of an algebraic mathematical expression,
+Each equation side consists of a mathematical expression,
 which is a mix of <a href="#constants">constants</a>,
-<a href="#variables">variables</a>, and <a href="#operators">operators</a>,
+<a href="#symbols">variables</a>, and <a href="#operators">operators</a>,
 mostly in standard infix notation.
 Parentheses are used to override operator precedence and group things together.
 Valid parentheses characters are <b>()</b> and <b>{}</b>.
 <p>
+Note that the equals sign does not make an assignment to any variables,
+it only signifies equality (sameness) between the results of evaluating the LHS and RHS.
 Shown here is a valid equation with its parts labeled:
 
 <pre class="indent">
@@ -153,10 +280,11 @@ variable because its value depends on the <strong>independent</strong> variables
 In Mathomatic,
 any variable can be made the dependent variable by simply typing
 the variable name in at the prompt.
-This will <a href="am.html#solving">solve</a> the equation
+This will <a href="am.html#solving">solve</a> the current equation
 for that variable and, if successful, make that variable the LHS.
 <p>
-Here is the above equation entered into Mathomatic and solved for <b>b</b>:
+Here is the above equation entered into Mathomatic and solved for <b>b</b>,
+then <a href="am.html#calculate">calculated</a> for the values <b>a=1</b> and <b>c=1</b>:
 
 <pre class="sample">
 1&mdash;&gt; a=b-(c+2)
@@ -167,29 +295,86 @@ Here is the above equation entered into Mathomatic and solved for <b>b</b>:
 
 #1: b = 2 + c + a
 
-1&mdash;&gt;
+1&mdash;&gt; calculate
+Enter a: 1
+Enter c: 1
+
+ b = 4
+
+1&mdash;&gt; 
 </pre>
 
 <p>
-The "<tt>#1:</tt>" listed in front of each displayed equation always indicates the equation space number it is stored in.
+The "<tt>#1:</tt>" listed in front of each displayed equation
+always indicates the equation space number it is stored in.
+<p>
+Mathomatic automatically does both symbolic and numeric
+mathematics computations during any manipulations.
+This means that it can handle algebraic formulas, as well as numbers.
+What follows is an example of the result of both types of computations
+working together during equation simplification and solving:
+
+<pre class="sample">
+1&mdash;&gt; 3*(x-1) + 1 = 2x + 1
+
+#1: (3&middot;(x &minus; 1)) + 1 = (2&middot;x) + 1
+
+1&mdash;&gt; simplify
+
+#1: (3&middot;x) &minus; 2 = (2&middot;x) + 1
+
+1&mdash;&gt; solve verify x
+
+#1: x = 3
+
+Solution verified.
+1&mdash;&gt; 
+</pre>
+
+<p>
+The "solve verify" command, used above, solves the current equation
+and then verifies the result by plugging the result into the original equation
+and simplifying.
+If an identity results (the LHS is identical to the RHS),
+a "Solution verified" message is displayed,
+otherwise "Solution might be incorrect" is displayed.
+<p>
+Non-equations, that is any mathematical expression without an equals sign,
+may be entered into equation spaces too.
+However, if the expression entered at the main prompt contains no variables,
+it will only be <a href="am.html#calculate">calculated</a> and displayed without storing,
+unless the <a href="am.html#set">autocalc or auto</a> option is turned off.
+Non-equations cannot be solved.
 
 <a name="constants"></a>
 <h3>Constants</h3>
 <p>
-All constants are stored internally as
-IEEE 754 standard 64-bit (8 bytes) double precision floating point numbers.
+In Mathomatic, numeric arithmetic is double precision floating point
+with about 14 decimal digits accuracy.
+Many results will be exact, because multiple floating point numbers
+can be combined for a single mathematical value; for example: <b>2^(1/3)</b>,
+which is the cubed root of 2 exactly.
+<p>
+Constants are approximated real numbers stored internally as
+IEEE 754 standard 64-bit (8 bytes) double precision floating point values.
 They may be entered as normal decimal (base 10) numbers or in scientific notation
 (also called exponential notation).
-Constants may also be entered using hexadecimal (base 16) notation.
+Constants may also be entered using hexadecimal (base 16) notation
+by prepending them with "0x".
 <p>
-Constants are displayed in decimal (rounded to 14 digits) in normal or scientific notation,
+Constants are displayed in decimal (rounded to 14 digits)
+using either normal or scientific notation,
 whichever is shortest.
-Results are usually accurate from 12 to 14 digits, due to accumulated round-off error,
-as all constants are stored as double precision floats.
+Results are usually accurate from 12 to 14 digits,
+due to accumulated round-off error,
+because all constants are stored internally
+as double precision (15 decimal digits) floats.
+And the amount of round-off error is not tracked, making Mathomatic
+unsuitable for applications requiring high precision,
+like astronomical calculations.
 <p>
 Excepting constants with a name (like "inf" for the infinity constant),
 constants always start with a decimal digit (0..9) or a period.
-To enter a constant in hexadecimal, prepend it with "0x".
 <p>
 Examples of equivalent constants follow:
 </p>
@@ -244,13 +429,13 @@ Hexadecimal Notation (base 16)
 <p>
 The exact syntax to enter constants as above may be found by
 looking up the C library <code>strtod(3)</code> function.
-In the Unix shell, <tt>"man strtod"</tt> will do this.
+In the Unix shell, <tt>"man strtod"</tt> will do that.
 
 <ul>
 <li>
-The largest value of a constant is &plusmn;1.7e+308.
+The largest value of a constant is &plusmn;1.7e+308 = &plusmn;2^1024.
 <li>
-The smallest value of a constant is &plusmn;2.3e-308.
+The smallest value of a constant is &plusmn;2.3e-308 or 0.
 </ul>
 <p>
 The infinity constant is entered by typing "inf".
@@ -287,43 +472,50 @@ Constants which are exactly equal to a fraction are converted and displayed
 as fully reduced fractions; for example, <b>0.5</b> converts to <b>1/2</b>.
 Mathomatic internally converts a fraction to a single floating point value,
 then may convert it back to a fraction for display
-after all floating point arithmetic has been done.
+after all floating point arithmetic has been done,
+if the result is equal to a fraction.
 <p>
-Irrational numbers, such as the square root of two: <b>2^(1/2)</b>, are preserved and simplified,
+Irrational numbers, such as the square root of two (<b>2^(1/2)</b>) and <b>pi</b>,
+are preserved and simplified for exactness,
 unless explicitly approximated.
-This can be turned off with the command "<a href="am.html#set">set</a> no preserve_surds";
-<b>2^(1/2)</b> will then always be approximated as <b>1.4142135623731</b>.
 <p>
-Denominators are usually rationalized in Mathomatic, so <b>1/(2^(1/2))</b> becomes <b>(2^(1/2))/2</b>.
+Denominators of fractions are usually rationalized in Mathomatic; for example, <b>1/(2^(1/2))</b> becomes
+the equivalent <b>(2^(1/2))/2</b> upon simplification.
+This can be turned off with the command "<a href="am.html#set">set</a> no rationalize_denominators".
 
-<a name="variables"></a>
+<a name="symbols"></a>
 <h3>Variables</h3>
 <p>
 Variables are what Mathomatic is all about.
 That is where the term "symbolic" comes from,
 because variables are symbolic in nature.
-They can represent known or unknown values,
+They are symbols that can represent known or unknown values,
 or any expression.
+Variables need not be defined in Mathomatic,
+just entering the variable name is enough.
 <p>
-Variables consist of any combination of letters (a..z), digits (0..9), and underscores (_).
+Variable names consist of any combination of letters (a..z),
+digits (0..9), and underscores (_).
 They never start with a digit.
 By using the "<a href="am.html#set">set</a> special_variable_characters" command,
-you can add to the allowed variable characters.
+you can add to the allowed variable name characters.
 By default, letters in variable names are case sensitive,
 meaning the alphabetic case of each letter in the variable name is important.
 For example, variables named "A1" and "a1" represent two different variables,
-unless "<a href="am.html#set">set</a> no case" is entered beforehand.
+unless "<a href="am.html#set">set</a> no case_sensitive" is entered beforehand.
 <p>
 The following variables are predefined and are not normal variables:
 
-<pre class="indent">
-<b>e</b> or <b>e#</b> - the universal constant e (2.718281828&hellip;)
-<b>pi</b> or <b>pi#</b> - the universal constant pi (3.1415926&hellip;)
-<b>i</b> or <b>i#</b> - the imaginary number (square root of -1)
-<b>sign</b>, <b>sign1</b>, <b>sign2</b>, &hellip; - may only be +1 or -1
-<b>integer</b> - may only be an integer value
-</pre>
+<div class="indent">
+<b>e</b> or <b>e#</b> - the universal constant e (2.718281828&hellip;)<br>
+<b>pi</b> or <b>pi#</b> - the universal constant pi (3.1415926&hellip;)<br>
+<b>i</b> or <b>i#</b> - the imaginary unit (square root of -1)<br>
+<b>sign</b>, <b>sign1</b>, <b>sign2</b>, &hellip; - may only be +1 or -1<br>
+<b>integer</b>, <b>integer1</b>, &hellip; - may be any integer value
+</div>
 
+<p>
+The above can be used anywhere variables are required.
 <p>
 To automatically enter multiplication by a unique, two-valued "sign" variable,
 precede any expression with "+/&minus;".
@@ -331,27 +523,26 @@ precede any expression with "+/&minus;".
 <a name="operators"></a>
 <h3>Operators</h3>
 <p>
-Operators have precedence decreasing as indicated:
+Mathomatic implements the standard rules of algebra for
+addition (<b>+</b>), subtraction (<b>&minus;</b>), multiplication (<b>*</b>),
+division (<b>/</b>), modulo division (<b>%</b>), and all forms of exponentiation (<b>^</b> or <b>**</b>).
+An example of a rule of algebra is <b>2*x + 3*x</b> being simplified to <b>5*x</b>.
+<p>
+All available operators are at least numerically capable and
+have precedence decreasing as indicated:
 
 <pre class="indent">
-- negate
 ! factorial (gamma function)
 ** or ^ power (exponentiation)
 * multiply      / divide        % modulus       // integral divide
 + add           &minus; subtract
-= equate
+= equate (lowest precedence)
 </pre>
 
 <p>
-Multiple operators of the same precedence are evaluated left to right.
-<p>
-The negate operator (<b>-x</b>) may precede any expression and
-has the highest precedence of all operators,
-similar to the C programming language.
-This is different from other math programs, where negate
-has been given the same precedence as times and divide.
-So in Mathomatic <b>-2^x</b> will give the expected <b>(-2)^x</b>,
-and not <b>-1*(2^x)</b>, which are completely different.
+Higher precedence operators are grouped (or evaluated) first,
+then multiple operators of the same precedence level are grouped left to right.
+This is called the "<a href="#order">order of operations</a>".
 <p>
 The default operator is multiply (<b>*</b>).
 If an expression (operand) is entered when an operator is expected,
@@ -363,14 +554,17 @@ The modulo operator <b>a % b</b> (spoken as "a modulo b")
 gives the remainder of the division <b>a / b</b>.
 The sign of the result depends
 on the "<a href="am.html#set">set</a> modulus_mode" option.
-Using the "integer" variable allows further simplification here.
+Using "integer" variables allows further simplification here.
+An integer variable is specified by using a variable name that starts with "integer",
+like "integer1", "integer_x", etc.
 <p>
 The integral divide operator <b>a // b</b> divides <b>a</b> by <b>b</b>
 and then truncates by zeroing the fractional part to make the result an integer.
 For example, <b>8 // 3</b> results in 2, which is useful when doing integer arithmetic.
 <p>
-Factorials (<b>x!</b>) use the gamma function (<b>gamma(x+1)</b>),
-so that they work with any real number, not just the positive integers.
+Factorials <b>x!</b> use the gamma function <b>gamma(x+1)</b>,
+so that the factorial operator works with any real number,
+not just the positive integers.
 <p>
 Currently no rules of algebra are implemented for the integral divide operator (<b>//</b>)
 and factorials (<b>!</b>), and these two operators will not evaluate if an operand is a complex number.
@@ -378,14 +572,56 @@ and factorials (<b>!</b>), and these two operators will not evaluate if an opera
 Absolute value notation is allowed, <b>|x|</b> is converted to <b>(x^2)^.5</b>.
 This is not the same as standard absolute value
 where the real and imaginary parts of complex numbers are separated and then squared,
-but it works the same when given real number values.
+but it works the same when given real number values with no imaginary units.
+The absolute value operation <b>|x|</b> results in a positive value for any <b>x</b> value;
+that is, if -1 is a factor, it is removed.
+
+<a name="order"></a>
+<h4>Order of Operations example</h4>
+<p>
+The following example shows why operator precedence is important.
+Given the numerical expression:
+
+<pre class="indent">
+64/-2^4 + 6*(3+1)
+</pre>
+
+<p>
+Mathomatic will parenthesize the highest precedence operators first
+(negate, then power, then times and divide;
+from left to right, but that doesn't matter in this case).
+Addition and subtraction are the lowest precedence, so no need
+to parenthesize them.
+The result will be:
+
+<pre class="indent">
+(64/((-2)^4)) + (6*(3+1))
+</pre>
+
+<p>
+This is evaluated by combining constants from left to right
+on the same level of parentheses, deepest levels first.
+So the calculations are performed in the following order:
+
+<pre class="indent">
+(64/16) + (6*4)   Combine deepest level parentheses first.
+4 + 24            Divided 64 by 16 and multiplied 6 by 4.
+28                Added 24 to 4.
+</pre>
+
+<p>
+If the calculations were performed in a different order,
+the result would be different.
 
 <a name="complex"></a>
 <h3>Complex Numbers</h3>
 <p>
 Mathomatic automatically performs complex number addition, subtraction,
-multiplication, and division.
-It will also approximate roots and powers of complex numbers.
+multiplication, division, and exponentiation.
+It can also approximate roots of real and complex numbers,
+giving a single result;
+when multiple results are possible,
+the first real number result is chosen.
 <p>
 Complex numbers are in the form:
 
@@ -394,22 +630,24 @@ a + b*i#
 </pre>
 
 <p>
-where <b>a</b> is the <a href="am.html#real">real part</a>
-and <b>b</b> is the <a href="am.html#imaginary">imaginary part</a>.
+where <b>a</b> is the <a href="am.html#real">real part</a> (a real number)
+and <b>b</b> is the <a href="am.html#imaginary">imaginary part</a> (an imaginary number).
 <b>i#</b> represents the square root of -1
-("<tt>-1^.5</tt>" in Mathomatic notation), and may be entered into Mathomatic as "<tt>i</tt>",
+("<tt>(-1)^.5</tt>" in Mathomatic notation),
+and may be entered into Mathomatic as "<tt>i</tt>";
 it will be displayed as "<tt>i#</tt>".
 <p>
-The imaginary number <b>i#</b> may appear anywhere within an expression,
+The imaginary unit <b>i#</b> may appear anywhere within an expression,
 as many times as you want, Mathomatic will handle and simplify it properly.
 <p>
-As an example of imaginary numbers being produced, <b>-2^.5</b> will be converted
+As an example of imaginary numbers being produced, <b>(-2)^.5</b> will be converted
 to <b>(2^.5)*i#</b>.
 <p>
 Roots of complex numbers, such as <b>i#^.5</b> and <b>.5^i#</b>, will be approximated, and
-only a single root will be produced, even though there may be many roots (see the <a href="am.html#roots">roots command</a>).
-This is called the "principal value" and may be unexpected and will often be inexact, therefore
-a warning is displayed when this is done.
+only a single root will be produced,
+even though there may be many roots (see the <a href="am.html#roots">roots command</a>).
+That single root is called the "principal value",
+which may be unexpected and will often be inexact.
 <p>
 Conjugation of all complex numbers in the current equation
 is accomplished by typing the following command:
@@ -423,16 +661,16 @@ replace i with -i
 <a name="commands"></a>
 <h2>Commands</h2>
 <p>
-Mathomatic has about 40 simple English commands that may be typed at the main prompt.
+Mathomatic has about 42 simple English commands that may be typed at the main prompt.
 Please consult the <a href="am.html">Mathomatic Command Reference</a>,
 for detailed information on all commands.
 
 <hr>
-<font color="red">Copyright &copy; 1987-2008 George Gesslein II</font>
+<font color="red" class="small">Copyright &copy; 1987-2010 George Gesslein II</font>
 
 <hr>
-<span style="float:left"><a href="index.html">Up to the documentation index</a></span>
-<span style="float:right"><a href="http://mathomatic.org">mathomatic.org</a></span>
+<a class="left" href="index.html">Up to the documentation index</a>
+<a class="right" href="http://www.mathomatic.org"><img src="mathomatic16x16.png" alt="Mathomatic icon"> www.mathomatic.org</a>
 
 </body>
 </html>

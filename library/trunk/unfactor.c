@@ -1,7 +1,22 @@
 /*
  * Mathomatic unfactorizing (expanding) routines.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -456,10 +471,6 @@ do_repeat:
 				break;
 			if ((i - b1) == 1 && equation[b1].kind != CONSTANT)
 				break;
-#if	false
-			if ((i - b1) > 1 && level1_plus_count(&equation[b1], (i - b1)) <= 0)
-				break;
-#endif
 			if ((i - b1) > 1 && d1 > 2.0 && fmod(d1, 1.0) != 0.0)
 				break;
 		}
@@ -559,7 +570,7 @@ int		*np;
 	return modified;
 }
 
-#if	false	/* the following is not currently used */
+#if	0	/* the following is not currently used */
 /*
  * Convert a/(x^y) to a*(1/x)^y.
  * Return true if equation side is modified.
@@ -688,7 +699,8 @@ int		*np;
 			    && equation[i+3].level == level
 			    && equation[i+3].kind == CONSTANT) {
 				if (fmod(equation[i+1].token.constant, 1.0) == 0.0) {
-					if (!isfinite(equation[i+3].token.constant)
+					if (!rationalize_denominators
+					    || !isfinite(equation[i+3].token.constant)
 					    || equation[i+3].token.constant <= 0.0
 					    || equation[i+3].token.constant >= 1.0) {
 						continue;

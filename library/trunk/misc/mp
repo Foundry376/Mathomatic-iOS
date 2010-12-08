@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+# Command line utility that evaluates a Python arithmetic expression
+# using the Python library mpmath.  To install mpmath in Ubuntu:
+#
+#	sudo apt-get install python-mpmath
+#
+# Mathomatic does a similar thing by setting a bash alias in ~/.bashrc:
+#
+#	alias e="mathomatic -e --"
+#
+# however Mathomatic doesn't support named functions like mpmath does.
+# To use Mathomatic:
+#
+#	e expression
+#
+# To use this mpmath script, put it in a directory in your executable search path,
+# and type:
+#
+#	mp expression
+#
+# e does symbolic and numeric mathematics, while mp only does numeric math.
+
+from __future__ import division
+from mpmath import *
+import sys
+import os
+import string
+
+mp.dps=50 # set the decimal floating point precision
+
+def usage():
+	print "This program evaluates an arithmetic expression using Python and mpmath."
+	print
+	print "Usage: %s expression" % os.path.basename(sys.argv[0])
+	sys.exit(2)
+
+args = sys.argv[1:]
+if (args == []):
+	usage()
+else:
+	s = string.join(args)
+	print s + "="
+	num = eval(s)
+	print num

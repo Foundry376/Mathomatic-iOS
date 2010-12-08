@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Program to display factorials and test "fact.py".
+# This is a Python program to display factorials and test "fact.py".
 
 from fact import fact
 import sys
@@ -8,11 +8,11 @@ import os
 import string
 
 def usage():
-	print "This program calculates factorials."
+	print "This program calculates large factorials."
 	print
-	print "Usage: %s expression or numbers" % os.path.basename(sys.argv[0])
+	print "Usage: %s integer_expressions" % os.path.basename(sys.argv[0])
 	print
-	print "Factorials are the product of all positive integers <= a given number."
+	print "A factorial is the product of all positive integers <= a given integer."
 	sys.exit(2)
 
 args = sys.argv[1:]

@@ -1,7 +1,22 @@
 /*
  * Mathomatic floating point constant factorizing routines.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -276,6 +291,9 @@ int		factor_flag;
  *
  * If "level_code" is 3, nothing is done.
  *
+ * Add 4 to "level_code" to always factor out the GCD of rational coefficients
+ * to produce all reduced integer coefficients.
+ *
  * Return true if equation side was modified.
  */
 int
@@ -284,7 +302,7 @@ token_type	*equation;	/* pointer to the beginning of equation side */
 int		*np;		/* pointer to length of equation side */
 int		level_code;	/* see above */
 {
-	if (level_code > 2)
+	if (level_code == 3)
 		return false;
 	return fc_recurse(equation, np, 0, 1, level_code);
 }
@@ -298,7 +316,7 @@ int		level_code;
 	int	i, j, k;
 	int	op;
 	double	d, minimum = 1.0, cogcd = 1.0;
-	int	improve_readability, first = true, neg_flag = true, modified = false;
+	int	improve_readability, gcd_flag, first = true, neg_flag = true, modified = false;
 	int	op_count = 0, const_count = 0;
 
 	for (i = loc; i < *np && equation[i].level >= level;) {
@@ -313,7 +331,8 @@ int		level_code;
 	}
 	if (modified)
 		return true;
-	improve_readability = (level_code > 1 || (level_code && (level == 1)));
+	improve_readability = ((level_code & 3) > 1 || ((level_code & 3) && (level == 1)));
+	gcd_flag = ((improve_readability && integer_coefficients) || (level_code & 4));
 	for (i = loc; i < *np && equation[i].level >= level;) {
 		if (equation[i].level == level) {
 			switch (equation[i].kind) {
@@ -347,7 +366,7 @@ int		level_code;
 			} else {
 				if (minimum > d)
 					minimum = d;
-				if (integer_coefficients && improve_readability && cogcd)
+				if (gcd_flag && cogcd != 0.0)
 					cogcd = gcd_verified(d, cogcd);
 			}
 		} else {
@@ -375,7 +394,7 @@ int		level_code;
 						} else {
 							if (minimum > d)
 								minimum = d;
-							if (integer_coefficients && improve_readability && cogcd)
+							if (gcd_flag && cogcd != 0.0)
 								cogcd = gcd_verified(d, cogcd);
 						}
 						i = j;
@@ -393,7 +412,7 @@ int		level_code;
 			} else {
 				if (minimum > 1.0)
 					minimum = 1.0;
-				if (integer_coefficients && improve_readability && cogcd)
+				if (gcd_flag && cogcd != 0.0)
 					cogcd = gcd_verified(1.0, cogcd);
 			}
 			i = j;
@@ -401,7 +420,7 @@ int		level_code;
 		}
 		i++;
 	}
-	if (integer_coefficients && improve_readability && cogcd && fmod(cogcd, 1.0) == 0.0) {
+	if (gcd_flag && cogcd != 0.0 /* && fmod(cogcd, 1.0) == 0.0 */) {
 		minimum = cogcd;
 	}
 	if (first || op_count == 0 || const_count > 1 || (!neg_flag && minimum == 1.0))
@@ -420,8 +439,19 @@ int		level_code;
 					d = equation[i].token.constant;
 				}
 			}
-			if ((minimum < 1.0 && fmod(d, 1.0) == 0.0) || (fmod(d, minimum) != 0.0)) {
+#if	1
+			if (!gcd_flag && minimum >= 1.0) {
 				minimum = 1.0;
+				break;
+			}
+#endif
+			if ((minimum < 1.0) && (fmod(d, 1.0) == 0.0)) {
+				minimum = 1.0;
+				break;
+			}
+/* Make sure division by the number to factor out results in an integer: */
+			if (fmod(d, minimum) != 0.0) {
+				minimum = 1.0;	/* result not an integer */
 				break;
 			}
 			i++;

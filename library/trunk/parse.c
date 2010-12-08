@@ -1,12 +1,25 @@
 /*
  * Expression parsing routines for Mathomatic.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
-
-#define	INFINITY_NAME	"inf"	/* set this to the name of the infinity constant as displayed by printf(3) */
 
 int	point_flag;		/* point to location of parse error if true */
 
@@ -26,7 +39,9 @@ char	*cp;
 }
 
 /*
- * Display an up arrow pointing to the error under the input string.
+ * Display an up arrow pointing to the error, if appropriate.
+ * The up arrow is positioned under the input string,
+ * followed by the error message.
  */
 void
 put_up_arrow(cnt, cp)
@@ -36,8 +51,9 @@ char	*cp;	/* error message */
 #if	!SILENT
 	int	 i;
 
-	if (isatty(0) && point_flag && !html_flag) {
-		for (i = 0; i < (input_column + cnt); i++) {
+	cnt += input_column;
+	if (!quiet_mode && point_flag && (screen_columns == 0 || cnt < screen_columns)) {
+		for (i = 0; i < cnt; i++) {
 			printf(" ");
 		}
 		printf("^ ");
@@ -68,11 +84,9 @@ int		i;	/* location of operator to parenthesize in expression */
 	int	j;
 	int	level;
 
-#if	true
 	if (i >= (n - 1) || (n & 1) != 1 || (i & 1) != 1) {
 		error_bug("Internal error in arguments to binary_parenthesize().");
 	}
-#endif
 	level = p1[i].level++;
 	if (p1[i-1].level++ > level) {
 		for (j = i - 2; j >= 0; j--) {
@@ -105,10 +119,8 @@ int		*np;
 		if (equation[i].token.operatr == NEGATE) {
 			/* change negate operator to -1 times the operand: */
 			equation[i].token.operatr = TIMES;
-			if (negate_highest_precedence) {
-				/* make negate top priority by parenthesizing it first: */
-				binary_parenthesize(equation, *np, i);
-			}	/* otherwise negate has same priority as times/divide */
+			/* make negate top priority by parenthesizing it first: */
+			binary_parenthesize(equation, *np, i);
 		}
 	}
 }
@@ -196,7 +208,8 @@ int		allow_space;	/* if false, any space characters terminate parsing */
 		case '(':
 		case '{':
 			if (operand) {
-#if	true
+#if	1
+/* Allow things like (x)(y) and x{y} by defaulting to the times operator.  The result is x*y. */
 				operand = false;
 				equation[n].level = cur_level;
 				equation[n].kind = OPERATOR;
@@ -323,7 +336,13 @@ parse_power:
 			break;
 		case '%':
 			if (operand) {
+#if	1
+/* Allow %e, %i, and %pi by ignoring % in the wrong place. */
+				operand = false;
+				break;
+#else
 				goto syntax_error;
+#endif
 			}
 			equation[n].level = cur_level;
 			equation[n].kind = OPERATOR;
@@ -372,7 +391,7 @@ parse_power:
 				equation[n].token.operatr = TIMES;
 				n++;
 			}
-			if (*cp == '-' && (!negate_highest_precedence || !(isdigit(cp[1]) || cp[1] == '.'))) {
+			if (*cp == '-') {
 				equation[n].kind = CONSTANT;
 				equation[n].token.constant = -1.0;
 				equation[n].level = cur_level;
@@ -426,7 +445,7 @@ parse_power:
 				}
 			}
 			if (*cp == '(') {
-				put_up_arrow(cp1 - cp_start, _("Named functions currently not implemented."));
+				put_up_arrow(cp1 - cp_start, _("Named functions currently not implemented, except when using m4."));
 				return(NULL);
 			}
 			cp--;
@@ -461,6 +480,8 @@ syntax_error:
 
 /*
  * Parse an equation string into equation space "n".
+ * The result will not necessarily be an equation,
+ * because this can parse any expression or equation.
  *
  * Returns the new string position, or NULL if error.
  * Currently, there can be no more to parse in the string when this returns.
@@ -470,21 +491,25 @@ parse_equation(n, cp)
 int	n;	/* equation space number */
 char	*cp;	/* pointer to the beginning of the equation character string */
 {
+	if (cp == NULL)
+		return NULL;
 	if (!case_sensitive_flag) {
 		str_tolower(cp);
 	}
 	if ((cp = parse_section(lhs[n], &n_lhs[n], cp, true)) != NULL) {
 		if ((cp = parse_section(rhs[n], &n_rhs[n], cp, true)) != NULL) {
-			if (extra_characters(cp))
-				return NULL;
-			return cp;
+			if (!extra_characters(cp))
+				return cp;
 		}
 	}
+	n_lhs[n] = 0;
+	n_rhs[n] = 0;
 	return NULL;
 }
 
 /*
- * Parse an expression with equation space pull if the line starts with "#" followed by an equation number.
+ * Parse an expression (not an equation) string, with equation space pull
+ * if the string starts with "#" followed by an equation number.
  *
  * Returns the new string position, or NULL if error.
  * Currently, there can be no more to parse in the string when this returns.
@@ -498,6 +523,8 @@ char		*cp;		/* string to parse */
 	int	i;
 	char	*cp1, *cp2;
 
+	if (cp == NULL)
+		return NULL;
 	if (!case_sensitive_flag) {
 		str_tolower(cp);
 	}
@@ -563,7 +590,7 @@ char	*cp;
 	int	len;
 	int	(*strcmpfunc)();
 
-	*vp = V_NULL;
+/*	*vp = V_NULL; */
 	if (case_sensitive_flag) {
 		strcmpfunc = strcmp;
 	} else {
@@ -584,6 +611,10 @@ char	*cp;
 		buf[i++] = *cp1++;
 	}
 	buf[i] = '\0';
+
+	if (strcasecmp(buf, NAN_NAME) == 0) {
+		warning(_("Attempt to enter NaN (Not a Number); Converted to variable."));
+	}
 	if (strcasecmp(buf, INFINITY_NAME) == 0) {
 		error(_("Infinity cannot be used as a variable."));
 		return(NULL);
@@ -657,6 +688,7 @@ char	*cp;
 		*vp = vtmp;
 		return cp1;
 	}
+/* for "sign" variables: */
 	if (isdigit(*cp1)) {
 		j = strtol(cp1, &cp1, 10);
 		if (j < 0 || j > MAX_SUBSCRIPT) {
@@ -698,14 +730,24 @@ set_error_level(cp)
 char	*cp;	/* input string */
 {
 	char	*cp1;
+	int	len;
 
 	point_flag = true;
 /* handle comments, newlines, and the DOS EOF character (control-Z) by truncating the string where found */
-	for (cp1 = cp; *cp1; cp1++) {
-		if (*cp1 == ';' || *cp1 == '\n' || *cp1 == '\r' || *cp1 == '\032') {
-			*cp1 = '\0';
-			break;
+	cp1 = cp;
+	while ((cp1 = strpbrk(cp1, ";\n\r\032"))) {
+		if (cp1 != cp && *(cp1 - 1) == '\\') {
+			if (*cp1 == ';') {
+/* skip backslash escaped semicolon */
+				len = strlen(cp1);
+				blt(cp1 - 1, cp1, len + 1);
+				continue;
+			}
 		}
+		break;
+	}
+	if (cp1) {
+		*cp1 = '\0';
 	}
 	remove_trailing_spaces(cp);
 /* set point_flag to false if non-printable characters encountered */

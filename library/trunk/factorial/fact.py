@@ -1,7 +1,7 @@
-# General factorial function written in Python.
-# Factorials are the product of all positive integers <= a given number.
-# Works transparently with integers and floating point,
-# that is it returns the same type as its single argument.
+# This is a general factorial function written in Python.
+# A factorial is the product of all positive integers <= a given number.
+# Works transparently with integers and floating point;
+# that is, it returns the same type as its single argument.
 # Gives an error for negative or non-integer input values.
 
 def fact(x):

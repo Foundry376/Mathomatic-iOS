@@ -6,5 +6,6 @@
 cproto </dev/null >/dev/null || exit # Test for existence of cproto utility.
 echo '/* Complete list of global C function prototypes for Mathomatic. */' >cproto.h
 echo '/* This file was created with the cproto utility by running the "./update" script. */' >>cproto.h
+echo '/* This file is required to compile Mathomatic quietly with the -Wall compiler option. */' >>cproto.h
 echo >>cproto.h
 cproto -DUNIX -DREADLINE *.c >>cproto.h && mv cproto.h proto.h && echo proto.h recreated.

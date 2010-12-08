@@ -6,5 +6,6 @@ clear all
 (6*(b^0.5)-3)^3
 (2-(4/(c-b)))^3
 (((e*((2*(x^3)) + 24 + (x!) - zy)) - pi)/e)^2
+(2+3x)^3
 simplify all
 display factor all

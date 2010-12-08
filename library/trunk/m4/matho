@@ -9,10 +9,11 @@
 
 MATHOMATIC="${0}matic"
 MFUNCTIONS="${0%/matho}/functions.m4"
+MOPTIONS="-ru"
 
 if [ -x "$MATHOMATIC" ]
 then
-	m4 -eP "$MFUNCTIONS" "$@" - | "$MATHOMATIC" -ru
+	m4 -eP -- "$MFUNCTIONS" "$@" - | time -p "$MATHOMATIC" $MOPTIONS
 else
-	m4 -eP "$MFUNCTIONS" "$@" - | mathomatic -ru
+	m4 -eP -- "$MFUNCTIONS" "$@" - | time -p mathomatic $MOPTIONS
 fi

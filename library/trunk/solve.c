@@ -1,7 +1,22 @@
 /*
  * Mathomatic symbolic solve routines.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -14,6 +29,9 @@ static int	quad_solve();
 static int	increase();
 
 static int	repeat_count;
+static int	prev_n1, prev_n2;
+
+static int	last_int_var = 0;
 
 /*
  * Solve using equation spaces.
@@ -25,24 +43,36 @@ solve_espace(want, have)
 int	want;	/* equation number containing what to solve for */
 int	have;	/* equation number to solve */
 {
-	int	rv;	/* return value */
+	int	i;
+	jmp_buf	save_save;
+	int	rv = 0;	/* return value */
 
-	if (n_lhs[want]) {
-		if (n_rhs[want]) {
-			/* Something in the LHS and RHS of equation number "want". */
-			error(_("This program will only solve for a single variable or for zero."));
-			rv = false;
-		} else {
-			/* Normal solve: */
-			rv = solve_sub(lhs[want], n_lhs[want], lhs[have], &n_lhs[have], rhs[have], &n_rhs[have]);
+	blt(save_save, jmp_save, sizeof(jmp_save));
+	if ((i = setjmp(jmp_save)) != 0) {	/* trap errors */
+		clean_up();
+		if (i == 14) {
+			error(_("Expression too large."));
 		}
+		rv = 0;
 	} else {
-		/* Solve variable was preceded by an equals sign, solve using reversed equation sides: */
-		rv = solve_sub(rhs[want], n_rhs[want], rhs[have], &n_rhs[have], lhs[have], &n_lhs[have]);
+		if (n_lhs[want]) {
+			if (n_rhs[want]) {
+				/* Something in the LHS and RHS of equation number "want". */
+				error(_("This program will only solve for a single variable or for zero."));
+				rv = 0;
+			} else {
+				/* Normal solve: */
+				rv = solve_sub(lhs[want], n_lhs[want], lhs[have], &n_lhs[have], rhs[have], &n_rhs[have]);
+			}
+		} else {
+			/* Solve variable was preceded by an equals sign, solve using reversed equation sides: */
+			rv = solve_sub(rhs[want], n_rhs[want], rhs[have], &n_rhs[have], lhs[have], &n_lhs[have]);
+		}
 	}
 	/* Free the "want" equation space: */
 	n_lhs[want] = 0;
 	n_rhs[want] = 0;
+	blt(jmp_save, save_save, sizeof(jmp_save));
 #if	!SILENT
 	if (rv <= 0) {
 		printf(_("Solve failed.\n"));
@@ -82,7 +112,7 @@ int		*rightnp;	/* pointer to length of RHS */
 	int		diff_sign;
 	int		op, op_kind;
 	token_type	*p1, *b1, *ep;
-	long		v;			/* variable to solve for */
+	long		v = 0;			/* variable to solve for */
 	int		need_flip;
 	int		uf_flag = false;	/* unfactor flag */
 	int		qtries = 0;
@@ -94,19 +124,55 @@ int		*rightnp;	/* pointer to length of RHS */
 	int		success = 1;
 
 	repeat_count = 0;
+	prev_n1 = 0;
+	prev_n2 = 0;
+	if (*leftnp <= 0 || *rightnp <= 0) {
+		error(_("Please enter an equation or a command like \"help\"."));
+		return false;
+	}
+	if (wantn != 1) {
+		if (wantn == 3 && wantp[1].token.operatr == POWER
+		    && wantp[2].kind == CONSTANT && wantp[2].token.constant > 0.0 && wantp[2].token.constant != 1.0) {
+/*
+ * Solving for 0^2 will isolate the square root and then square both sides of an equation;
+ * and solving for variable^2 will isolate the square root of that variable
+ * and then square both sides of the equation.  Works for any power and variable.
+ */
+			if (wantp[0].kind == VARIABLE) {
+				v = wantp[0].token.variable;
+			}
+			if (solve_sub(&zero_token, 1, rightp, rightnp, leftp, leftnp) <= 0)
+				return false;
+			n_tlhs = *leftnp;
+			blt(tlhs, leftp, n_tlhs * sizeof(*leftp));
+			n_trhs = *rightnp;
+			blt(trhs, rightp, n_trhs * sizeof(*rightp));
+			uf_simp(tlhs, &n_tlhs);
+			if (increase(1 / wantp[2].token.constant, v) != true) {
+				error(_("Unable to isolate root."));
+				return false;
+			}
+			list_tdebug(2);
+			simp_side(tlhs, &n_tlhs);
+			simp_loop(trhs, &n_trhs);
+			uf_simp(trhs, &n_trhs);
+			list_tdebug(1);
+
+			blt(leftp, tlhs, n_tlhs * sizeof(*leftp));
+			*leftnp = n_tlhs;
+			blt(rightp, trhs, n_trhs * sizeof(*rightp));
+			*rightnp = n_trhs;
+			return true;
+		}
+		error(_("This program will only solve for a single variable or for zero."));
+		return false;
+	}
 	/* copy the equation to temporary storage where it will be manipulated */
 	n_tlhs = *leftnp;
 	blt(tlhs, leftp, n_tlhs * sizeof(*leftp));
 	n_trhs = *rightnp;
 	blt(trhs, rightp, n_trhs * sizeof(*rightp));
-	if (wantn != 1) {
-		error(_("This program will only solve for a single variable or for zero."));
-		return false;
-	}
-	if (n_tlhs <= 0 || n_trhs <= 0) {
-		error(_("Please enter an equation or type \"help\"."));
-		return false;
-	}
+
 	if (wantp->kind == VARIABLE) {
 		v = wantp->token.variable;
 		if (!found_var(trhs, n_trhs, v) && !found_var(tlhs, n_tlhs, v)) {
@@ -121,12 +187,11 @@ int		*rightnp;	/* pointer to length of RHS */
 			error(_("This program will only solve for a single variable or for zero."));
 			return false;
 		}
+		debug_string(1, _("Solving for zero..."));
 		zsolve = true;
 	}
-#if	true
 	uf_power(tlhs, &n_tlhs);
 	uf_power(trhs, &n_trhs);
-#endif
 simp_again:
 	/* Make sure equation is a bit simplified. */
 	list_tdebug(2);
@@ -140,7 +205,7 @@ simp_again:
 	}
 	list_tdebug(1);
 no_simp:
-	/* First selectively move subexpressions from the RHS to the LHS. */
+	/* First selectively move sub-expressions from the RHS to the LHS. */
 	op = 0;
 	ep = &trhs[n_trhs];
 	if (zsolve) {
@@ -221,7 +286,7 @@ zero_simp:
 			uf_power(trhs, &n_trhs);
 			do {
 				do {
-					simp_ssub(trhs, &n_trhs, 0L, 0.0, false, true, 0);
+					simp_ssub(trhs, &n_trhs, 0L, 0.0, false, true, 4 /* was 0 */);
 				} while (uf_power(trhs, &n_trhs));
 			} while (super_factor(trhs, &n_trhs, 1));
 			list_tdebug(3);
@@ -414,7 +479,7 @@ zero_simp:
 				}
 				if (uf_flag) {
 					simps_side(tlhs, &n_tlhs, zsolve);
-					list_tdebug(1);
+/*					list_tdebug(1); */
 					uf_flag = false;
 					goto see_work;
 				}
@@ -507,9 +572,6 @@ zero_simp:
 					inc_count++;
 					if (inc_count > MAX_RAISE_POWER)
 						return false;
-#if	!SILENT
-					fprintf(gfp, _("Raising both equation sides to the power of %.*g and unfactoring...\n"), precision, 1.0 / b1->token.constant);
-#endif
 					zero_solved = false;
 					qtries = 0;
 					if (!increase(b1->token.constant, v)) {
@@ -521,7 +583,6 @@ zero_simp:
 				if (qtries) {
 					return false;
 				}
-				debug_string(1, _("Solving for zero..."));
 				*leftnp = n_tlhs;
 				blt(leftp, tlhs, n_tlhs * sizeof(*leftp));
 				*rightnp = n_trhs;
@@ -553,7 +614,7 @@ fin1:
 }
 
 /*
- * Isolate the expression containing variable "v" raised to the power of "d",
+ * Isolate (solve for) the expression containing variable "v" raised to the power of "d",
  * then raise both sides of the equation to the power of 1/d.
  *
  * Return true if successful.
@@ -569,18 +630,26 @@ long	v;
 	token_type	*b1, *p1, *p2;
 	token_type	*ep;
 
+#if	!SILENT
+	fprintf(gfp, _("Raising both equation sides to the power of %.*g and unfactoring...\n"), precision, 1.0 / d);
+#endif
+	list_tdebug(2);
 	partial_flag = false;
 	ufactor(tlhs, &n_tlhs);
 	partial_flag = true;
+	symb_flag = symblify;
 	simp_ssub(tlhs, &n_tlhs, v, d, true, false, 2);
-	simp_ssub(tlhs, &n_tlhs, 0L, /* 0.0 */ 1.0, true, true, 2);
+	simp_ssub(tlhs, &n_tlhs, 0L, 1.0, true, true, 2);
+	symb_flag = false;
+	list_tdebug(1);
+
 lonely:
 	ep = &tlhs[n_tlhs];
 	len2 = len1 = 0;
 	foundp = false;
 	for (p1 = tlhs + 1;; p1 += 2) {
 		if (p1 >= ep) {
-			return false;
+			return 2;	/* power not found */
 		}
 		if (p1->level == 1) {
 			break;
@@ -601,7 +670,7 @@ lonely:
 				if (b1 == tlhs)
 					break;
 			}
-			if (flag) {
+			if (flag || v == 0) {
 				foundp = true;
 				len1 = max(len1, p1 - b1);
 			}
@@ -628,7 +697,7 @@ lonely:
 				if (b1 == tlhs)
 					break;
 			}
-			if (flag) {
+			if (flag || v == 0) {
 				found2 = true;
 				len2 = max(len2, p2 - b1);
 			}
@@ -701,6 +770,10 @@ long	v;	/* solve variable */
 	int		len, alen, blen, aloc, nx1;
 	double		high_power = 0.0;
 
+	debug_string(1, _("Checking if equation is quadratic:"));
+	if (n_tlhs != 1 || tlhs[0].kind != CONSTANT || tlhs[0].token.constant != 0.0) {
+		error_bug("quad_solve() called without a zero-solved equation!");
+	}
 	uf_simp(trhs, &n_trhs);
 	while (factor_plus(trhs, &n_trhs, v, 0.0)) {
 		simp_loop(trhs, &n_trhs);
@@ -982,7 +1055,6 @@ big_bbreak:
 	len += alen;
 	if (found_var(scratch, len, v))
 		return false;
-	debug_string(1, _("Plugging equation into the quadratic formula:"));
 	blt(tlhs, x1_storage, nx1 * sizeof(token_type));
 	n_tlhs = nx1;
 	simp_loop(tlhs, &n_tlhs);
@@ -993,21 +1065,24 @@ big_bbreak:
 	uf_tsimp(trhs, &n_trhs);	/* don't unfactor result so much, just unfactor what will be unfactored anyway */
 	simps_side(trhs, &n_trhs, false);
 	list_tdebug(1);
-#if	!SILENT
-	if (high_power == 2.0) {
-		fprintf(gfp, _("Equation was quadratic.\n"));
-	} else if (high_power == 4.0) {
-		fprintf(gfp, _("Equation was biquadratic.\n"));
-	} else {
-		fprintf(gfp, _("Equation was solved with the quadratic formula.\n"));
-	}
-#endif
+	debug_string(0, _("Equation was solved with the quadratic formula."));
 	return true;
 }
 
 /*
  * This is the heart of Mathomatic solving:
  * It applies an identical mathematical operation to both sides of an equation.
+ *
+ * Solving in Mathomatic is almost entirely based on the rule:
+ *	y = f(x)
+ *	g(y) = g(f(x))
+ * where f() and g() are any function, and:
+ *	arcf(y) = arcf(f(x))
+ *	arcf(y) = x
+ * where arcf() is the inverse function of f().
+ * An equality will remain an equality
+ * when both sides of the equation are operated on by the same mathematical operation.
+ * Some simplification is also necessary during solving, though it is not done in this routine.
  *
  * Apply the inverse of the operation "op" followed by expression "operandp",
  * which is somewhere in "side1p", to both sides of an equation,
@@ -1027,13 +1102,17 @@ int		*side2np;	/* pointer to the length of "side2p" */
 	token_type	*p1, *p2, *ep;
 	int		oldn, operandn;
 	double		numerator, denominator;
-	static int	prev_n1, prev_n2;
 	double		d1, d2;
+	complexs	c1, c2;
+	char		var_name_buf[MAX_VAR_LEN];
 
 	oldn = *side1np;
 	ep = &side1p[oldn];
+	if (operandp < side1p || operandp >= ep) {
+		error_bug("g_of_f() called with invalid operandp.");
+	}
 	if (*side1np == prev_n1 && *side2np == prev_n2) {
-		if (++repeat_count >= 3) {
+		if (++repeat_count >= 4 /* was 3 */) {
 			debug_string(1, _("Infinite loop aborted in solve routine."));
 			return false;
 		}
@@ -1068,16 +1147,35 @@ int		*side2np;	/* pointer to the length of "side2p" */
 	}
 	operandn = p1 - operandp;
 	if (op == POWER && operandp == side1p) {
-		if (!get_constant(side2p, *side2np, &d1))
+		if (!parse_complex(side2p, *side2np, &c1))
 			return false;
-		if (!get_constant(operandp, operandn, &d2))
+		if (!parse_complex(operandp, operandn, &c2))
 			return false;
 		debug_string(1, _("Taking logarithm of both equation sides:"));
-		*side2np = 1;
-		side2p->level = 1;
-		side2p->kind = CONSTANT;
 		errno = 0;
-		side2p->token.constant = log(d1) / log(d2);
+		c1 = complex_div(complex_log(c1), complex_log(c2));
+		*side2np = 0;
+		side2p[*side2np].level = 1;
+		side2p[*side2np].kind = CONSTANT;
+		side2p[*side2np].token.constant = c1.re;
+		(*side2np)++;
+		side2p[*side2np].level = 1;
+		side2p[*side2np].kind = OPERATOR;
+		side2p[*side2np].token.operatr = PLUS;
+		(*side2np)++;
+		side2p[*side2np].level = 2;
+		side2p[*side2np].kind = CONSTANT;
+		side2p[*side2np].token.constant = c1.im;
+		(*side2np)++;
+		side2p[*side2np].level = 2;
+		side2p[*side2np].kind = OPERATOR;
+		side2p[*side2np].token.operatr = TIMES;
+		(*side2np)++;
+		side2p[*side2np].level = 2;
+		side2p[*side2np].kind = VARIABLE;
+		side2p[*side2np].token.variable = IMAGINARY;
+		(*side2np)++;
+
 		blt(side1p, p1 + 1, (*side1np - (operandn + 1)) * sizeof(token_type));
 		*side1np -= operandn + 1;
 		check_err();
@@ -1158,7 +1256,13 @@ int		*side2np;	/* pointer to the length of "side2p" */
 		p2++;
 		p2->level = 2;
 		p2->kind = VARIABLE;
-		parse_var(&p2->token.variable, V_INTEGER_NAME);
+		snprintf(var_name_buf, sizeof(var_name_buf), "%s%.0d", V_INTEGER_PREFIX, last_int_var);
+		if (parse_var(&p2->token.variable, var_name_buf) == NULL)
+			return false;
+		last_int_var++;
+		if (last_int_var < 0) {
+			last_int_var = 0;
+		}
 		p2++;
 		p2->level = 2;
 		p2->kind = OPERATOR;

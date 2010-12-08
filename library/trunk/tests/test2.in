@@ -4,13 +4,12 @@ l=f*(b-y)+z*(a-f)
 m=2*(b-y)-a+f
 n=2*(b-y)+a-f
 o=l*(1/m-1/n)/2
-elim l m n y
-simp
+eliminate l m n y
+simplify
 copy
 f
-simp symb
+simplify symbolic
 6
-deri z
+derivative z
 f
-simp symb
-simp symb
+simplify symbolic

@@ -1,20 +1,84 @@
 /*
  * Mathomatic commands that don't belong anywhere else.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
 
-#define	OPT_MIN_SIZE	7	/* Minimum size of repeated expressions to find in optimize command. */
+#define	OPT_MIN_SIZE	7	/* Minimum size (in tokens) of repeated expressions to find in optimize command. */
 
 static int	sum_product();
 static int	complex_func();
 static int	elim_sub();
-#if	!LIBRARY
+
 /* Global variables for the optimize command. */
 static int	opt_en[N_EQUATIONS];
 static int	last_temp_var = 0;
+
+#if	(UNIX || CYGWIN) && !SECURE && !LIBRARY
+/*
+ * The plot command.
+ *
+ * All command functions like this return true if successful, or false for failure.
+ */
+int
+plot_cmd(cp)
+char	*cp;	/* the command line argument */
+{
+	char	cl[MAX_CMD_LEN], *cp1 = NULL;
+	int	free_cp1 = false;
+
+	if (security_level) {
+		error(_("Command disabled by security level."));
+		return false;
+	}
+	if (n_lhs[cur_equation]) {
+		if (n_rhs[cur_equation]) {
+			cp1 = list_expression(rhs[cur_equation], n_rhs[cur_equation], 3);
+		} else {
+			cp1 = list_expression(lhs[cur_equation], n_lhs[cur_equation], 3);
+		}
+	}
+	if (cp1)
+		free_cp1 = true;
+	else
+		cp1 = "";
+	if (strchr(cp, 'y') || strchr(cp1, 'y')) {
+		printf(_("Performing 3D surface plot...\n"));
+		snprintf(cl, sizeof(cl), "echo 'set grid; %s; splot %s %s'|gnuplot -persist", plot_prefix, cp, cp1);
+	} else {
+		printf(_("Performing 2D plot...\n"));
+		snprintf(cl, sizeof(cl), "echo 'set grid; %s; plot %s %s'|gnuplot -persist", plot_prefix, cp, cp1);
+	}
+	if (free_cp1)
+		free(cp1);
+	if (shell_out(cl)) {
+		error(_("Error trying to run gnuplot."));
+		printf(_("Shell command line = \"%s\".\n"), cl);
+		return false;
+#if	!SILENT
+	} else if (debug_level > 0) {
+		printf(_("Shell command line = \"%s\".\n"), cl);
+#endif
+	}
+	return true;
+}
 #endif
 
 /*
@@ -26,13 +90,31 @@ char	*cp;	/* the command line argument */
 {
 	int		rv;	/* return value */
 
-	extra_characters(cp);	/* no command options allowed */
+	if (extra_characters(cp))	/* Make sure nothing else is on the command line. */
+		return false;
 #if	LIBRARY
-	free(result_str);
+	free_result_str();
 	result_str = strdup(VERSION);
 #endif
 	rv = version_report();
+
+	fprintf(gfp, _("\nMathomatic is GNU LGPL version 2.1 licensed software,\n"));
+	fprintf(gfp, _("meaning it is free software that comes with no warranty.\n"));
+	fprintf(gfp, _("Type \"help license\" for the copyright and license.\n"));
+
+	fprintf(gfp, _("\nDocumentation, reference cards, and the newest version of Mathomatic\n"));
+	fprintf(gfp, _("are always available at the Mathomatic website: www.mathomatic.org\n"));
+	fprintf(gfp, _("Feedback, questions, and contributions in truth are always welcomed.\n"));
 	return rv;
+}
+
+/*
+ * Return the maximum amount of memory (in bytes) that this program will use.
+ */
+long
+max_memory_usage()
+{
+	return((long) (N_EQUATIONS + 3L) * n_tokens * sizeof(token_type) * 2L);
 }
 
 /*
@@ -41,8 +123,13 @@ char	*cp;	/* the command line argument */
 int
 version_report()
 {
+	long	l;
+
 	fprintf(gfp, _("Mathomatic version %s\n"), VERSION);
-	fprintf(gfp, _("Compile defines used: "));
+	fprintf(gfp, _("Compile-time defines used: "));
+#if	LINUX
+	fprintf(gfp, "LINUX ");
+#endif
 #if	UNIX
 	fprintf(gfp, "UNIX ");
 #endif
@@ -70,16 +157,32 @@ version_report()
 #if	I18N
 	fprintf(gfp, "I18N ");
 #endif
-	fprintf(gfp, _("\nThe current expression array size is %d tokens,\n"), n_tokens);
-	fprintf(gfp, _("making the maximum memory usage %ld kilobytes.\n"), ((long) (N_EQUATIONS + 3L) * n_tokens * sizeof(token_type) * 2L) / 1000L);
-	fprintf(gfp, _("\nMathomatic is GNU LGPL version 2.1 licensed software,\n"));
-	fprintf(gfp, _("meaning it is free software that comes with no warranty.\n"));
-	fprintf(gfp, "Use \"help copyright\" for copyright and license information.\n");
+#if	NO_COLOR
+	fprintf(gfp, "NO_COLOR ");
+#endif
+
+	fprintf(gfp, "\nsizeof(int) = %u bytes, sizeof(long) = %u bytes.\n\n", (unsigned) sizeof(int), (unsigned) sizeof(long));
+
+	fprintf(gfp, _("The current expression array size is %d tokens,\n"), n_tokens);
+	l = max_memory_usage() / 1000L;
+	if (l >= 10000L) {
+		fprintf(gfp, _("making the maximum memory usage approximately %ld megabytes.\n"), l / 1000L);
+	} else {
+		fprintf(gfp, _("making the maximum memory usage approximately %ld kilobytes.\n"), l);
+	}
+#if	SECURE
+	fprintf(gfp, _("Compiled for maximum security.\n"));
+#else
+	fprintf(gfp, _("The current security level is %d.\n"), security_level);
+#endif
 	return true;
 }
 
 /*
  * The solve command.
+ *
+ * Return 0 on failure, 1 on total success,
+ * or 2 if partial success (solved, but solutions didn't verify when doing "solve verify").
  */
 int
 solve_cmd(cp)
@@ -87,12 +190,12 @@ char	*cp;
 {
 	int		i, j;
 	char		buf[MAX_CMD_LEN];
-	long		v;	/* Mathomatic variable */
-	token_type	want;
 	int		diff_sign;
-	int		verify_flag = false, plural_flag = false, once_through;
-	char		*cp1;
+	int		verify_flag = false, plural_flag = false, once_through, contains_infinity;
+	char		*cp1, *cp_start;
+	token_type	want;
 
+	cp_start = cp;
 	if (cur_equation < 0 || cur_equation >= n_equations || n_lhs[cur_equation] <= 0 || n_rhs[cur_equation] <= 0) {
 		error(_("No current equation."));
 		return false;
@@ -113,23 +216,34 @@ char	*cp;
 		if ((cp = get_string(buf, sizeof(buf))) == NULL) {
 			return false;
 		}
+		cp_start = cp;
+	}
+	input_column += (cp - cp_start);
+	if ((cp = parse_equation(i, cp)) == NULL) {
+		return false;
 	}
 	if (verify_flag) {
-		cp = parse_var2(&v, cp);
-		if (cp == NULL || extra_characters(cp)) {
+		if (n_lhs[i] != 1 || n_rhs[i] != 0 || lhs[i][0].kind != VARIABLE) {
+			n_lhs[i] = 0;
+			n_rhs[i] = 0;
+			error(_("Variable required."));
 			return false;
 		}
+		want = lhs[i][0];
 		copy_espace(cur_equation, i);
-		want.level = 1;
-		want.kind = VARIABLE;
-		want.token.variable = v;
 		if (solve_sub(&want, 1, lhs[cur_equation], &n_lhs[cur_equation], rhs[cur_equation], &n_rhs[cur_equation]) > 0) {
 			return_result(cur_equation);
-			if (compare_es(cur_equation, i)) {
-				warning(_("Nothing was done, so no need to verify."));
+			if (!solved_equation(cur_equation) || lhs[cur_equation][0].token.variable != want.token.variable) {
+				error(_("Result not a normally solved equation, so cannot verify."));
 				n_lhs[i] = 0;
 				n_rhs[i] = 0;
-				return true;
+				return 1;
+			}
+			if (compare_es(cur_equation, i)) {
+				debug_string(0, _("Nothing was done, so no need to verify solutions."));
+				n_lhs[i] = 0;
+				n_rhs[i] = 0;
+				return 1;
 			}
 			for (j = 0; j < n_rhs[cur_equation]; j += 2) {
 				if (rhs[cur_equation][j].kind == VARIABLE && (rhs[cur_equation][j].token.variable & VAR_MASK) == SIGN) {
@@ -137,33 +251,49 @@ char	*cp;
 					break;
 				}
 			}
-			subst_var_with_exp(lhs[i], &n_lhs[i], rhs[cur_equation], n_rhs[cur_equation], v);
-			subst_var_with_exp(rhs[i], &n_rhs[i], rhs[cur_equation], n_rhs[cur_equation], v);
+			subst_var_with_exp(lhs[i], &n_lhs[i], rhs[cur_equation], n_rhs[cur_equation], want.token.variable);
+			subst_var_with_exp(rhs[i], &n_rhs[i], rhs[cur_equation], n_rhs[cur_equation], want.token.variable);
 			calc_simp(lhs[i], &n_lhs[i]);
 			calc_simp(rhs[i], &n_rhs[i]);
 			once_through = false;
 check_result:
-			if (se_compare(lhs[i], n_lhs[i], rhs[i], n_rhs[i], &diff_sign) && !diff_sign) {
-#if	!SILENT
+			contains_infinity = (exp_contains_infinity(lhs[i], n_lhs[i])
+			    || exp_contains_infinity(rhs[i], n_rhs[i]));
+                        if (se_compare(lhs[i], n_lhs[i], rhs[i], n_rhs[i], &diff_sign) && !diff_sign) {
 				if (plural_flag)
 					printf(_("Solutions verified.\n"));
 				else
 					printf(_("Solution verified.\n"));
-#endif
 				n_lhs[i] = 0;
 				n_rhs[i] = 0;
-				return true;
+				if (contains_infinity) {
+					error(_("Solution might be incorrect because it contains infinity or NaN."));
+					return 2;
+				} else {
+					return 1;
+				}
 			} else {
-				if (!once_through) {
-					symb_flag = true;
-					simpa_side(lhs[i], &n_lhs[i], true, false);
-					simpa_side(rhs[i], &n_rhs[i], true, false);
+				if (!contains_infinity && !once_through) {
+					symb_flag = symblify;
+					simpa_repeat_side(lhs[i], &n_lhs[i], true, false);
+					simpa_repeat_side(rhs[i], &n_rhs[i], true, false);
 					symb_flag = false;
 					once_through = true;
 					goto check_result;
 				}
-				error(_("Solution may be incorrect."));
-				return false;
+				if (contains_infinity) {
+					error(_("Solution might be incorrect because it contains infinity or NaN."));
+				} else {
+					if (plural_flag)
+						error(_("Solutions might be incorrect."));
+					else
+						error(_("Solution might be incorrect."));
+				}
+#if	1	/* set to #if 0 for testing, #if 1 for normal operation */
+				n_lhs[i] = 0;
+				n_rhs[i] = 0;
+#endif
+				return 2;
 			}
 		} else {
 #if	!SILENT
@@ -171,10 +301,8 @@ check_result:
 #endif
 		}
 	} else {
-		if (parse_equation(i, cp)) {
-			if (solve_espace(i, cur_equation)) {
-				return return_result(cur_equation);
-			}
+		if (solve_espace(i, cur_equation)) {
+			return return_result(cur_equation);
 		}
 	}
 	n_lhs[i] = 0;
@@ -213,7 +341,7 @@ int	product_flag;	/* true for product, otherwise sum */
 	int		i;
 	long		v = 0;			/* Mathomatic variable */
 	double		start, end, step = 1.0;
-	int		result_en;
+	int		result_equation;
 	int		n, ns;
 	token_type	*dest, *source;
 	int		count_down;		/* if true, count down, otherwise count up */
@@ -222,15 +350,15 @@ int	product_flag;	/* true for product, otherwise sum */
 	if (current_not_defined()) {
 		return false;
 	}
-	result_en = next_espace();
+	result_equation = next_espace();
 	if (n_rhs[cur_equation]) {
 		ns = n_rhs[cur_equation];
 		source = rhs[cur_equation];
-		dest = rhs[result_en];
+		dest = rhs[result_equation];
 	} else {
 		ns = n_lhs[cur_equation];
 		source = lhs[cur_equation];
-		dest = lhs[result_en];
+		dest = lhs[result_equation];
 	}
 	if (*cp) {
 		cp = parse_var2(&v, cp);
@@ -303,7 +431,7 @@ int	product_flag;	/* true for product, otherwise sum */
 	if (extra_characters(cp))
 		return false;
 	count_down = (end < start);
-	if (fmod(fabs(start - end) / step, 1.0)) {
+	if (fmod(fabs(start - end) / step, 1.0) != 0.0) {
 		warning(_("End value not reached."));
 	}
 	if (product_flag) {
@@ -341,18 +469,18 @@ int	product_flag;	/* true for product, otherwise sum */
 		blt(&dest[n], tlhs, n_tlhs * sizeof(token_type));
 		n += n_tlhs;
 		calc_simp(dest, &n);
+		side_debug(1, dest, n);
 	}
 	if (n_rhs[cur_equation]) {
-		n_rhs[result_en] = n;
-		blt(lhs[result_en], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
-		n_lhs[result_en] = n_lhs[cur_equation];
+		n_rhs[result_equation] = n;
+		blt(lhs[result_equation], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
+		n_lhs[result_equation] = n_lhs[cur_equation];
 	} else {
-		n_lhs[result_en] = n;
+		n_lhs[result_equation] = n;
 	}
-	return return_result(result_en);
+	return return_result(result_equation);
 }
 
-#if	!LIBRARY
 /*
  * This function is for the "optimize" command.
  * It finds and substitutes all occurrences of the RHS of "en" in "equation".
@@ -455,7 +583,7 @@ int		*np;
 					k1 = i1 - 1;
 					if ((jj1 - k1) >= OPT_MIN_SIZE
 					    && se_compare(&equation[k], j - k, &equation[k1], jj1 - k1, &diff_sign)) {
-						snprintf(var_name_buf, sizeof(var_name_buf), "temp%d", last_temp_var);
+						snprintf(var_name_buf, sizeof(var_name_buf), "temp%.0d", last_temp_var);
 						if (parse_var(&v, var_name_buf) == NULL) {
 							return false;	/* can't create "temp" variable */
 						}
@@ -531,7 +659,7 @@ char	*cp;
 	for (j = i = start; i <= stop; i++) {
 		if (n_lhs[i]) {
 			j = i;
-			simp_sub(i);
+			simp_equation(i);
 		}
 	}
 	stop = j;
@@ -553,9 +681,9 @@ char	*cp;
 			continue;
 		do {
 			flag = false;
-			simp_sub(i);
+			simp_equation(i);
 			for (j = 0; opt_en[j] >= 0; j++) {
-				simp_sub(opt_en[j]);
+				simp_equation(opt_en[j]);
 				if (i != opt_en[j]) {
 					while (find_more(lhs[i], &n_lhs[i], opt_en[j]))
 						flag = true;
@@ -594,7 +722,6 @@ char	*cp;
 	}
 	return rv;
 }
-#endif
 
 #if	READLINE
 /*
@@ -607,7 +734,7 @@ char	*cp;
 	int	i, j;
 
 	if (!readline_enabled) {
-		error(_("Readline is disabled."));
+		error(_("Readline is currently turned off."));
 		return false;
 	}
 	if (!get_range_eol(&cp, &i, &j)) {
@@ -632,10 +759,12 @@ char	*cp;
  */
 int
 push_en(en)
-int	en;	/* equation space number */
+int	en;	/* equation space number to push */
 {
 	char	*cp;
 
+	if (!readline_enabled)
+		return false;
 	high_prec = true;
 	cp = list_equation(en, false);
 	high_prec = false;
@@ -657,9 +786,9 @@ output_current_directory(ofp)
 FILE	*ofp;	/* output file pointer */
 {
 #if	!SECURE
-	char	buf[MAX_CMD_LEN];
+	char	buf[PATH_MAX];
 
-	if (!secure_flag && ofp && getcwd(buf, sizeof(buf))) {
+	if (security_level < 3 && ofp && getcwd(buf, sizeof(buf))) {
 		fprintf(ofp, "directory = %s\n", buf);
 		return true;
 	}
@@ -703,20 +832,25 @@ FILE	*ofp;	/* output file pointer */
 	}
 	fprintf(ofp, "case_sensitive\n");
 
-	if (!color_flag) {
-		fprintf(ofp, "no ");
+	if (bold_colors && color_flag) {
+		fprintf(ofp, "bold color\n");
+	} else {
+		if (!color_flag) {
+			fprintf(ofp, "no color\n");
+		} else {
+			fprintf(ofp, "no bold color\n");
+		}
 	}
-	fprintf(ofp, "color\n");
-
-	if (!bold_colors) {
-		fprintf(ofp, "no ");
-	}
-	fprintf(ofp, "bold_colors\n");
 
 	if (!display2d) {
 		fprintf(ofp, "no ");
 	}
 	fprintf(ofp, "display2d\n");
+
+	if (!fractions_display) {
+		fprintf(ofp, "no ");
+	}
+	fprintf(ofp, "fractions_display\n");
 
 	if (quiet_mode) {
 		fprintf(ofp, "no ");
@@ -727,6 +861,11 @@ FILE	*ofp;	/* output file pointer */
 		fprintf(ofp, "no ");
 	}
 	fprintf(ofp, "preserve_surds\n");
+
+	if (!rationalize_denominators) {
+		fprintf(ofp, "no ");
+	}
+	fprintf(ofp, "rationalize_denominators\n");
 
 	fprintf(ofp, "modulus_mode = %d\n", modulus_mode);
 
@@ -742,10 +881,7 @@ FILE	*ofp;	/* output file pointer */
 	}
 	fprintf(ofp, "right_associative_power\n");
 
-	if (!negate_highest_precedence) {
-		fprintf(ofp, "no ");
-	}
-	fprintf(ofp, "negate_highest_precedence\n");
+	fprintf(ofp, "plot_prefix = %s\n", plot_prefix);
 
 	fprintf(ofp, "special_variable_characters = %s\n", special_variable_characters);
 }
@@ -788,15 +924,17 @@ save_set_options()
 		return false;
 	}
 	if ((fp = fopen(rc_file, "w")) == NULL) {
+		perror(rc_file);
 		error(_("Unable to write to set options startup file."));
 		return false;
 	}
 	fprintf(fp, "; Mathomatic set options loaded at startup.\n");
-	fprintf(fp, "; This file can be edited.\n\n");
+	fprintf(fp, "; This file can be edited or deleted.\n\n");
 	output_options(fp);
 	if (fclose(fp) == 0) {
 		printf(_("All options saved in startup file \"%s\".\n"), rc_file);
 	} else {
+		perror(rc_file);
 		error(_("Error saving set options."));
 		return false;
 	}
@@ -815,14 +953,16 @@ char	*cp;
 {
 	int	i;
 	int	negate;
-	char	*cp1, *option_string;
+	char	*cp1, *option_string, *original_string;
 
+	original_string = cp;
+try_next_param:
 	cp = skip_space(cp);
 	if (*cp == '\0') {
 		return true;
 	}
-#if	!SECURE
-	if (!secure_flag && strncasecmp(cp, "dir", 3) == 0) {
+#if	!SECURE && !LIBRARY
+	if (security_level < 3 && strncasecmp(cp, "dir", 3) == 0) {
 		cp = skip_param(cp);
 		if (*cp == '\0') {
 			cp1 = getenv("HOME");
@@ -865,13 +1005,25 @@ char	*cp;
 		}
 		return true;
 	}
+	if (strncasecmp(option_string, "plot_prefix", 4) == 0) {
+		if (negate) {
+			plot_prefix[0] = '\0';
+		} else {
+			my_strlcpy(plot_prefix, cp, sizeof(plot_prefix));
+		}
+		return true;
+	}
 	if (strncasecmp(option_string, "columns", 6) == 0) {
 		if (negate) {
 			screen_columns = 0;
 		} else {
+			if (*cp == '\0') {
+				get_screen_size();
+				goto check_return;
+			}
 			i = decstrtol(cp, &cp1);
 			if (i < 0 || cp == cp1) {
-				error(_("Please specify how wide the screen is; 0 = infinite columns."));
+				error(_("Please specify how wide the screen is; 0 = no column checking."));
 				return false;
 			}
 			cp = cp1;
@@ -879,10 +1031,19 @@ char	*cp;
 		}
 		goto check_return;
 	}
+	if (strncasecmp(option_string, "wide", 4) == 0) {
+		if (negate) {
+			get_screen_size();
+		} else {
+			screen_columns = 0;
+			screen_rows = 0;
+		}
+		goto try_next_param;
+	}
 	if (strncasecmp(option_string, "precision", 4) == 0) {
 		i = decstrtol(cp, &cp1);
-		if (i < 0 || i > 14 || cp == cp1) {
-			error(_("Please specify a display precision between 0 and 14 digits."));
+		if (i < 0 || i > 15 || cp == cp1) {
+			error(_("Please specify a display precision between 0 and 15 digits."));
 			return false;
 		}
 		precision = i;
@@ -890,35 +1051,49 @@ char	*cp;
 	}
 	if (strcmp_tospace(option_string, "auto") == 0) {
 		autosolve = autocalc = autoselect = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "autosolve", 9) == 0) {
 		autosolve = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "autocalc", 8) == 0) {
 		autocalc = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "autoselect", 10) == 0) {
 		autoselect = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "case", 4) == 0) {
 		case_sensitive_flag = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "display2d", 7) == 0) {
 		display2d = !negate;
-		goto check_return;
+		goto try_next_param;
+	}
+	if (strncasecmp(option_string, "fraction", 8) == 0) {
+		fractions_display = !negate;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "prompt", 6) == 0) {
 		quiet_mode = negate;
-		goto check_return;
+		goto try_next_param;
 	}
+#if	0
+	if (strncasecmp(option_string, "html", 4) == 0) {
+		html_flag = !negate;
+		goto try_next_param;
+	}
+#endif
 	if (strncasecmp(option_string, "preserve", 8) == 0) {
 		preserve_surds = !negate;
-		goto check_return;
+		goto try_next_param;
+	}
+	if (strncasecmp(option_string, "rationalize", 11) == 0) {
+		rationalize_denominators = !negate;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "modulus_mode", 3) == 0) {
 		if (negate) {
@@ -939,14 +1114,14 @@ char	*cp;
 		goto check_return;
 	}
 	if (strncasecmp(option_string, "color", 5) == 0) {
+		reset_attr();
 		color_flag = !negate;
-		cur_color = -1;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "bold", 4) == 0) {
+		reset_attr();
 		bold_colors = !negate;
-		cur_color = -1;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "finance", 7) == 0) {
 		if (negate) {
@@ -972,18 +1147,14 @@ char	*cp;
 	}
 	if (strncasecmp(option_string, "factor_integers", 6) == 0) {
 		factor_int_flag = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 	if (strncasecmp(option_string, "right_associative_power", 5) == 0) {
 		right_associative_power = !negate;
-		goto check_return;
-	}
-	if (strncasecmp(option_string, "negate_highest_precedence", 6) == 0) {
-		negate_highest_precedence = !negate;
-		goto check_return;
+		goto try_next_param;
 	}
 #if	!SECURE && !LIBRARY
-	if (!secure_flag && strcmp_tospace(option_string, "save") == 0) {
+	if (security_level < 2 && strcmp_tospace(option_string, "save") == 0) {
 		if (rc_file[0] == '\0') {
 			error(_("Set options startup file name not set."));
 			return false;
@@ -999,6 +1170,7 @@ char	*cp;
 		goto check_return;
 	}
 #endif
+	printf(_("\nCannot process set string \"%s\".\n"), original_string);
 	error(_("Unknown set option."));
 	return false;
 
@@ -1177,8 +1349,7 @@ int	imag_flag;	/* if true, copy the imaginary part, otherwise copy the real part
 		}
 	}
 	if (!has_imag || !has_real) {
-		error(_("Failed, expression is not a mix."));
-		return false;
+		warning(_("Expression was not a mix."));
 	}
 	do {
 		simp_loop(dest, &n1);
@@ -1293,9 +1464,6 @@ char	*cp;
 #if	!LIBRARY
 /*
  * The calculate command.
- *
- * Temporarily plug values into the RHS of the current equation,
- * unless there is no RHS, then use LHS.
  */
 int
 calculate_cmd(cp)
@@ -1309,9 +1477,10 @@ char	*cp;
 	token_type	*source;
 	int		n;
 	int		diff_sign;
-	char		buf[MAX_CMD_LEN];
-	int		factor_flag = false, repeat_flag = false, value_entered;
+	char		buf[MAX_CMD_LEN], *cp_start;
+	int		factor_flag = false, value_entered;
 
+	cp_start = cp;
 	if (current_not_defined()) {
 		return false;
 	}
@@ -1354,7 +1523,7 @@ char	*cp;
 			return false;
 		}
 		if (iterations == 0) {
-			warning(_("Infinite iterations."));
+			warning(_("Calculation will be iterated until convergence."));
 			iterations = LONG_MAX - 1L;
 		}
 	}
@@ -1385,7 +1554,7 @@ calc_again:
 		}
 		value_entered = true;
 		/* Disguise all variables in the entered expression by making them negative. */
-		/* That way they won't be improperly substituted. */
+		/* That way they won't be improperly substituted in the future. */
 		for (k1 = 0; k1 < n_tlhs; k1 += 2)
 			if (tlhs[k1].kind == VARIABLE)
 				tlhs[k1].token.variable = -tlhs[k1].token.variable;
@@ -1407,6 +1576,7 @@ calc_again:
 		blt(tlhs, trhs, n_trhs * sizeof(token_type));
 		n_tlhs = n_trhs;
 		for (l = 0; l < iterations; l++) {
+			side_debug(1, tes, n_tes);
 			blt(trhs, tlhs, n_tlhs * sizeof(token_type));
 			n_trhs = n_tlhs;
 			subst_var_with_exp(trhs, &n_trhs, tes, n_tes, it_v);
@@ -1487,7 +1657,7 @@ calc_again:
 			fprintf(gfp, " = ");
 		}
 		list_factor(tlhs, &n_tlhs, factor_flag);
-		if (make_fractions(tlhs, &n_tlhs)) {
+		if (n_tlhs <= 9 && make_fractions(tlhs, &n_tlhs)) {
 			group_proc(tlhs, &n_tlhs);
 			fprintf(gfp, " = ");
 			list_factor(tlhs, &n_tlhs, factor_flag);
@@ -1532,6 +1702,9 @@ char	*cp;
 	return true;
 }
 
+/*
+ * Compare the Right Hand Sides of two equation spaces.
+ */
 static int
 compare_rhs(i, j, diff_signp)
 int	i, j;
@@ -1539,11 +1712,13 @@ int	*diff_signp;
 {
 	int	rv;
 
+/* First, test the compare function by comparing with self: */
 	rv = se_compare(rhs[i], n_rhs[i], rhs[i], n_rhs[i], diff_signp);
 	if (!rv || *diff_signp) {
-		error(_("Error in compare function or too many terms to compare."));
+		error(_("Too many terms to compare."));
 		return false;
 	}
+/* Now do the requested compare: */
 	sign_cmp_flag = true;
 	rv = se_compare(rhs[i], n_rhs[i], rhs[j], n_rhs[j], diff_signp);
 	sign_cmp_flag = false;
@@ -1560,27 +1735,27 @@ compare_es(i, j)
 int	i, j;	/* equation space numbers */
 {
 	int	rv;
-	int	diff_sign;
+	int	diff_sign_lhs, diff_sign_rhs;
 
 	if (n_lhs[i] == 0 || n_lhs[j] == 0)
-		return false;
-	/* compare the two left hand sides */
+		return false;	/* empty equation space */
+	if ((n_rhs[i] == 0) != (n_rhs[j] == 0))
+		return false;	/* mix of expression and equation */
+/* Compare the two left hand sides: */
 	sign_cmp_flag = true;
-	rv = se_compare(lhs[i], n_lhs[i], lhs[j], n_lhs[j], &diff_sign);
+	rv = se_compare(lhs[i], n_lhs[i], lhs[j], n_lhs[j], &diff_sign_lhs);
 	sign_cmp_flag = false;
-	if (!rv || diff_sign)
+	if (!rv)
 		return false;
 	if (n_rhs[i] == 0 && n_rhs[j] == 0)
-		return true;	/* two expressions, not equations */
-	if (n_rhs[i] == 0 || n_rhs[j] == 0)
-		return false;	/* mix of expression and equation */
-	/* compare the two right hand sides */
+		return !diff_sign_lhs;	/* two expressions, not equations */
+/* They are equations, so compare the two right hand sides: */
 	sign_cmp_flag = true;
-	rv = se_compare(rhs[i], n_rhs[i], rhs[j], n_rhs[j], &diff_sign);
+	rv = se_compare(rhs[i], n_rhs[i], rhs[j], n_rhs[j], &diff_sign_rhs);
 	sign_cmp_flag = false;
-	if (!rv || diff_sign)
+	if (!rv)
 		return false;
-	return true;
+	return(diff_sign_lhs == diff_sign_rhs);
 }
 
 /*
@@ -1624,10 +1799,10 @@ char	*cp;
 				fprintf(gfp, _("Expressions are identical.\n"));
 				return true;
 			}
-			debug_string(0, _("Simplifying both expressions..."));
+			debug_string(0, _("Completely simplifying both expressions..."));
 			symb_flag = symb;
-			simpa_side(lhs[i], &n_lhs[i], false, false);
-			simpa_side(lhs[j], &n_lhs[j], false, false);
+			simpa_repeat_side(lhs[i], &n_lhs[i], false, true);
+			simpa_repeat_side(lhs[j], &n_lhs[j], false, true);
 			symb_flag = false;
 #if	!SILENT
 			if (debug_level >= 0) {
@@ -1648,7 +1823,7 @@ char	*cp;
 			fprintf(gfp, _("Expressions differ.\n"));
 			return false;
 		}
-		error(_("Cannot compare an expression with an equation."));
+		error(_("Cannot compare an equation with a non-equation."));
 		return false;
 	}
 	if (compare_es(i, j)) {
@@ -1661,10 +1836,10 @@ char	*cp;
 		if (compare_rhs(i, j, &diff_sign)) {
 			goto times_neg1;
 		}
-		debug_string(0, _("Simplifying both equations..."));
+		debug_string(0, _("Completely simplifying both equations..."));
 		symb_flag = symb;
-		simpa_side(rhs[i], &n_rhs[i], false, false);
-		simpa_side(rhs[j], &n_rhs[j], false, false);
+		simpa_repeat_side(rhs[i], &n_rhs[i], false, true);
+		simpa_repeat_side(rhs[j], &n_rhs[j], false, true);
 		symb_flag = false;
 #if	!SILENT
 		if (debug_level >= 0) {
@@ -1692,10 +1867,10 @@ char	*cp;
 		fprintf(gfp, _("Equations are identical.\n"));
 		return true;
 	}
-	debug_string(0, _("Simplifying both equations..."));
+	debug_string(0, _("Completely simplifying both equations..."));
 	symb_flag = symb;
-	simpa_side(rhs[i], &n_rhs[i], false, false);
-	simpa_side(rhs[j], &n_rhs[j], false, false);
+	simpa_repeat_side(rhs[i], &n_rhs[i], false, false);
+	simpa_repeat_side(rhs[j], &n_rhs[j], false, false);
 	symb_flag = false;
 	if (compare_rhs(i, j, &diff_sign)) {
 		fprintf(gfp, _("Equations are identical.\n"));
@@ -1726,7 +1901,34 @@ times_neg1:
 	}
 	list_proc(lhs[j], n_lhs[j], false);
 	fprintf(gfp, _(") in the second equation.\n"));
-	return(!diff_sign);
+#if	LIBRARY
+	return false;
+#else
+	return 2;
+#endif
+}
+
+/*
+ * Display the specified floating point value.
+ * If it is equal to a simple fraction, display that too.
+ *
+ * Return true if a fraction was displayed.
+ */
+int
+display_fraction(value)
+double	value;
+{
+	double	d4, d5;
+	int	rv = false;
+
+	f_to_fraction(value, &d4, &d5);
+	fprintf(gfp, "%.*g", precision, value);
+	if (d5 != 1.0) {
+		fprintf(gfp, " = %.*g/%.*g", precision, d4, precision, d5);
+		rv = true;
+	}
+	fprintf(gfp, "\n");
+	return rv;
 }
 
 /*
@@ -1738,7 +1940,7 @@ char	*cp;
 {
 	long		v = 0, v_tmp;		/* Mathomatic variables */
 	int		i, j;
-	int		nl, nr;
+	int		nleft = 0, nright = 0;
 	double		lcm, d1, d2, d3, d4, d5;
 	complexs	c1, c2, c3;
 
@@ -1752,25 +1954,26 @@ char	*cp;
 			return false;
 	}
 	i = next_espace();
+do_repeat:
 /* prompt for the two operands */
 	my_strlcpy(prompt_str, _("Enter dividend: "), sizeof(prompt_str));
-	if (!get_expr(rhs[i], &nr)) {
-		return false;
+	if (!get_expr(rhs[i], &nright)) {
+		return repeat_flag;
 	}
 	my_strlcpy(prompt_str, _("Enter divisor: "), sizeof(prompt_str));
-	if (!get_expr(lhs[i], &nl)) {
-		return false;
+	if (!get_expr(lhs[i], &nleft)) {
+		return repeat_flag;
 	}
 	fprintf(gfp, "\n");
 /* simplify the operand expressions */
-	calc_simp(rhs[i], &nr);
-	calc_simp(lhs[i], &nl);
+	calc_simp(rhs[i], &nright);
+	calc_simp(lhs[i], &nleft);
 /* if division by zero, display a warning */
-	if (get_constant(lhs[i], nl, &d2)) {
+	if (get_constant(lhs[i], nleft, &d2)) {
 		check_divide_by_zero(d2);
 	}
 /* Do constant division if 2 normal numbers were entered */
-	if (get_constant(rhs[i], nr, &d1) && get_constant(lhs[i], nl, &d2)) {
+	if (get_constant(rhs[i], nright, &d1) && get_constant(lhs[i], nleft, &d2)) {
 		d3 = gcd_verified(d1, d2);
 		d4 = modf(d1 / d2, &d5);
 		fprintf(gfp, "%.*g/%.*g = %.*g", precision, d1, precision, d2, precision, d1 / d2);
@@ -1782,6 +1985,8 @@ char	*cp;
 		d2 = fabs(d2);
 		if (d3 == 0.0) {
 			fprintf(gfp, _("No GCD found.\n"));
+			if (repeat_flag)
+				goto do_repeat;
 			return true;
 		}
 		fprintf(gfp, "GCD = ");
@@ -1797,46 +2002,52 @@ char	*cp;
 		} else {
 			display_fraction(lcm);
 		}
+		if (repeat_flag)
+			goto do_repeat;
 		return true;
 	}
 /* else do complex number division if 2 complex numbers were entered */
-	if (parse_complex(rhs[i], nr, &c1) && parse_complex(lhs[i], nl, &c2)) {
+	if (parse_complex(rhs[i], nright, &c1) && parse_complex(lhs[i], nleft, &c2)) {
 		c3 = complex_div(c1, c2);
 		fprintf(gfp, _("Result of complex number division:\n"));
 		fprintf(gfp, "%.*g %+.*g*i\n\n", precision, c3.re, precision, c3.im);
+		if (repeat_flag)
+			goto do_repeat;
 		return true;
 	}
 /* else do polynomial division and univariate GCD display */
 	v_tmp = v;
-	if (poly_div(rhs[i], nr, lhs[i], nl, &v_tmp)) {
+	if (poly_div(rhs[i], nright, lhs[i], nleft, &v_tmp)) {
 		simp_divide(tlhs, &n_tlhs);
 		simp_divide(trhs, &n_trhs);
 		list_var(v_tmp, 0);
 		fprintf(gfp, _("Polynomial division successful using base variable (%s).\n"), var_str);
 		fprintf(gfp, _("The quotient is:\n"));
-		display_fractions_and_group(tlhs, &n_tlhs);
+		fractions_and_group(tlhs, &n_tlhs);
 		list_factor(tlhs, &n_tlhs, false);
 		fprintf(gfp, _("\n\nThe remainder is:\n"));
-		display_fractions_and_group(trhs, &n_trhs);
+		fractions_and_group(trhs, &n_trhs);
 		list_factor(trhs, &n_trhs, false);
 		fprintf(gfp, "\n");
 	} else {
 		fprintf(gfp, _("Polynomial division failed.\n"));
 	}
 	fprintf(gfp, "\n");
-	j = poly_gcd(rhs[i], nr, lhs[i], nl, v);
+	j = poly_gcd(rhs[i], nright, lhs[i], nleft, v);
 	if (!j) {
-		j = poly_gcd(lhs[i], nl, rhs[i], nr, v);
+		j = poly_gcd(lhs[i], nleft, rhs[i], nright, v);
 	}
 	if (j) {
 		simp_divide(trhs, &n_trhs);
-		fprintf(gfp, _("Polynomial GCD (%d Euclidean algorithm iteration%s):\n"), j, (j == 1) ? "" : "s");
-		display_fractions_and_group(trhs, &n_trhs);
+		fprintf(gfp, _("Polynomial GCD (%d Euclidean algorithm iterations):\n"), j);
+		fractions_and_group(trhs, &n_trhs);
 		list_factor(trhs, &n_trhs, false);
 		fprintf(gfp, "\n");
 	} else {
 		fprintf(gfp, _("No univariate polynomial GCD found.\n"));
 	}
+	if (repeat_flag)
+		goto do_repeat;
 	return true;
 }
 
@@ -1850,7 +2061,7 @@ char	*cp;
 	long	v, last_v, v1, va[MAX_VARS];		/* Mathomatic variables */
 	int	vc = 0;					/* variable count */
 	int	i = 0, n;
-	int	success_flag = false, did_something = false, repeat_flag = false, using_flag;
+	int	success_flag = false, did_something = false, using_flag;
 	char	used[N_EQUATIONS];
 	char	*cp_start;
 	char	buf[MAX_CMD_LEN];
@@ -2010,7 +2221,7 @@ long	v;	/* Mathomatic variable */
 	}
 	subst_var_with_exp(rhs[cur_equation], &n_rhs[cur_equation], rhs[i], n_rhs[i], v);
 	subst_var_with_exp(lhs[cur_equation], &n_lhs[cur_equation], rhs[i], n_rhs[i], v);
-	simp_sub(cur_equation);
+	simp_equation(cur_equation);
 	return true;
 }
 
@@ -2025,7 +2236,8 @@ char	*cp;
 {
 	int	i, j;
 	char	*cp1;
-	int	factor_flag;
+	jmp_buf	save_save;
+	int	factor_flag, displayed = false;
 
 	factor_flag = (strcmp_tospace(cp, "factor") == 0);
 	if (factor_flag) {
@@ -2042,22 +2254,33 @@ char	*cp;
 		}
 		for (; i <= j; i++) {
 			if (n_lhs[i] > 0) {
+				blt(save_save, jmp_save, sizeof(jmp_save));
+				if (setjmp(jmp_save) != 0) {	/* trap errors */
+					blt(jmp_save, save_save, sizeof(jmp_save));
+					printf("Skipping equation number %d.\n", i + 1);
+					continue;
+				}
 				make_fractions_and_group(i);
 				if (factor_flag || factor_int_flag) {
 					factor_int_sub(i);
 				}
+				blt(jmp_save, save_save, sizeof(jmp_save));
 #if     LIBRARY
-	                        if (gfp == stdout) {
-	                                free(result_str);
-	                                result_str = list_equation(i, false);
-	                                return(result_str != NULL);
-	                        }
+				free_result_str();
+				result_str = list_equation(i, false);
+				result_en = i;
 #endif
-				flist_equation(i);
+				if (flist_equation(i) > 0) {
+					displayed = true;
+				}
 			}
 		}
 	} while (*cp);
-	return true;
+#if	LIBRARY
+	return(result_str != NULL);
+#else
+	return(displayed);
+#endif
 }
 
 /*
@@ -2071,11 +2294,17 @@ char	*cp;
 	char	*cp1;
 	int	export_flag = 0;
 
-	if (strncasecmp(cp, "export", 4) == 0) {
+	if (strncasecmp(cp, "gnuplot", 3) == 0) {
+		export_flag = 3;
+		cp = skip_param(cp);
+	} else if (strncasecmp(cp, "export", 3) == 0) {
 		export_flag = 2;
 		cp = skip_param(cp);
-	} else if (strncasecmp(cp, "maxima", 4) == 0) {
+	} else if (strncasecmp(cp, "maxima", 3) == 0) {
 		export_flag = 1;
+		cp = skip_param(cp);
+	} else if (strncasecmp(cp, "hexadecimal", 3) == 0) {
+		export_flag = 4;
 		cp = skip_param(cp);
 	}
 	do {
@@ -2088,14 +2317,19 @@ char	*cp;
 			return false;
 		}
 		for (; i <= j; i++) {
+			if (n_lhs[i] > 0) {
 #if	LIBRARY
-			if (gfp == stdout) {
-				free(result_str);
+				free_result_str();
 				result_str = list_equation(i, export_flag);
-				return(result_str != NULL);
-			}
+				result_en = i;
+				if (result_str == NULL)
+					return false;
+				if (gfp == stdout) {
+					continue;
+				}
 #endif
-			list1_sub(i, export_flag);
+				list1_sub(i, export_flag);
+			}
 		}
 	} while (*cp);
 	return true;
@@ -2108,22 +2342,22 @@ int
 code_cmd(cp)
 char	*cp;
 {
-	int	i, j;
-	int	language = 0;
-	int	int_flag = false, displayed = false;
-	char	*cp1;
+	int			i, j;
+	enum language_list	language = C;
+	int			int_flag = false, displayed = false;
+	char			*cp1;
 
 	for (;; cp = skip_param(cp)) {
 		if (strcmp_tospace(cp, "c") == 0 || strcmp_tospace(cp, "c++") == 0) {
-			language = 0;
+			language = C;
 			continue;
 		}
 		if (strcmp_tospace(cp, "java") == 0) {
-			language = 1;
+			language = JAVA;
 			continue;
 		}
 		if (strcmp_tospace(cp, "python") == 0) {
-			language = 2;
+			language = PYTHON;
 			continue;
 		}
 		if (strcmp_tospace(cp, "int") == 0 || strcmp_tospace(cp, "integer") == 0) {
@@ -2188,29 +2422,46 @@ int
 variables_cmd(cp)
 char	*cp;
 {
-	int		i, j, k;
-	int		i1;
-	long		v1, last_v;		/* Mathomatic variables */
-	int		vc, cnt;		/* variable counts */
-	sort_type	va[MAX_VARS];
-	token_type	*p1;
-	int		n1;
-	int		lang_code = 0;
-	int		int_flag = false;
+	int			i, j, k;
+	int			i1;
+	long			v1, last_v;		/* Mathomatic variables */
+	int			vc, cnt;		/* variable counts */
+	sort_type		va[MAX_VARS];		/* variable array */
+	token_type		*p1;
+	int			n1;
+	enum language_list	lang_code = 0;		/* default to no programming language */
+	int			int_flag = false, imag_flag = false;
 
 	if (strcmp_tospace(cp, "c") == 0 || strcmp_tospace(cp, "c++") == 0) {
 		cp = skip_param(cp);
-		lang_code = 1;
+		lang_code = C;
 	} else if (strcmp_tospace(cp, "java") == 0) {
 		cp = skip_param(cp);
-		lang_code = 2;
+		lang_code = JAVA;
 	} else if (strcmp_tospace(cp, "int") == 0 || strcmp_tospace(cp, "integer") == 0) {
 		cp = skip_param(cp);
-		lang_code = 1;
+		lang_code = C;
 		int_flag = true;
 	}
 	if (!get_range_eol(&cp, &i, &j)) {
 		return false;
+	}
+	for (k = i; k <= j; k++) {
+		if (n_lhs[k] <= 0)
+			continue;
+		if (n_rhs[k] > 0) {
+			p1 = rhs[k];
+			n1 = n_rhs[k];
+		} else {
+			p1 = lhs[k];
+			n1 = n_lhs[k];
+		}
+		for (i1 = 0; i1 < n1; i1 += 2) {
+			if (p1[i1].kind == VARIABLE && p1[i1].token.variable == IMAGINARY) {
+				imag_flag = true;
+				break;
+			}
+		}
 	}
 	last_v = 0;
 	for (vc = 0;;) {
@@ -2264,10 +2515,13 @@ char	*cp;
 		}
 		list_var(va[i1].v, lang_code);
 		if (lang_code) {
+			if (imag_flag) {
+				fprintf(gfp, "_Complex ");
+			}
 			if (int_flag) {
-				fprintf(gfp, "int\t%s;\n", var_str);
+				fprintf(gfp, "int %s;\n", var_str);
 			} else {
-				fprintf(gfp, "double\t%s;\n", var_str);
+				fprintf(gfp, "double %s;\n", var_str);
 			}
 		} else {
 			fprintf(gfp, "%s\n", var_str);
@@ -2300,7 +2554,11 @@ char	*cp;
 				subst_constants(lhs[i], &n_lhs[i]);
 				subst_constants(rhs[i], &n_rhs[i]);
 				approximate_roots = true;
-				simp_sub(i);
+				simp_equation(i);
+				factorv(lhs[i], &n_lhs[i], IMAGINARY);
+				if (n_rhs[i]) {
+					factorv(rhs[i], &n_rhs[i], IMAGINARY);
+				}
 				approximate_roots = false;
 				if (!return_result(i)) {
 					return false;
@@ -2320,12 +2578,10 @@ char	*cp;
 {
 	int	i, j;
 	int	n;
-	long	last_v, v;	/* Mathomatic variables */
-	char	*cp_start;
-	long	va[MAX_VARS];	/* variable array */
-	int	vc;		/* variable count */
+	long	last_v, v, va[MAX_VARS];	/* Mathomatic variables */
+	int	vc;				/* variable count */
+	char	*cp_start, *cp1;
 	int	found;
-	char	*cp1;
 
 	cp_start = cp;
 	if (current_not_defined()) {
@@ -2336,8 +2592,10 @@ char	*cp;
 		if (strcmp_tospace(cp, "with") == 0) {
 			if (vc)
 				break;
+#if	0	/* allow "with" variable */
 			error(_("No variables specified."));
 			return false;
+#endif
 		}
 		if (vc >= ARR_CNT(va)) {
 			error(_("Too many variables specified."));
@@ -2403,8 +2661,8 @@ char	*cp;
 			continue;
 		}
 do_this:
-		/* Disguise all variables in the entered expression by making them negative. */
-		/* That way they won't be improperly substituted. */
+		/* Disguise all variables in the entered expression by making them negative; */
+		/* That way they won't be improperly substituted later, allowing variable interchange. */
 		for (j = 0; j < n; j += 2) {
 			if (scratch[j].kind == VARIABLE) {
 				scratch[j].token.variable = -scratch[j].token.variable;
@@ -2424,7 +2682,7 @@ do_this:
 	blt(lhs[i], tlhs, n_tlhs * sizeof(token_type));
 	n_rhs[i] = n_trhs;
 	blt(rhs[i], trhs, n_trhs * sizeof(token_type));
-	simp_sub(i);
+	simp_equation(i);
 	return return_result(i);
 }
 
@@ -2471,10 +2729,10 @@ char	*cp;
 	for (; i <= j; i++) {
 		if (n_lhs[i]) {
 			if (quickest_flag) {
-				simp_sub(i);
+				simp_equation(i);
 			} else {
-				simpa_side(lhs[i], &n_lhs[i], quick_flag, frac_flag);
-				simpa_side(rhs[i], &n_rhs[i], quick_flag, frac_flag);
+				simpa_repeat_side(lhs[i], &n_lhs[i], quick_flag, frac_flag);
+				simpa_repeat_side(rhs[i], &n_rhs[i], quick_flag, frac_flag);
 			}
 			if (!return_result(i)) {
 				symb_flag = false;
@@ -2554,10 +2812,10 @@ char	*cp;
 				if (k)
 					fprintf(gfp, ":\n");
 				if (quickest_flag) {
-					simp_sub(i1);
+					simp_equation(i1);
 				} else {
-					simpa_side(lhs[i1], &n_lhs[i1], quick_flag, frac_flag);
-					simpa_side(rhs[i1], &n_rhs[i1], quick_flag, frac_flag);
+					simpa_repeat_side(lhs[i1], &n_lhs[i1], quick_flag, frac_flag);
+					simpa_repeat_side(rhs[i1], &n_rhs[i1], quick_flag, frac_flag);
 				}
 				for (k1 = 0; k1 < ARR_CNT(previous_solution_number); k1++) {
 					if (previous_solution_number[k1]) {
@@ -2589,20 +2847,25 @@ char	*cp;
 {
 	int	i, j;
 	int	i1;
+	int	found;
 	long	v;				/* Mathomatic variable */
+	int	valid_range = false, power_flag = false;
+	char	*cp_start;
+#if	!LIBRARY
+	char	*cp1;
 	double	d;
 	char	buf[MAX_CMD_LEN];
-	int	valid_range = false, repeat_flag = false, power_flag = false;
-	char	*cp1;
+#endif
 
+	cp_start = cp;
+#if	!LIBRARY /* no integer factoring in library mode */
 	if (strcmp_tospace(cp, "number") == 0) {
 		cp = skip_param(cp);
 	} else if (strcmp_tospace(cp, "numbers") == 0) {
-#if	!LIBRARY
 		repeat_flag = true;
-#endif
 		cp = skip_param(cp);
 	} else {
+#endif
 		if (strcmp_tospace(cp, "power") == 0) {
 			power_flag = true;
 			cp = skip_param(cp);
@@ -2618,14 +2881,17 @@ char	*cp;
 				return false;
 #endif
 		}
+#if	!LIBRARY
 	}
 	if (!valid_range) {
 		do {
 			if (*cp == '\0') {
+retry:
 				my_strlcpy(prompt_str, _("Enter integers to factor: "), sizeof(prompt_str));
 				cp = get_string(buf, sizeof(buf));
 				if (cp == NULL)
 					return false;
+				cp_start = cp;
 			}
 			if (*cp == '\0')
 				return true;
@@ -2634,12 +2900,27 @@ char	*cp;
 				d = strtod(cp, &cp);
 				if (cp == cp1) {
 					error(_("Integer expected."));
-					return false;
+					goto retry;
+				}
+				cp = skip_space(cp);
+				if (*cp && !isdigit(*cp)) {
+					input_column += (cp1 - cp_start);
+					cp = parse_expr(tes, &n_tes, cp1);
+					if (cp == NULL)
+						goto retry;
+					if (n_tes <= 0)
+						return true;
+					calc_simp(tes, &n_tes);
+					if (n_tes != 1 || tes[0].kind != CONSTANT) {
+						error(_("Integer expected."));
+						goto retry;
+					}
+					d = tes[0].token.constant;
 				}
 				cp = skip_space(cp);
 				if (!factor_one(d)) {
 					error(_("Number too large to factor or not a non-zero integer."));
-					return false;
+					goto retry;
 				}
 				display_unique();
 				if (is_prime()) {
@@ -2649,6 +2930,7 @@ char	*cp;
 		} while (repeat_flag);
 		return true;
 	}
+#endif
 	if (power_flag) {
 		if (extra_characters(cp))
 			return false;
@@ -2669,17 +2951,31 @@ char	*cp;
 			}
 		}
 	} else {
-		v = 0;
 		do {
+			v = 0;
 			if (*cp) {
 				if ((cp = parse_var2(&v, cp)) == NULL) {
 					return false;
 				}
 			}
+			if (v) {
+				found = false;
+				for (i1 = i; i1 <= j; i1++) {
+					if (var_in_equation(i1, v)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					warning(_("Variable not found."));
+				}
+			}
 			for (i1 = i; i1 <= j; i1++) {
 				if (n_lhs[i1]) {
 					simpv_side(lhs[i1], &n_lhs[i1], v);
-					simpv_side(rhs[i1], &n_rhs[i1], v);
+					if (n_rhs[i1]) {
+						simpv_side(rhs[i1], &n_rhs[i1], v);
+					}
 				}
 			}
 		} while (*cp);
@@ -2701,18 +2997,18 @@ unfactor_cmd(cp)
 char	*cp;
 {
 	int	i, j;
-	int	quick_flag = false, fully_flag = false, power_flag = false;
+	int	quick_flag = false, fraction_flag = false, power_flag = false;
 
 	for (;; cp = skip_param(cp)) {
-		if (strcmp_tospace(cp, "quick") == 0) {
+		if (strncasecmp(cp, "quick", 4) == 0) {
 			quick_flag = true;
 			continue;
 		}
-		if (strncasecmp(cp, "fully", 4) == 0) {
-			fully_flag = true;
+		if (strncasecmp(cp, "fraction", 4) == 0 || strncasecmp(cp, "fully", 4) == 0) {
+			fraction_flag = true;
 			continue;
 		}
-		if (strcmp_tospace(cp, "power") == 0) {
+		if (strncasecmp(cp, "power", 4) == 0) {
 			power_flag = true;
 			continue;
 		}
@@ -2721,30 +3017,31 @@ char	*cp;
 	if (!get_range_eol(&cp, &i, &j)) {
 		return false;
 	}
+	partial_flag = !fraction_flag;
 	if (power_flag) {
 		for (; i <= j; i++) {
 			if (n_lhs[i]) {
-				if (fully_flag) {
-					uf_allpower(lhs[i], &n_lhs[i]);
-				} else {
+				if (quick_flag) {
 					uf_power(lhs[i], &n_lhs[i]);
+				} else {
+					uf_allpower(lhs[i], &n_lhs[i]);
 				}
 				elim_loop(lhs[i], &n_lhs[i]);
 				if (n_rhs[i]) {
-					if (fully_flag) {
-						uf_allpower(rhs[i], &n_rhs[i]);
-					} else {
+					if (quick_flag) {
 						uf_power(rhs[i], &n_rhs[i]);
+					} else {
+						uf_allpower(rhs[i], &n_rhs[i]);
 					}
 					elim_loop(rhs[i], &n_rhs[i]);
 				}
 				if (!return_result(i)) {
+					partial_flag = true;
 					return false;
 				}
 			}
 		}
 	} else {
-		partial_flag = !fully_flag;
 		for (; i <= j; i++) {
 			if (n_lhs[i]) {
 				if (quick_flag) {
@@ -2764,8 +3061,8 @@ char	*cp;
 				}
 			}
 		}
-		partial_flag = true;
 	}
+	partial_flag = true;
 	return true;
 }
 
@@ -2820,12 +3117,23 @@ int
 read_cmd(cp)
 char	*cp;
 {
+	if (security_level >= 3) {
+		error(_("Command disabled by security level."));
+		return false;
+	}
+	return read_file(cp);
+}
+
+int
+read_file(cp)
+char	*cp;
+{
 	int	rv;
 	FILE	*fp;
 	char	buf[MAX_CMD_LEN];
 
 	if (*cp == '\0') {
-		error(_("No read file name specified."));
+		error(_("No file name specified."));
 		return false;
 	}
 	snprintf(buf, sizeof(buf), "%s.in", cp);
@@ -2833,8 +3141,8 @@ char	*cp;
 	if (fp == NULL) {
 		fp = fopen(cp, "r");
 		if (fp == NULL) {
-			error(_("Can't open input file."));
-			printf(_("Read of file \"%s\" failed.\n"), cp);
+			perror(cp);
+			error(_("Can't open file to read."));
 			return false;
 		}
 	} else {
@@ -2875,21 +3183,7 @@ FILE	*fp;
 		}
 	} else {
 		while ((cp = fgets((char *) tlhs, n_tokens * sizeof(token_type), fp)) != NULL) {
-#if	LIBRARY
-			fprintf(gfp, "%d%s%s", cur_equation + 1, PROMPT_STR, cp);
-#else
-			default_color();
-			input_column = printf("%d%s", cur_equation + 1, html_flag ? HTML_PROMPT_STR : PROMPT_STR);
-			if (html_flag)
-				printf("<b>%s</b>", cp);	/* make input bold */
-			else
-				printf("%s", cp);
-			if (gfp != stdout) {
-				fprintf(gfp, "%d%s%s", cur_equation + 1, PROMPT_STR, cp);
-			}
-#endif
-			set_error_level(cp);
-			if (!process(cp)) {
+			if (!display_process(cp)) {
 				longjmp(jmp_save, 3);	/* jump to the above error trap */
 			}
 		}
@@ -2913,9 +3207,9 @@ edit_again:
 #if	CYGWIN
 		cp1 = "notepad";
 #else
-		error("EDITOR environment variable not set.");
-		return false;
+		cp1 = "nano";
 #endif
+		warning("EDITOR environment variable not set; using default editor.");
 	}
 	snprintf(cl, sizeof(cl), "%s %s", cp1, cp);
 	if (shell_out(cl)) {
@@ -2944,8 +3238,8 @@ char	*cp;
 	int	rv;
 	char	tmp_file[PATH_MAX];
 
-	if (secure_flag) {
-		error(_("Command disabled."));
+	if (security_level) {
+		error(_("Command disabled by security level."));
 		return false;
 	}
 	clean_up();	/* end any redirection */
@@ -2954,6 +3248,7 @@ char	*cp;
 		my_strlcpy(tmp_file, "mathomatic.tmp", sizeof(tmp_file));
 		fp = fopen(tmp_file, "w+");
 		if (fp == NULL) {
+			perror(tmp_file);
 			error(_("Can't create temporary file."));
 			return false;
 		}
@@ -2961,6 +3256,7 @@ char	*cp;
 		my_strlcpy(tmp_file, TMP_FILE, sizeof(tmp_file));
 		fd = mkstemp(tmp_file);
 		if (fd < 0 || (fp = fdopen(fd, "w+")) == NULL) {
+			perror(tmp_file);
 			error(_("Can't create temporary file."));
 			return false;
 		}
@@ -2969,9 +3265,14 @@ char	*cp;
 		high_prec = true;
 		list_cmd("all");
 		high_prec = false;
-		gfp = stdout;
-		fclose(fp);
-		rv = edit_sub(tmp_file);
+		gfp = default_out;
+		if (fclose(fp)) {
+			rv = false;
+			perror(tmp_file);
+			error(_("Writing temporary file failed."));
+		} else {
+			rv = edit_sub(tmp_file);
+		}
 		unlink(tmp_file);
 		return rv;
 	} else {
@@ -2995,13 +3296,13 @@ char	*cp;
 	FILE	*fp;
 	int	rv;
 
-	if (secure_flag) {
-		error(_("Command disabled."));
+	if (security_level >= 2) {
+		error(_("Command disabled by security level."));
 		return false;
 	}
 	clean_up();	/* end any redirection */
 	if (*cp == '\0') {
-		error(_("No save file name specified."));
+		error(_("No file name specified."));
 		return false;
 	}
 #if	!SILENT
@@ -3019,6 +3320,7 @@ char	*cp;
 #endif
 	fp = fopen(cp, "w");
 	if (fp == NULL) {
+		perror(cp);
 		error(_("Can't create specified save file."));
 		return false;
 	}
@@ -3026,9 +3328,11 @@ char	*cp;
 	high_prec = true;
 	rv = list_cmd("all");
 	high_prec = false;
-	gfp = stdout;
-	if (fclose(fp))
+	gfp = default_out;
+	if (fclose(fp)) {
 		rv = false;
+		perror(cp);
+	}
 	if (rv) {
 #if	!SILENT
 		printf(_("All equations saved in file \"%s\".\n"), cp);

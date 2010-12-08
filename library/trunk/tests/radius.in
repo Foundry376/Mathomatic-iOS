@@ -7,6 +7,7 @@ s=(a+b+c)/2 ; semiperimeter
 inradius=(s*(s-a)*(s-b)*(s-c))^.5/s
 eliminate s
 simplify
+
 ; The following is the equation for the radius of a circle circumscribing
 ; a triangle, called a circumcircle, which is a circle that passes through
 ; all the vertices of a polygon.

@@ -1,7 +1,22 @@
 /*
- * Group and combine denominators symbolically for Mathomatic.
+ * Group and combine algebraic fractions for Mathomatic.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -14,7 +29,7 @@ group_recurse(equation, np, loc, level)
 token_type	*equation;	/* equation side pointer */
 int		*np;		/* pointer to length of equation side */
 int		loc;		/* starting location within equation side */
-int		level;		/* current level of parentheses within the subexpression starting at "loc" */
+int		level;		/* current level of parentheses within the sub-expression starting at "loc" */
 {
 	int		i;
 	int		len;
@@ -67,7 +82,7 @@ int		level;		/* current level of parentheses within the subexpression starting a
 	if (group_flag) {
 		for (i = di + 1; i < edi; i++) {
 			if (equation[i].level == level && equation[i].kind == OPERATOR) {
-#if	false
+#if	0
 				if (equation[i].token.operatr != DIVIDE) {
 					error_bug("Bug in group_recurse().");
 				}
@@ -80,7 +95,7 @@ int		level;		/* current level of parentheses within the subexpression starting a
 }
 
 /*
- * Group denominators together in an equation side.
+ * Group denominators of algebraic fractions together in an equation side.
  * Grouping here means converting "a/b/c/d*e" to "a*e/(b*c*d)" or "a/(b*c*d)*e".
  * Not guaranteed to put the grouped divisors last, reorder() puts divisors last.
  */
@@ -94,35 +109,54 @@ int		*np;		/* pointer to length of equation side */
 
 /*
  * Make equation side ready for display.
+ * Basically simplify, then convert non-integer constants in an equation side to fractions,
+ * when exactly equal to simple fractions.
+ * Also groups algebraic fraction denominators with group_proc() above.
+ *
+ * Return true if any fractions were created.
  */
-void
-display_fractions_and_group(equation, np)
+int
+fractions_and_group(equation, np)
 token_type	*equation;
 int		*np;
 {
+	int	rv = false;
+
 	elim_loop(equation, np);
-	make_fractions(equation, np);
+	if (fractions_display) {
+		rv = make_fractions(equation, np);
+	}
 	group_proc(equation, np);
+	return rv;
 }
 
 /*
  * This function is the guts of the display command.
+ * Makes an equation space ready for display.
+ *
+ * Return true if any fractions were created.
  */
-void
+int
 make_fractions_and_group(n)
 int	n;	/* equation space number */
 {
+	int	rv;
+
 	if (n_lhs[n] <= 0)
-		return;
-	display_fractions_and_group(lhs[n], &n_lhs[n]);
+		return false;
+	rv = fractions_and_group(lhs[n], &n_lhs[n]);
 	if (n_rhs[n]) {
-		display_fractions_and_group(rhs[n], &n_rhs[n]);
+		if (fractions_and_group(rhs[n], &n_rhs[n]))
+			rv = true;
 	}
+	return rv;
 }
 
 /*
- * Combine algebraic fractions added together by making the denominators all the same.
- * This means converting "(a/b)+(c/d)+f" to "(a*d+c*b+b*d*f)/b/d".
+ * Efficiently combine algebraic fractions added together
+ * by putting all terms over a common denominator.
+ * This means converting "(a/b)+(c/d)+f" directly to "(a*d+c*b+b*d*f)/b/d".
+ * The resulting expression is always equivalent to the original expression.
  *
  * If start_flag is 0, only combine denominators to convert complex fractions to simple fractions.
  * Level one addition of fractions will be unchanged.
@@ -130,18 +164,19 @@ int	n;	/* equation space number */
  *
  * If start_flag is 1, always combine denominators.
  * This can easily make an expression large and complicated.
+ * Used when solving for zero.
  *
  * If start_flag is 2, always combine denominators
  * and reduce the result by removing any polynomial GCD between them.
  * Note that this wipes out globals tlhs[] and trhs[].
  * This simplifies all algebraic fractions into a single simple fraction
- * and prevents making a more complicated (or larger) algebraic fraction.
+ * and usually prevents making a more complicated (or larger) algebraic fraction.
  *
- * Return true if equation side was modified.
+ * Return true if the equation side was modified.
  */
 int
 super_factor(equation, np, start_flag)
-token_type	*equation;	/* pointer to the beginning of the equation side */
+token_type	*equation;	/* pointer to the beginning of the equation side to process */
 int		*np;		/* pointer to the length of the equation side */
 int		start_flag;
 {
@@ -165,11 +200,7 @@ int		*np, loc, level, start_flag;
 
 	if (!start_flag) {
 		for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
-#if	true
 			if (equation[i].level == level && equation[i].token.operatr == DIVIDE) {
-#else
-			if (equation[i].level == level && (equation[i].token.operatr == DIVIDE || equation[i].token.operatr == POWER)) {
-#endif
 				start_flag = true;
 				break;
 			}

@@ -2,8 +2,11 @@
 
 /*
  * General factorial function in C for double precision floating point.
- * Uses the lgamma_r(3) function, like Mathomatic does,
- * so it works for any floating point value.
+ * Uses the threadsafe lgamma_r(3) function.
+ * Works for any floating point value.
+ * Recommend using tgamma(3) (true gamma) function instead, if available.
+ *
+ * Link with -lm
  *
  * Returns (arg!) (same as gamma(arg+1)).
  * Sets "errno" external variable on overflow.

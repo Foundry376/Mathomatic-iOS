@@ -1,9 +1,22 @@
 /*
  * Mathomatic integration routines and commands.
  *
- * These are very low level, so they don't do much.
- *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -231,16 +244,19 @@ integrate_cmd(cp)
 char	*cp;
 {
 	int		i, j;
+	int		len;
 	long		v = 0;
 	token_type	*source, *dest;
 	int		n1, n2, *nps, *np;
-	int		definite_flag = false, constant_flag = false;
-	double		d1, integrate_order = 1.0;
+	int		definite_flag = false, constant_flag = false, solved;
+	double		integrate_order = 1.0;
 	char		var_name_buf[MAX_VAR_LEN];
+	long		l1;
 
 	if (current_not_defined()) {
 		return false;
 	}
+	solved = solved_equation(cur_equation);
 	i = next_espace();
 	for (;; cp = skip_param(cp)) {
 		if (strcmp_tospace(cp, "definite") == 0) {
@@ -296,6 +312,9 @@ char	*cp;
 		} else {
 			printf(_("Integrating with respect to (%s)"), var_str);
 		}
+		if (integrate_order != 1.0) {
+			printf(_(" %.*g times"), precision, integrate_order);
+		}
 		printf(_(" and simplifying...\n"));
 	}
 #endif
@@ -305,7 +324,7 @@ char	*cp;
 	factorv(source, nps, v);
 	blt(dest, source, *nps * sizeof(token_type));
 	n1 = *nps;
-	for (d1 = 0; d1 < integrate_order; d1++) {
+	for (l1 = 0; l1 < integrate_order; l1++) {
 		if (!int_dispatch(dest, &n1, v, integrate_sub)) {
 			error(_("Integration failed, not a polynomial."));
 			return false;
@@ -365,11 +384,18 @@ char	*cp;
 		n1 += n2;
 	}
 	simpa_side(dest, &n1, false, false);
+	*np = n1;
 	if (n_rhs[cur_equation]) {
 		blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
 		n_lhs[i] = n_lhs[cur_equation];
+		if (solved && isvarchar('\'')) {
+			len = list_var(lhs[i][0].token.variable, 0);
+			for (l1 = 0; l1 < integrate_order && len > 0 && var_str[len-1] == '\''; l1++) {
+				var_str[--len] = '\0';
+			}
+			parse_var(&lhs[i][0].token.variable, var_str);
+		}
 	}
-	*np = n1;
 	cur_equation = i;
 	return return_result(cur_equation);
 }
@@ -590,7 +616,11 @@ char	*cp;
 			return false;
 		}
 	}
+#if	1
 	simp_loop(dest, &n1);
+#else
+	simpa_side(dest, &n1, false, false);
+#endif
 	if (n_rhs[cur_equation]) {
 		blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
 		n_lhs[i] = n_lhs[cur_equation];
@@ -609,16 +639,18 @@ char	*cp;
 {
 	long		v = 0;
 	int		i, j, k, i1, i2;
+	int		len;
 	int		level;
 	int		iterations = 1000;	/* must be even */
 	int		first_size = 0;
-	int		trap_flag, singularity;
+	int		trap_flag, singularity, solved;
 	token_type	*ep, *source, *dest;
 	int		n1, *nps, *np;
 
 	if (current_not_defined()) {
 		return false;
 	}
+	solved = solved_equation(cur_equation);
 	i = next_espace();
 	if (n_rhs[cur_equation]) {
 		source = rhs[cur_equation];
@@ -662,7 +694,7 @@ char	*cp;
 		}
 	}
 	if (singularity) {
-		warning(_("Singularity detected, result of numerical integration may be wrong."));
+		warning(_("Singularity detected, result of numerical integration might be wrong."));
 	}
 	my_strlcpy(prompt_str, _("Enter lower bound: "), sizeof(prompt_str));
 	if (!get_expr(tlhs, &n_tlhs)) {
@@ -686,7 +718,11 @@ char	*cp;
 		error_huge();
 	}
 #if	!SILENT
-	printf(_("Approximating the definite integral\n"));
+	if (n_rhs[cur_equation]) {
+		printf(_("Approximating the definite integral of the RHS\n"));
+	} else {
+		printf(_("Approximating the definite integral\n"));
+	}
 	if (trap_flag) {
 		printf(_("using the trapezoid method (%d partitions)...\n"), iterations);
 	} else {
@@ -861,11 +897,18 @@ char	*cp;
 #if	!SILENT
 	printf(_("Numerical integration successful:\n"));
 #endif
+	*np = n1;
 	if (n_rhs[cur_equation]) {
 		blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
 		n_lhs[i] = n_lhs[cur_equation];
+		if (solved && isvarchar('\'')) {
+			len = list_var(lhs[i][0].token.variable, 0);
+			if (len > 0 && var_str[len-1] == '\'') {
+				var_str[--len] = '\0';
+			}
+			parse_var(&lhs[i][0].token.variable, var_str);
+		}
 	}
-	*np = n1;
 	cur_equation = i;
 	return return_result(cur_equation);
 }

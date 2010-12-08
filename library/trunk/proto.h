@@ -1,5 +1,6 @@
 /* Complete list of global C function prototypes for Mathomatic. */
 /* This file was created with the cproto utility by running the "./update" script. */
+/* This file is required to compile Mathomatic quietly with the -Wall compiler option. */
 
 /* am.c */
 void error(const char *str);
@@ -7,6 +8,7 @@ void warning(const char *str);
 void error_huge(void);
 void error_bug(const char *str);
 void check_err(void);
+void get_screen_size(void);
 int init_mem(void);
 void init_gvars(void);
 void clean_up(void);
@@ -14,6 +16,7 @@ void set_sign_array(void);
 int next_sign(long *vp);
 void clear_all(void);
 int alloc_espace(int i);
+int alloc_to_espace(int en);
 int alloc_next_espace(void);
 int next_espace(void);
 void copy_espace(int src, int dest);
@@ -30,6 +33,7 @@ int current_not_defined(void);
 char *get_string(char *string, int n);
 int get_yes_no(void);
 int return_result(int en);
+void free_result_str(void);
 int is_all(char *cp);
 int get_range(char **cpp, int *ip, int *jp);
 int extra_characters(char *cp);
@@ -48,7 +52,9 @@ int exp_contains_nan(token_type *p1, int n1);
 int exp_is_numeric(token_type *p1, int n1);
 int check_divide_by_zero(double denominator);
 /* cmds.c */
+int plot_cmd(char *cp);
 int version_cmd(char *cp);
+long max_memory_usage(void);
 int version_report(void);
 int solve_cmd(char *cp);
 int sum_cmd(char *cp);
@@ -72,6 +78,7 @@ int calculate_cmd(char *cp);
 int clear_cmd(char *cp);
 int compare_es(int i, int j);
 int compare_cmd(char *cp);
+int display_fraction(double value);
 int divide_cmd(char *cp);
 int eliminate_cmd(char *cp);
 int display_cmd(char *cp);
@@ -86,6 +93,7 @@ int unfactor_cmd(char *cp);
 int fraction_cmd(char *cp);
 int quit_cmd(char *cp);
 int read_cmd(char *cp);
+int read_file(char *cp);
 int read_sub(FILE *fp);
 int edit_cmd(char *cp);
 int save_cmd(char *cp);
@@ -93,6 +101,7 @@ int save_cmd(char *cp);
 void rect_to_polar(double x, double y, double *radiusp, double *thetap);
 int roots_cmd(char *cp);
 int complex_root_simp(token_type *equation, int *np);
+void approximate_complex_roots(token_type *equation, int *np);
 int get_constant(token_type *p1, int n, double *dp);
 int parse_complex(token_type *p1, int n, complexs *cp);
 /* complex_lib.c */
@@ -117,7 +126,7 @@ int factor_plus(token_type *equation, int *np, long v, double d);
 int factor_times(token_type *equation, int *np);
 int factor_power(token_type *equation, int *np);
 /* factor_int.c */
-int factor_one(double start);
+int factor_one(double value);
 double multiply_out_unique(void);
 void display_unique(void);
 int is_prime(void);
@@ -130,16 +139,18 @@ double gcd(double d1, double d2);
 double gcd_verified(double d1, double d2);
 double my_round(double d1);
 int f_to_fraction(double d, double *numeratorp, double *denominatorp);
-int display_fraction(double value);
 int make_fractions(token_type *equation, int *np);
 /* globals.c */
 /* help.c */
 int parse(int n, char *cp);
 int process_parse(int n, char *cp);
 int process(char *cp);
+int display_process(char *cp);
 int shell_out(char *cp);
 char *parse_var2(long *vp, char *cp);
 int display_command(int i);
+int read_examples(char **cpp);
+void underline_title(int count);
 int help_cmd(char *cp);
 /* integrate.c */
 void make_powers(token_type *equation, int *np, long v);
@@ -154,24 +165,27 @@ void default_color(void);
 int list1_sub(int n, int export_flag);
 int list_sub(int n);
 void list_debug(int level, token_type *p1, int n1, token_type *p2, int n2);
+char *var_name(long v);
 int list_var(long v, int lang_code);
 int list_proc(token_type *p1, int n, int export_flag);
 char *list_equation(int n, int export_flag);
 char *list_expression(token_type *p1, int n, int export_flag);
-int list_string_sub(token_type *p1, int n, char *string, int export_flag);
+int list_string(token_type *p1, int n, char *string, int export_flag);
+int list_string_sub(token_type *p1, int n, int outflag, char *string, int export_flag);
 int int_expr(token_type *p1, int n);
-int list_c_equation(int en, int language, int int_flag);
-int list_code(token_type *equation, int *np, int language, int int_flag);
+int list_c_equation(int en, enum language_list language, int int_flag);
+int list_code(token_type *equation, int *np, enum language_list language, int int_flag);
 int flist_equation(int n);
 /* main.c */
-void usage(void);
+void usage(FILE *fp);
 int main(int argc, char **argv);
+void main_io_loop(void);
 int set_signals(void);
 int load_rc(void);
 void fphandler(int sig);
 void inthandler(int sig);
 void alarmhandler(int sig);
-void get_screen_size(void);
+void exithandler(int sig);
 void resizehandler(int sig);
 void exit_program(int exit_value);
 /* parse.c */
@@ -192,10 +206,11 @@ int subst_constants(token_type *equation, int *np);
 int my_strlcpy(char *dest, char *src, int n);
 /* poly.c */
 int poly_in_v(token_type *p1, int n, long v, int allow_divides);
-int poly_factor(token_type *equation, int *np);
+int poly_factor(token_type *equation, int *np, int do_repeat);
 int remove_factors(void);
 int poly_gcd(token_type *larger, int llen, token_type *smaller, int slen, long v);
 int poly2_gcd(token_type *larger, int llen, token_type *smaller, int slen, long v);
+int is_integer_var(long v);
 int is_integer_expr(token_type *p1, int n);
 int mod_simp(token_type *equation, int *np);
 int poly_gcd_simp(token_type *equation, int *np);
@@ -210,7 +225,7 @@ int find_greatest_power(token_type *p1, int n1, long *vp1, double *pp1, int *tp1
 void organize(token_type *equation, int *np);
 void elim_loop(token_type *equation, int *np);
 void simp_ssub(token_type *equation, int *np, long v, double d, int power_flag, int times_flag, int fc_level);
-void simp_sub(int n);
+void simp_equation(int n);
 void simp_side(token_type *equation, int *np);
 void simps_side(token_type *equation, int *np, int zsolve);
 void simpv_side(token_type *equation, int *np, long v);
@@ -222,6 +237,7 @@ void simp2_divide(token_type *equation, int *np, long v, int fc_level);
 void simpb_side(token_type *equation, int *np, int uf_power_flag, int power_flag, int fc_level);
 void simple_frac_side(token_type *equation, int *np);
 void simpa_side(token_type *equation, int *np, int quick_flag, int frac_flag);
+void simpa_repeat_side(token_type *equation, int *np, int quick_flag, int frac_flag);
 int simp_loop(token_type *equation, int *np);
 int simp_pp(token_type *equation, int *np);
 int integer_root_simp(token_type *equation, int *np);
@@ -240,8 +256,8 @@ int solve_espace(int want, int have);
 int solve_sub(token_type *wantp, int wantn, token_type *leftp, int *leftnp, token_type *rightp, int *rightnp);
 /* super.c */
 void group_proc(token_type *equation, int *np);
-void display_fractions_and_group(token_type *equation, int *np);
-void make_fractions_and_group(int n);
+int fractions_and_group(token_type *equation, int *np);
+int make_fractions_and_group(int n);
 int super_factor(token_type *equation, int *np, int start_flag);
 /* unfactor.c */
 int uf_tsimp(token_type *equation, int *np);

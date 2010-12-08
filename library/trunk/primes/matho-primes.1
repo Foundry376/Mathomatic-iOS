@@ -1,4 +1,4 @@
-.TH matho-primes 1
+.TH MATHO-PRIMES 1
 
 .SH NAME
 matho-primes \- generate consecutive prime numbers
@@ -8,36 +8,83 @@ matho-primes \- generate consecutive prime numbers
 [start [stop]] ["twin"] ["pal" [base]]
 .br
 .B matho-primes
-[\-t] [\-p base] [start [stop]]
+[\-ht] [\-c count] [\-p base] [start [stop]]
 
 .SH DESCRIPTION
-This utility is optionally part of the
+This command-line utility is optionally part of the
 .BR mathomatic (1)
 package.
-It quickly computes any number of consecutive prime numbers using a memory efficient
+It quickly computes any number of consecutive prime numbers
+using a windowing, memory efficient
 sieve of Eratosthenes algorithm, dumping them to standard output.
 They are displayed one prime per line in ascending order,
-unless the "twin" option is specified, which displays two primes per line.
+unless the "twin" option is specified,
+which displays only twin primes, two primes per line.
 
 Generates up to 18 decimal digit primes,
-or whatever is the number of digits of precision for a long double.
+or whatever is the number of digits of precision for a
+.B long double
+in the C compiler used to compile this utility.
+All numbers displayed by this utility
+are guaranteed to be decimal (base 10) prime numbers.
+A prime number is an integer that cannot be factored.
 
 A range may be
 specified on the command line, otherwise the starting number and
 the number of primes to output is prompted for.
-The range is "start" to "stop", inclusive, and "stop" must
-be greater than or equal to "start".
+The range is
+.B start
+to
+.B stop
+inclusive, and
+.B stop
+must
+be greater than or equal to
+.B start.
 
-If "\-t" or "twin" is specified on the command line, only twin primes will be displayed.
+If the
+.B \-c
+option is specified, the number of lines of primes displayed is limited to the
+decimal count that follows this option.
+
+If the
+.B \-t
+or "twin" option is specified on the command line,
+only
+.B twin primes
+will be displayed.
 Twin primes are two primes that differ in value by 2.
 Each twin pair is displayed together on the same line separated by a space character.
 
-If "\-p" or "pal" is specified at the end of the command line, only palindromic primes are displayed.
+If the
+.B \-p
+or "pal" option is specified on the command line,
+only
+.B palindromic primes
+are displayed.
 Palindromes are symmetrical, they read exactly the same forward and backward.
-The palindromic number base may be specified, the default is base 10.
-The base can be any integer greater than 1.
+The palindromic number
+.B base
+may be specified, the default is base 10.
+The
+.B base
+can be any integer greater than 1.
+Primes are always displayed in decimal (base 10).
 
-.SH SEE ALSO
+Short help is displayed when given the
+.B \-h
+option.
+
+.SH AUTHOR 
+George Gesslein II (gesslein@linux.com)
+at "http://www.mathomatic.org".
+
+.SH "REPORTING BUGS"
+If you find a bug, please report it to the author
+or at "https://launchpad.net/mathomatic".
+
+.SH "SEE ALSO"
 .BR mathomatic (1),
-.BR matho-pascal (1),
-.BR matho-sumsq (1)
+.BR primorial (1),
+.BR matho-mult (1),
+.BR matho-sum (1)

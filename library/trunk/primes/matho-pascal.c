@@ -2,11 +2,25 @@
  * Calculate and display Pascal's triangle.
  *
  * Copyright (C) 2005 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgen.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
@@ -28,7 +42,7 @@ int	center_buf(int line_number, int cell_size);
 void	usage(void);
 
 int		lines = 26;
-int		cell_size = 6;
+int		gcell_size = 6;
 long double	*array[MAX_LINES];
 int		screen_columns = 80;
 int		centered = true;
@@ -40,8 +54,6 @@ int
 main(int argc, char *argv[])
 {
 	struct winsize	ws;
-
-/*	prog_name = strdup(basename(argv[0])); */
 
 	ws.ws_col = 0;
 	ws.ws_row = 0;
@@ -115,12 +127,12 @@ display_triangle(void)
 	if (centered && lines > 20) {
 		len = center_buf(19, 8);
 		if (len > 0 && len < screen_columns) {
-			cell_size = 8;	/* for very wide screens */
+			gcell_size = 8;	/* for very wide screens */
 		}
 	}
 	for (i = 0; i < lines; i++) {
 		if (centered) {
-			len = center_buf(i, cell_size);
+			len = center_buf(i, gcell_size);
 			if (len <= 0 || len >= screen_columns) {
 				return;	/* stop here because of wrap-around */
 			}

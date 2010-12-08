@@ -1,0 +1,23 @@
+#!/bin/sh
+# This shell script installs m4 Mathomatic.
+# If this is a source distribution, you should change directory to its root,
+# and compile Mathomatic and "sudo make m4install" to install everything.
+# If this is a binary distribution, you should type "sudo ./matho-install"
+# from this directory to install the program files only.
+
+BINDIR=${1-/usr/local/bin}
+MATHOMATIC=mathomatic
+if [ ! -x "$MATHOMATIC" ]
+then
+	MATHOMATIC="../$MATHOMATIC"
+fi
+if [ ! -x "$MATHOMATIC" ]
+then
+	echo mathomatic executable not found.
+	exit
+fi
+
+echo Installing "$MATHOMATIC" to "$BINDIR"
+cp "$MATHOMATIC" functions.m4 matho rmath "$BINDIR" && exit
+echo
+echo Usage: sudo ./matho-install [ install_directory ]

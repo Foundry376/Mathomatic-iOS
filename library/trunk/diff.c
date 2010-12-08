@@ -1,7 +1,22 @@
 /*
  * Mathomatic symbolic differentiation routines and related commands.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -84,7 +99,7 @@ long		v;
 				break;
 			default:
 /* Oops.  More than one operator on the same level in this expression. */
-				error("Internal error in d_recurse(): differentiating with unparenthesized operators is not allowed.");
+				error_bug("Internal error in d_recurse(): differentiating with unparenthesized operators is not allowed.");
 				return false;
 			}
 			op = equation[endloc].token.operatr;
@@ -289,22 +304,26 @@ int
 derivative_cmd(cp)
 char	*cp;
 {
-	int		i;
+	int		i, len;
 	long		v = 0;		/* Mathomatic variable */
 	long		l1, order = 1;
 	token_type	*source, *dest;
 	int		n1, *nps, *np;
-	int		simplify_flag = true;
+	int		simplify_flag = true, solved;
 
 	if (current_not_defined()) {
 		return false;
 	}
+	solved = solved_equation(cur_equation);
 	if (strcmp_tospace(cp, "nosimplify") == 0) {
 		simplify_flag = false;
 		cp = skip_param(cp);
 	}
 	i = next_espace();
 	if (n_rhs[cur_equation]) {
+		if (!solved) {
+			warning(_("Not a solved equation.  Only the RHS will be differentiated."));
+		}
 		source = rhs[cur_equation];
 		nps = &n_rhs[cur_equation];
 		dest = rhs[i];
@@ -337,19 +356,21 @@ char	*cp;
 		}
 	}
 	if (no_vars(source, *nps, &v)) {
+#if	!SILENT
 		error(_("Current expression contains no variables; the derivative would be zero."));
 		return false;
+#endif
 	}
 	if (v == 0) {
 		if (!prompt_var(&v)) {
 			return false;
 		}
 	}
+#if	!SILENT
 	if (v != MATCH_ANY && !found_var(source, *nps, v)) {
 		error(_("Variable not found; the derivative would be zero."));
 		return false;
 	}
-#if	!SILENT
 	if (debug_level >= 0) {
 		list_var(v, 0);
 		if (n_rhs[cur_equation]) {
@@ -357,11 +378,13 @@ char	*cp;
 		} else {
 			printf(_("Differentiating with respect to (%s)"), var_str);
 		}
-		if (simplify_flag) {
-			printf(" and simplifying...\n");
-		} else {
-			printf("...\n");
+		if (order != 1) {
+			printf(_(" %ld times"), order);
 		}
+		if (simplify_flag) {
+			printf(_(" and simplifying"));
+		}
+		printf("...\n");
 	}
 #endif
 	blt(dest, source, *nps * sizeof(token_type));
@@ -378,11 +401,19 @@ char	*cp;
 			elim_loop(dest, &n1);
 		}
 	}
+	*np = n1;
 	if (n_rhs[cur_equation]) {
 		blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
 		n_lhs[i] = n_lhs[cur_equation];
+		if (solved && isvarchar('\'')) {
+			len = list_var(lhs[i][0].token.variable, 0);
+			for (l1 = 0; l1 < order && len < (MAX_VAR_LEN - 1); l1++) {
+				var_str[len++] = '\'';
+			}
+			var_str[len] = '\0';
+			parse_var(&lhs[i][0].token.variable, var_str);
+		}
 	}
-	*np = n1;
 	cur_equation = i;
 	return return_result(cur_equation);
 }
@@ -491,11 +522,15 @@ char	*cp;
 	int		our_nlhs, our_nrhs;
 	token_type	*ep, *source, *dest;
 	int		n1, *nps, *np;
-	int		flag = false;
+	int		simplify_flag = true;
 
 	cp_start = cp;
 	if (current_not_defined()) {
 		return false;
+	}
+	if (strcmp_tospace(cp, "nosimplify") == 0) {
+		simplify_flag = false;
+		cp = skip_param(cp);
 	}
 	i = next_espace();
 	blt(lhs[i], lhs[cur_equation], n_lhs[cur_equation] * sizeof(token_type));
@@ -532,18 +567,14 @@ char	*cp;
 		}
 		cp = cp1;
 	}
-	if (no_vars(source, *nps, &v)) {
-		error(_("Current expression contains no variables."));
-		return false;
-	}
+	no_vars(source, *nps, &v);
 	if (v == 0) {
 		if (!prompt_var(&v)) {
 			return false;
 		}
 	}
 	if (!found_var(source, *nps, v)) {
-		error(_("Variable not found."));
-		return false;
+		warning(_("Variable not found."));
 	}
 	blt(rhs[our], source, *nps * sizeof(token_type));
 	our_nrhs = *nps;
@@ -579,10 +610,22 @@ char	*cp;
 				return false;
 			}
 		} else {
-			warning(_("Derivatives will be taken until they reach zero..."));
 			order = LONG_MAX - 1L;
+#if	!SILENT
+			printf(_("Derivatives will be taken until they reach zero...\n"));
+#endif
 		}
 	}
+#if	!SILENT
+	printf(_("Computing the Taylor series"));
+	if (n_rhs[cur_equation]) {
+		printf(_(" of the RHS"));
+	}
+	if (simplify_flag) {
+		printf(_(" and simplifying"));
+	}
+	printf("...\n");
+#endif
 	n = 0;
 	i1 = 0;
 	blt(dest, source, *nps * sizeof(token_type));
@@ -646,12 +689,14 @@ loop_again:
 	n1 += 4;
 	for (; i1 < n1; i1++)
 		dest[i1].level++;
-	uf_simp(dest, &n1);
-	if (!flag && exp_contains_infinity(dest, n1)) {
-		warning(_("Result invalid because it contains infinity or NaN."));
-		flag = true;
+	if (simplify_flag) {
+		uf_simp(dest, &n1);
 	}
 	side_debug(1, dest, n1);
+	if (exp_contains_infinity(dest, n1)) {
+		error(_("Result invalid because it contains infinity or NaN."));
+		return false;
+	}
 	if (n < order) {
 		if (n > 0) {
 			if (!differentiate(rhs[our], &our_nrhs, v)) {
@@ -659,7 +704,7 @@ loop_again:
 				return false;
 			}
 		}
-		symb_flag = true;
+		symb_flag = symblify;
 		simpa_side(rhs[our], &our_nrhs, true, true);
 		symb_flag = false;
 		if (our_nrhs != 1 || rhs[our][0].kind != CONSTANT || rhs[our][0].token.constant != 0.0) {
@@ -740,6 +785,9 @@ char	*cp;
 		error(_("Variable not found."));
 		return false;
 	}
+	if (*cp == '=') {
+		cp = skip_space(cp + 1);
+	}
 	if (*cp) {
 		input_column += (cp - cp_start);
 		if ((cp = parse_expr(tes, &n_tes, cp)) == NULL || n_tes <= 0) {
@@ -755,10 +803,9 @@ char	*cp;
 /* copy the current equation to a new equation space, then simplify and work on the copy: */
 	copy_espace(cur_equation, i);
 	simpa_side(rhs[i], &n_rhs[i], false, false);
+
 /* see if the limit expression is positive infinity: */
 	simp_loop(tes, &n_tes);
-
-	debug_string(0, "Solving...");
 	if (n_tes == 1 && tes[0].kind == CONSTANT && tes[0].token.constant == INFINITY) {
 /* To take the limit to positive infinity, */
 /* replace infinity with zero and replace the limit variable with its reciprocal: */
@@ -774,7 +821,9 @@ char	*cp;
 		n_tlhs = 3;
 		subst_var_with_exp(rhs[i], &n_rhs[i], tlhs, n_tlhs, v);
 	}
+
 /* General limit taking, solve for the limit variable: */
+	debug_string(0, _("Solving..."));
 	want.level = 1;
 	want.kind = VARIABLE;
 	want.token.variable = v;
@@ -786,7 +835,7 @@ char	*cp;
 	blt(lhs[i], tes, n_tes * sizeof(token_type));
 	n_lhs[i] = n_tes;
 /* simplify the RHS: */
-	symb_flag = true;
+	symb_flag = symblify;
 	simpa_side(rhs[i], &n_rhs[i], false, false);
 	symb_flag = false;
 	if (exp_contains_nan(rhs[i], n_rhs[i])) {

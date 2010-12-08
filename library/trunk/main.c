@@ -2,8 +2,25 @@
  * This file contains main() and the startup code for Mathomatic,
  * which is a small computer algebra system written entirely in C.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
- *
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
+ */
+
+/*
  * Output to stderr is only done in this file.  The rest of the Mathomatic code
  * should not output to stderr; error messages should use error() or go to stdout.
  *
@@ -39,39 +56,36 @@
  * to adjust memory usage.
  */
 
-#if	!LIBRARY	/* This comments out this whole file if using as symbolic math library. */
+#if	!LIBRARY	/* This comments out this whole file if compiling as the symbolic math library. */
 
 #include "includes.h"
-#if	UNIX || CYGWIN
-#include <sys/ioctl.h>
-#include <termios.h>
-#endif
-#if	TRAP_FPERRORS	/* Do not use this define!  Currently does not work. */
-#include <fenv.h>
-#endif
+#include <getopt.h>
 
 /*
  * Display invocation usage info.
  */
 void
-usage()
+usage(fp)
+FILE	*fp;
 {
-	printf(_("\nMathomatic version %s computer algebra system\n\n"), VERSION);
-	printf(_("Usage: %s [ options ] [ input_files ]\n\n"), prog_name);
-	printf(_("Options:\n"));
-	printf(_("  -b            Enable bold color mode.\n"));
-	printf(_("  -c            Toggle color mode.\n"));
-	printf(_("  -h            Display this help and exit.\n"));
-	printf(_("  -m number     Specify a memory size multiplier.\n"));
-	printf(_("  -q            Set quiet mode (don't display prompts).\n"));
-	printf(_("  -r            Disable readline.\n"));
-	printf(_("  -s            Enable secure mode.\n"));
-	printf(_("  -t            Set test mode.\n"));
-	printf(_("  -u            Set unbuffered output.\n"));
-	printf(_("  -v            Display version information, then exit.\n"));
-	printf(_("  -w            Wide output mode, sets unlimited width.\n"));
-	printf(_("  -x            Enable HTML/XHTML output mode.\n"));
-	printf(_("\nPlease refer to the %s man page for more information.\n"), prog_name);
+	fprintf(fp, _("Mathomatic computer algebra system\n"));
+	fprintf(fp, _("Usage: %s [ options ] [ input_files or input ]\n\n"), prog_name);
+	fprintf(fp, _("Options:\n"));
+	fprintf(fp, _("  -b            Enable bold color mode.\n"));
+	fprintf(fp, _("  -c            Toggle color mode.\n"));
+	fprintf(fp, _("  -e            Process expressions and commands on the command line.\n"));
+	fprintf(fp, _("  -h            Display this help and exit.\n"));
+	fprintf(fp, _("  -m number     Specify a memory size multiplier.\n"));
+	fprintf(fp, _("  -q            Set quiet mode (don't display prompts).\n"));
+	fprintf(fp, _("  -r            Disable readline.\n"));
+	fprintf(fp, _("  -s level      Set enforced security level for session.\n"));
+	fprintf(fp, _("  -t            Set test mode.\n"));
+	fprintf(fp, _("  -u            Set unbuffered output with input echo.\n"));
+	fprintf(fp, _("  -v            Display version information, then exit.\n"));
+	fprintf(fp, _("  -w            Wide output mode, sets unlimited width.\n"));
+	fprintf(fp, _("  -x            Enable HTML/XHTML output mode.\n"));
+	fprintf(fp, _("\nPlease refer to the Mathomatic man page for more information.\n"));
+	fprintf(fp, _("The man page is viewed by typing \"man mathomatic\" in shell.\n"));
 }
 
 int
@@ -88,27 +102,31 @@ char	**argv;
 	double		new_size;
 	int		coption = false, boption = false, wide_flag = false;
 
+#if	I18N
+	/* Initialize internationalization so that messages are in the right language. */
+	setlocale(LC_ALL, "");
+	textdomain(prog_name);
+	bindtextdomain(prog_name, LOCALEDIR);
+#endif
+
 #if	CYGWIN
 	dir_path = strdup(dirname_win(argv[0]));	/* set dir_path to this executable's directory */
 #endif
 	/* initialize the global variables */
 	init_gvars();
-	gfp = stdout;
-#if	READLINE
-	if ((cp = getenv("HOME")) && prog_name) {
-		snprintf(history_filename_storage, sizeof(history_filename_storage), "%s/.%s_history", cp, prog_name);
-		history_filename = history_filename_storage;
-	}
-	using_history();		/* initialize readline history */
-	stifle_history(500);		/* maximum of 500 entries */
-	rl_inhibit_completion = true;	/* turn off readline file name completion */
-#endif
+	default_out = stdout;	/* set default_out to any file you want to redirect output to */
+	gfp = default_out;
+	get_screen_size();
 
 	/* process command line options */
-	while ((i = getopt(argc, argv, "sbqrtchuvwxm:")) >= 0) {
+	while ((i = getopt(argc, argv, "s:bqrtdchuvwxm:e")) >= 0) {
 		switch (i) {
 		case 's':
-			secure_flag = true;
+#if	SECURE
+			fprintf(stderr, _("%s: Compiled for maximum security, therefore no need for setting security level.\n"), prog_name);
+#else
+			security_level = atoi(optarg);
+#endif
 			break;
 		case 'w':
 			wide_flag = true;
@@ -142,80 +160,107 @@ char	**argv;
 			wide_flag = true;
 			test_mode = true;
 			break;
+		case 'd':
+			demo_mode = true;
+			break;
 		case 'u':
+			echo_input = true;
 			setbuf(stdout, NULL);	/* make output unbuffered */
 			setbuf(stderr, NULL);
 			break;
 		case 'h':
-			usage();
+			usage(stdout);
 			exit(0);
 		case 'v':
 			version_report();
 			exit(0);
+		case 'e':
+			eoption = true;
+			autoselect = false;
+			break;
 		default:
-			usage();
+			usage(stdout);
 			exit(2);
 		}
 	}
-	if (n_tokens < 100) {
-		fprintf(stderr, _("%s: Improper equation space size.\n"), prog_name);
+	if (n_tokens < 100 || n_tokens >= (INT_MAX / 3)) {
+		fprintf(stderr, _("%s: Standard expression array size out of range!\n"), prog_name);
 		exit(2);
 	}
 	if (!init_mem()) {
 		fprintf(stderr, _("%s: Not enough memory.\n"), prog_name);
 		exit(2);
 	}
-#if	READLINE && !SECURE
-	if (readline_enabled) {
+#if	READLINE
+	if (readline_enabled) {	/* readline_enabled flag must not change after this */
+#if	!CYGWIN
+		if ((cp = getenv("HOME")) && prog_name) {
+			snprintf(history_filename_storage, sizeof(history_filename_storage), "%s/.%s_history", cp, prog_name);
+			history_filename = history_filename_storage;
+		}
+#endif
+		using_history();		/* initialize readline history */
+		rl_initialize();		/* initialize readline */
+		stifle_history(500);		/* maximum of 500 entries */
+		rl_inhibit_completion = true;	/* turn off readline file name completion */
+#if	!NO_COLOR && !LIBRARY && !CYGWIN	/* not 100% tested and this might confuse the user with the -c toggle */
+		if (!html_flag) {		/* If doing ANSI color: */
+			color_flag = (tigetnum("colors") >= 8);	/* autoset color output mode.  Requires ncurses. */
+		}
+#endif
+#if	!SECURE && !CYGWIN
 		read_history(history_filename);	/* restore readline history of previous session */
+#endif
 	}
 #endif
 	if (html_flag) {
 		printf("<pre>\n");
 	}
-	if (!test_mode && !quiet_mode) {
+	if (!test_mode && !quiet_mode && !eoption) {
 #if	SECURE
 		printf(_("Secure "));
 #else
-		if (secure_flag)
+		if (security_level >= 2)
 			printf(_("Secure "));
 #endif
 		printf("Mathomatic version %s (www.mathomatic.org)\n", VERSION);
-		printf("Copyright (C) 1987-2009 George Gesslein II.\n");
-		printf(_("%d equation spaces available, %ld Kbytes per equation space.\n"),
+		printf("Copyright (C) 1987-2010 George Gesslein II.\n");
+		printf(_("%d equation spaces available, %ld kilobytes per equation space.\n"),
 		    N_EQUATIONS, (long) n_tokens * sizeof(token_type) * 2L / 1000L);
 	}
+	fflush(stdout);
 #if	!SECURE
 	/* read the user options initialization file */
-	if (!test_mode && !load_rc()) {
+	if (!test_mode && !demo_mode && !load_rc()) {
 		fprintf(stderr, _("%s: Error loading set options from \"%s\".\n"), prog_name, rc_file);
 	}
 #endif
 	if (wide_flag) {
 		screen_columns = 0;
 		screen_rows = 0;
-#if	UNIX || CYGWIN
-	} else {
-		get_screen_size();
-#endif
 	}
-	if (test_mode) {
-		color_flag = false;
-	} else if (coption & 1) {
+	if (coption & 1) {
 		color_flag = !color_flag;
 	}
 	if (boption) {
-		bold_colors = true;
 		color_flag = true;
+		bold_colors = true;
 	}
-	if (!quiet_mode && color_flag) {
-		printf(_("%s%s color mode enabled"), html_flag ? "HTML" : "ANSI", bold_colors ? " bold" : "");
-		if (!boption) {
-			printf(_("; disable with the -c option.\n"));
+	if (test_mode) {
+		color_flag = false;
+	} else if (!quiet_mode && !eoption) {
+		if (color_flag) {
+			printf(_("%s%s color mode enabled"), html_flag ? "HTML" : "ANSI", bold_colors ? " bold" : "");
+			if (!boption) {
+				printf(_("; disable with the -c option or \"set no color\".\n"));
+			} else {
+				printf(".\n");
+			}
 		} else {
-			printf(".\n");
+			printf(_("Color mode turned off; enable with the -c option or \"set color\".\n"));
 		}
 	}
+	fflush(stdout);
 	if ((i = setjmp(jmp_save)) != 0) {
 		/* for error handling */
 		clean_up();
@@ -237,16 +282,44 @@ char	**argv;
 			fprintf(stderr, _("%s: Cannot convert any floating point values to fractions.\n"), prog_name);
 			fprintf(stderr, _("Roots will not work properly.\n"));
 		}
+		if (max_memory_usage() <= 0) {
+			fprintf(stderr, _("%s: Calculated maximum memory usage overflows a long integer!\n"), prog_name);
+		}
+		if (eoption) {
+			/* process expressions and commands from the command line */
+			for (i = optind; i < argc && argv[i]; i++) {
+				display_process(argv[i]);
+			}
+		}
 #if	!SECURE
-		/* read in files specified on the command line, exit if error */
-		for (i = optind; i < argc; i++) {
-			if (!read_cmd(argv[i])) {
-				exit_program(1);
+		if (!eoption) {
+			/* read in files specified on the command line, exit if error */
+			for (i = optind; i < argc && argv[i]; i++) {
+				if (strcmp(argv[i], "-") == 0) {
+					main_io_loop();
+				} else if (!read_file(argv[i])) {
+					fflush(NULL);	/* flush all output */
+					fprintf(stderr, _("Read of file \"%s\" failed.\n"), argv[i]);
+					exit_program(1);
+				}
 			}
 		}
 #endif
 	}
-	/* main input/output loop */
+	if (!eoption)
+		main_io_loop();	/* main input/output loop */
+	exit_program(0);	/* exit Mathomatic, doesn't return */
+	return(0);		/* so the compiler doesn't complain */
+}
+
+/*
+ * Repeatedly read a line of text from standard input and process the expression or command.
+ */
+void
+main_io_loop()
+{
+	char	*cp = NULL;
+
 	for (;;) {
 		default_color();
 		snprintf(prompt_str, sizeof(prompt_str), "%d%s", cur_equation + 1, html_flag ? HTML_PROMPT_STR : PROMPT_STR);
@@ -254,8 +327,6 @@ char	**argv;
 			break;
 		process(cp);
 	}
-	exit_program(0);
-	return(0);	/* so the compiler doesn't complain */
 }
 
 /*
@@ -270,13 +341,13 @@ set_signals()
 
 	if (signal(SIGFPE, fphandler) == SIG_ERR)
 		rv = false;
-#if	TRAP_FPERRORS
-	if (feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW) < 0)
-		rv = false;
-#endif
 	if (signal(SIGINT, inthandler) == SIG_ERR)
 		rv = false;
 	if (signal(SIGQUIT, inthandler) == SIG_ERR)
+		rv = false;
+	if (signal(SIGTERM, exithandler) == SIG_ERR)
+		rv = false;
+	if (signal(SIGHUP, exithandler) == SIG_ERR)
 		rv = false;
 #if	UNIX || CYGWIN
 	if (signal(SIGWINCH, resizehandler) == SIG_ERR)
@@ -292,14 +363,17 @@ set_signals()
 
 #if	CYGWIN
 /*
- * dirname(3) function for Windows.
+ * dirname(3) function for Microsoft Windows.
+ * dirname(3) strips the non-directory suffix from a filename.
  */
 char *
 dirname_win(cp)
-char	*cp;
+char	*cp;	/* string containing filename to modify */
 {
 	int	i;
 
+	if (cp == NULL)
+		return(".");
 	i = strlen(cp);
 	while (i >= 0 && cp[i] != '\\' && cp[i] != '/')
 		i--;
@@ -331,7 +405,7 @@ load_rc()
 		fp = fopen(rc_file, "r");
 	}
 #if	CYGWIN
-	if (fp == NULL) {
+	if (fp == NULL && dir_path) {
 		snprintf(rc_file, sizeof(rc_file), "%s/%s", dir_path, "mathomatic.rc");
 		fp = fopen(rc_file, "r");
 	}
@@ -344,25 +418,23 @@ load_rc()
 		if (!set_options(cp))
 			rv = false;
 	}
-	fclose(fp);
+	if (fclose(fp)) {
+		rv = false;
+		perror(rc_file);
+	}
 	return rv;
 }
 #endif
 
 /*
  * Floating point exception handler.
- * I do not know the proper function calls that should be here to make the TRAP_FPERRORS define work.
- * Currently it goes in an endless loop when an FP exception occurs and TRAP_FPERRORS is true,
- * because when this function returns, the exception immediately happens again.
- * Therefore, do not define TRAP_FPERRORS!
+ * Floating point exceptions are currently ignored.
  */
 void
 fphandler(sig)
 int	sig;
 {
-#if	TRAP_FPERRORS
-	warning(_("Floating point exception."));
-#endif
+/*	warning(_("Floating point exception.")); */
 }
 
 /*
@@ -379,14 +451,14 @@ int	sig;
 	case 0:
 	case 1:
 		/* wait for graceful abort */
-		printf(_("\nUser interrupt signal received.\n"));
+		printf(_("\nUser interrupt signal received; three times quits Mathomatic.\n"));
 		return;
 	case 2:
 		printf(_("\nPress Control-C once more to quit program.\n"));
 		return;
 	default:
 		/* abruptly quit this program */
-		printf(_("\nRepeatedly interrupted; Quitting...\n"));
+		printf(_("\nRepeatedly interrupted; returning to operating system...\n"));
 		exit_program(1);
 	}
 }
@@ -402,27 +474,17 @@ int	sig;
 	exit_program(1);
 }
 
-#if	UNIX || CYGWIN
 /*
- * Get the screen (window) width and height from the operating system.
+ * Signal handler for proper exiting to the operating system.
  */
 void
-get_screen_size()
+exithandler(sig)
+int	sig;
 {
-	struct winsize	ws;
-
-	ws.ws_col = 0;
-	ws.ws_row = 0;
-	if (ioctl(1, TIOCGWINSZ, &ws) >= 0) {
-		if (ws.ws_col > 0 && screen_columns) {
-			screen_columns = ws.ws_col;
-		}
-		if (ws.ws_row > 0 && screen_rows) {
-			screen_rows = ws.ws_row;
-		}
-	}
+	exit_program(1);
 }
 
+#if	UNIX || CYGWIN
 /*
  * Window resize signal handler.
  */
@@ -430,7 +492,8 @@ void
 resizehandler(sig)
 int	sig;
 {
-	get_screen_size();
+	if (screen_columns)
+		get_screen_size();
 }
 #endif
 
@@ -445,13 +508,14 @@ int	exit_value;	/* zero if OK, non-zero indicates error return */
 	if (html_flag) {
 		printf("</pre>\n");
 	}
-#if	READLINE && !SECURE
+#if	READLINE && !SECURE && !CYGWIN
 	if (readline_enabled) {
 		write_history(history_filename);	/* save readline history */
 	}
 #endif
-	if (exit_value == 0 && !quiet_mode)
-		printf(_("Thank you for using Mathomatic!\n"));
+	if (exit_value == 0 && !quiet_mode && !eoption && !html_flag) {
+		printf(_("Goodbye!\n"));
+	}
 	exit(exit_value);
 }
 #endif

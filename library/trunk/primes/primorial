@@ -1,7 +1,16 @@
 #!/usr/bin/python
 
-# Program to display primorials.
-# Uses the programs "matho-primes" and "matho-mult".
+# This is a Python program to display large primorials.
+# A primorial is the product of all primes up to the given number.
+# Uses the programs "matho-primes" and "matho-mult" as follows:
+#	primorial 1000
+# runs:
+#	matho-primes 0 1000 | matho-mult
+#
+# For fun, try:
+#	primorial `matho-primes 2 97`
+#
+# to display all unique primorials from 2 to 97.
 
 import os
 import sys
@@ -11,7 +20,7 @@ def usage():
 	print
 	print "Usage: %s integers" % os.path.basename(sys.argv[0])
 	print
-	print "Primorials are the product of all primes up to the given number."
+	print "A primorial is the product of all primes up to the given number."
 	sys.exit(2)
 
 args = sys.argv[1:]

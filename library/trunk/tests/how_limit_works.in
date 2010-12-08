@@ -42,7 +42,7 @@ pause
 ; Note that this method doesn't always work and sometimes gives wrong answers.
 
 ; Let's try a simple example:
-y=(5x+100-a)/(x-b)                                                                                                         
+y=(5x+100-a)/(x-b)
 limit x inf ; Take the limit as "x" goes to infinity.
 ; The limit command should say the result is 5.
 pause

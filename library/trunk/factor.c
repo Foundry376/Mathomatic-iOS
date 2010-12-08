@@ -1,10 +1,22 @@
 /*
  * Mathomatic symbolic factorizing routines, not polynomial factoring.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
- *
- * There are proper mathematical names for many algebraic rules.
- * I obviously don't know what they are.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
@@ -85,10 +97,9 @@ int		div_only;	/* factor only divides */
 {
 	int	modified = false;
 	int	i, j, k;
-	int	op;
+	int	op = 0;
 	int	len1, len2;
 
-	op = 0;
 	for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
 		if (equation[i].level == level) {
 			op = equation[i].token.operatr;
@@ -139,7 +150,7 @@ f_again:
 }
 
 /*
- * Do the factoring of two subexpressions added together.
+ * Do the factoring of two sub-expressions added together.
  *
  * Return true if a transformation was made.
  */
@@ -147,7 +158,7 @@ static int
 fplus_sub(equation, np, loc, i1, n1, i2, n2, level, v, d, whole_flag, div_only)
 token_type	*equation;	/* the entire expression */
 int		*np;		/* pointer to length of the entire expression */
-int		loc;		/* index into the beginning of this additive subexpression */
+int		loc;		/* index into the beginning of this additive sub-expression */
 int		i1, n1, i2, n2;
 int		level;
 long		v;
@@ -209,13 +220,15 @@ f_outer:
 	    || (i - b1 == 1 && equation[b1].kind == CONSTANT && fabs(equation[b1].token.constant) == 1.0)) {
 		goto f_outer;
 	}
-	if (!whole_flag && v && (v != MATCH_ANY)) {
+	if (!whole_flag && (v != MATCH_ANY)) {
 		if (d == 0.0 || d == 1.0) {
-			for (k = b1;; k += 2) {
-				if (k >= i)
-					goto f_outer;
-				if (equation[k].kind == VARIABLE && equation[k].token.variable == v) {
-					break;
+			if (v) {
+				for (k = b1;; k += 2) {
+					if (k >= i)
+						goto f_outer;
+					if (equation[k].kind == VARIABLE && equation[k].token.variable == v) {
+						break;
+					}
 				}
 			}
 		} else {
@@ -226,6 +239,8 @@ f_outer:
 				    && equation[k].level == equation[k+1].level
 				    && equation[k+1].kind == CONSTANT
 				    && equation[k+1].token.constant == d) {
+					if (v == 0)
+						goto factor_this;
 					for (l = k - 1; l >= 0; l--) {
 						if (equation[l].level < equation[k].level)
 							break;
@@ -547,7 +562,7 @@ end_mess:
 }
 
 /*
- * Factor transformation for a more general pair of subexpressions added together
+ * Factor transformation for a more general pair of sub-expressions added together
  * with a common base and any exponent.
  */
 static int
@@ -679,10 +694,9 @@ int		*np, loc, level;
 {
 	int	modified = false;
 	int	i, j, k;
-	int	op;
+	int	op = 0;
 	int	len1, len2;
 
-	op = 0;
 	for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
 		if (equation[i].level == level) {
 			op = equation[i].token.operatr;
@@ -752,7 +766,7 @@ int		*np, loc, i1, n1, i2, n2, level;
 	} else {
 		op1 = equation[i1-1].token.operatr;
 	}
-	if ((n1 == 1 && equation[i1].kind == CONSTANT) || (n2 == 1 && equation[i2].kind == CONSTANT)) {
+	if ((n1 == 1 && equation[i1].kind == CONSTANT) && (n2 == 1 && equation[i2].kind == CONSTANT)) {
 		return false;
 	}
 	both_divide = (op1 == DIVIDE && op2 == DIVIDE);
@@ -882,10 +896,9 @@ int		*np, loc, level;
 {
 	int	modified = false;
 	int	i, j, k;
-	int	op;
+	int	op = 0;
 	int	len1, len2;
 
-	op = 0;
 	for (i = loc + 1; i < *np && equation[i].level >= level; i += 2) {
 		if (equation[i].level == level) {
 			op = equation[i].token.operatr;

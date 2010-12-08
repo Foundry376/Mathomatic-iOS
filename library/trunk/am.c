@@ -1,10 +1,29 @@
 /*
- * Miscellaneous routines for Mathomatic.
+ * Standard routines for Mathomatic.
  *
- * Copyright (C) 1987-2009 George Gesslein II.
+ * Copyright (C) 1987-2010 George Gesslein II.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public 
+    License as published by the Free Software Foundation; either 
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ 
+    You should have received a copy of the GNU Lesser General Public 
+    License along with this library; if not, write to the Free Software 
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
  */
 
 #include "includes.h"
+#if	UNIX || CYGWIN
+#include <sys/ioctl.h>
+#include <termios.h>
+#endif
 
 /*
  * Standard function to report an error to the user.
@@ -17,7 +36,7 @@ const char	*str;
 #if	!SILENT
 	set_color(2);		/* set color to red */
 	printf("%s\n", str);
-	default_color();
+	default_color();	/* restore to default color */
 #endif
 }
 
@@ -59,6 +78,12 @@ error_bug(str)
 const char	*str;	/* constant string to display */
 {
 	error(str);		/* Display the passed error message. */
+#if	SILENT
+	printf("%s\n", str);
+#endif
+	printf(_("Please report this bug to the maintainers,\n"));
+	printf(_("along with the entry sequence that caused it.\n"));
+	printf(_("Type \"help bugs\" for info on how to report bugs found in this program.\n"));
 	longjmp(jmp_save, 13);	/* Abort the current operation with the critical error number 13. */
 }
 
@@ -89,11 +114,42 @@ check_err()
 }
 
 /*
- * Allocate the needed global expression storage arrays.
- * Each has "n_tokens" elements.
- * "n_tokens" must not change until Mathomatic terminates.
+ * Get the screen (window) width and height from the operating system.
  *
- * Return true if successful.
+ * Sets the global integers screen_columns and screen_rows.
+ */
+void
+get_screen_size()
+{
+#if	UNIX || CYGWIN
+	struct winsize	ws;
+
+	ws.ws_col = 0;
+	ws.ws_row = 0;
+	if (ioctl(1, TIOCGWINSZ, &ws) >= 0) {
+		if (ws.ws_col > 0) {
+			screen_columns = ws.ws_col;
+		}
+		if (ws.ws_row > 0) {
+			screen_rows = ws.ws_row;
+		}
+	}
+#else
+	screen_columns = STANDARD_SCREEN_COLUMNS;
+	screen_rows = STANDARD_SCREEN_ROWS;
+#endif
+}
+
+/*
+ * Allocate the needed global expression storage arrays.
+ * Each is static and can hold n_tokens elements.
+ * n_tokens must not change until Mathomatic terminates.
+ *
+ * init_mem() is called only once upon Mathomatic startup
+ * before using the symbolic math engine,
+ * and can be undone by calling free_mem() below.
+ *
+ * Returns true if successful, otherwise Mathomatic cannot be used.
  */
 int
 init_mem()
@@ -107,8 +163,45 @@ init_mem()
 	if (alloc_next_espace() < 0) {	/* make sure there is at least 1 equation space */
 		return false;
 	}
+	clear_all();
 	return true;
 }
+
+#if	LIBRARY
+/*
+ * Free the global expression storage arrays.
+ * After calling this, memory usage is reset and Mathomatic becomes unusable,
+ * so do not call unless finished with using the Mathomatic code.
+ *
+ * This routine is usually not needed, because when a program exits,
+ * all the memory it allocated is released by the operating system.
+ * Inclusion of this routine was requested by Tam Hanna for Symbian OS.
+ */
+void
+free_mem()
+{
+	int i;
+
+	clear_all();
+
+	free(scratch);
+	free(tes);
+	free(tlhs);
+	free(trhs);
+
+	for (i = 0; i < N_EQUATIONS; i++) {
+		if (lhs[i]) {
+			free(lhs[i]);
+			lhs[i] = NULL;
+		}
+		if (rhs[i]) {
+			free(rhs[i]);
+			rhs[i] = NULL;
+		}
+	}
+	n_equations = 0;
+}
+#endif
 
 /*
  * Initialize some important global variables to their defaults.
@@ -123,6 +216,7 @@ init_gvars()
 	symb_flag = false;
 	sign_cmp_flag = false;
 	approximate_roots = false;
+	repeat_flag = false;
 
 	/* initialize the universal and often used constant "0" expression */
 	zero_token.level = 1;
@@ -144,11 +238,12 @@ clean_up()
 	int	i;
 
 	init_gvars();		/* reset the global variables to the default */
-	if (gfp != stdout) {	/* reset the output file to standard output */
+	if (gfp != default_out) {	/* reset the output file to default */
 #if	!SECURE
-		fclose(gfp);
+		if (gfp != stdout && gfp != stderr)
+			fclose(gfp);
 #endif
-		gfp = stdout;
+		gfp = default_out;
 	}
 	for (i = 0; i < n_equations; i++) {
 		if (n_lhs[i] <= 0) {
@@ -210,7 +305,7 @@ long	*vp;
 }
 
 /*
- * Erase all equation spaces.
+ * Erase all equation spaces and initialize the global variables.
  * Similar to a restart.
  */
 void
@@ -234,16 +329,21 @@ clear_all()
 }
 
 /*
- * Return true if the specified equation space is available, allocating if necessary.
+ * Return true if the specified equation space is available,
+ * zeroing and allocating if necessary.
  */
 int
 alloc_espace(i)
 int	i;	/* equation space number */
 {
-	if (i >= N_EQUATIONS)
+	if (i < 0 || i >= N_EQUATIONS)
 		return false;
+	n_lhs[i] = 0;
+	n_rhs[i] = 0;
 	if (lhs[i] && rhs[i])
 		return true;	/* already allocated */
+	if (lhs[i] || rhs[i])
+		return false;	/* something is wrong */
 	lhs[i] = (token_type *) malloc(n_tokens * sizeof(token_type));
 	if (lhs[i] == NULL)
 		return false;
@@ -254,6 +354,31 @@ int	i;	/* equation space number */
 		return false;
 	}
 	return true;
+}
+
+/*
+ * Allocate all equation spaces up to and including an equation space number,
+ * making sure the specified equation number is valid and usable.
+ *
+ * Returns true if successful.
+ */
+int
+alloc_to_espace(en)
+int	en;	/* equation space number */
+{
+	if (en < 0 || en >= N_EQUATIONS)
+		return false;
+	for (;;) {
+		if (en < n_equations)
+			return true;
+		if (n_equations >= N_EQUATIONS)
+			return false;
+		if (!alloc_espace(n_equations)) {
+			warning(_("Memory is exhausted."));
+			return false;
+		}
+		n_equations++;
+	}
 }
 
 /*
@@ -312,13 +437,14 @@ next_espace()
 
 /*
  * Copy equation space "src" to equation space "dest".
+ * "dest" is overwritten.
  */
 void
 copy_espace(src, dest)
 int	src, dest;	/* equation space numbers */
 {
 	if (src == dest) {
-		error("Internal error: copy_espace() source and destination the same.");
+/*		error("Internal error: copy_espace() source and destination the same."); */
 		return;
 	}
 	blt(lhs[dest], lhs[src], n_lhs[src] * sizeof(token_type));
@@ -377,6 +503,8 @@ long	v;	/* standard Mathomatic variable */
 		return false;
 	if (found_var(lhs[i], n_lhs[i], v))
 		return true;
+	if (n_rhs[i] <= 0)
+		return false;
 	if (found_var(rhs[i], n_rhs[i], v))
 		return true;
 	return false;
@@ -443,6 +571,7 @@ int		n;		/* expression length */
 /*
  * Get default equation number from a command parameter string.
  * The equation number must be the only parameter.
+ * If no equation number is specified, default to the current equation.
  *
  * Return -1 on error.
  */
@@ -588,7 +717,7 @@ int	n;		/* maximum size of "string" in bytes */
 	}
 	input_column = strlen(prompt_str);
 #if	READLINE
-	if (readline_enabled && !echo_input) {
+	if (readline_enabled) {
 		cp = readline(prompt_str);
 		if (cp == NULL) {
 			if (!quiet_mode)
@@ -603,9 +732,7 @@ int	n;		/* maximum size of "string" in bytes */
 			free(cp);
 		}
 	} else {
-		if (!echo_input) {
-			printf("%s", prompt_str);
-		}
+		printf("%s", prompt_str);
 		if (fgets(string, n, stdin) == NULL) {
 			if (!quiet_mode)
 				printf(_("\nEnd of input.\n"));
@@ -613,9 +740,7 @@ int	n;		/* maximum size of "string" in bytes */
 		}
 	}
 #else
-	if (!echo_input) {
-		printf("%s", prompt_str);
-	}
+	printf("%s", prompt_str);
 	if (fgets(string, n, stdin) == NULL) {
 		if (!quiet_mode)
 			printf(_("\nEnd of input.\n"));
@@ -627,7 +752,7 @@ int	n;		/* maximum size of "string" in bytes */
 	if (i >= 0 && string[i] == '\n') {
 		string[i] = '\0';
 	}
-	if (gfp != stdout || echo_input) {
+	if ((gfp != stdout && gfp != stderr) || (echo_input && !quiet_mode)) {
 		/* Input that is prompted for is now included in the redirected output
 		   of a command to a file, making redirection like logging. */
 		fprintf(gfp, "%s%s\n", prompt_str, string);
@@ -678,17 +803,32 @@ int	en;	/* equation space number the result is in */
 		return false;
 	}
 #if	LIBRARY
+	make_fractions_and_group(en);
+	if (factor_int_flag) {
+		factor_int_sub(en);
+	}
+	free_result_str();
+	result_str = list_equation(en, false);
+	result_en = en;
 	if (gfp == stdout) {
-		make_fractions_and_group(en);
-		if (factor_int_flag) {
-			factor_int_sub(en);
-		}
-		free(result_str);
-		result_str = list_equation(en, false);
 		return(result_str != NULL);
 	}
 #endif
 	return(list_sub(en) != 0);
+}
+
+/*
+ * Free any malloc()ed result_str, so there won't be a memory leak
+ * in the symbolic math library.
+ */
+void
+free_result_str()
+{
+	if (result_str) {
+		free(result_str);
+		result_str = NULL;
+	}
+	result_en = -1;
 }
 
 /*
@@ -775,7 +915,7 @@ int	*ip, *jp;
  *
  * Returns true if any non-space characters are encountered before the end of the string
  * and an error message is printed.
- * Otherwise just returns false.
+ * Otherwise just returns false indicating everything is OK.
  */
 int
 extra_characters(cp)
@@ -784,7 +924,8 @@ char	*cp;	/* command line string */
 	if (cp) {
 		cp = skip_space(cp);
 		if (*cp) {
-			error(_("Extra characters encountered."));
+			printf(_("\nError: \"%s\" not required on command line.\n"), cp);
+			error(_("Extra characters or unrecognized argument."));
 			return true;
 		}
 	}
@@ -991,7 +1132,7 @@ int		n1;	/* expression length */
 {
 	int	i;
 
-	for (i = 0; i < n1; i += 2) {
+	for (i = 0; i < n1; i++) {
 		if (p1[i].kind == CONSTANT && !isfinite(p1[i].token.constant)) {
 			return true;
 		}
@@ -1009,7 +1150,7 @@ int		n1;	/* expression length */
 {
 	int	i;
 
-	for (i = 0; i < n1; i += 2) {
+	for (i = 0; i < n1; i++) {
 		if (p1[i].kind == CONSTANT && isnan(p1[i].token.constant)) {
 			return true;
 		}
@@ -1028,7 +1169,7 @@ int		n1;	/* expression length */
 {
 	int	i;
 
-	for (i = 0; i < n1; i += 2) {
+	for (i = 0; i < n1; i++) {
 		if (p1[i].kind == VARIABLE && (p1[i].token.variable & VAR_MASK) > SIGN) {
 			return false;		/* not numerical (contains a variable) */
 		}

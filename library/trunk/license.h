@@ -1,9 +1,12 @@
-/* This Mathomatic include file contains the current license preamble. */
+/*
+ * This Mathomatic include file contains the current license notice.
+ */
 
-/* The following is the Mathomatic license preamble, stored in a string. */
+/* The following is the Mathomatic license notice, stored in a string. */
+/* It is displayed by the "help copyright" command. */
 char	*license_string =
-"Mathomatic computer algebra system\n"
-"Copyright (C) 1987-2009 George Gesslein II\n\n"
+"    Mathomatic computer algebra system\n"
+"    Copyright (C) 1987-2010 George Gesslein II\n\n"
 
 "    This library is free software; you can redistribute it and/or\n"
 "    modify it under the terms of the GNU Lesser General Public\n"
@@ -20,14 +23,14 @@ char	*license_string =
 "    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n\n"
 
 "The full text of this license with details is contained in the file \"COPYING\"\n"
-"in the Mathomatic source distribution obtained from http://mathomatic.org\n"
+"in the Mathomatic source distribution, obtainable from www.mathomatic.org;\n"
 "All Mathomatic files are published under this license.\n\n"
 
 "Chief author, maintainer, and copyright holder contact information:\n"
 "  email:\n"
-"    georgegesslein@gmail.com\n"
+"    gesslein@linux.com\n"
 "  postal address:\n"
 "    George Gesslein II\n"
-"    43 Atwater Road\n"
-"    Lansing, New York 14882\n"
+"    P.O. Box 224\n"
+"    Lansing, New York  14882-0224\n"
 "    USA\n";

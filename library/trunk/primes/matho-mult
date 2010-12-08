@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# Python program to multiply many integers separated by spaces or newlines.
+# Python program to multiply many large integers separated by spaces or newlines.
 # Used by "primorial" with "matho-primes" to calculate large primorials.
-# Primorials are the product of all primes up to a given number.
+# A primorial is the product of all primes up to a given number.
 
 import string
 import sys
