@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EquationView.h"
+#import "ExpressionScrollView.h"
 
 @interface MathCommand : NSObject {
     NSMutableArray * input;

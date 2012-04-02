@@ -57,6 +57,7 @@
     // # symbols used to differentiate variables from constants and also cleans up pi.
     if (equationText) [equationText release];
     equationText = [mathomaticText stringByReplacingOccurrencesOfString:@"pi#" withString:@"π"];
+    equationText = [mathomaticText stringByReplacingOccurrencesOfString:@"pi" withString:@"π"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"e#" withString:@"exp"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"e" withString:@"E"];
     equationText = [equationText stringByReplacingOccurrencesOfString:@"Exp" withString:@"e"];

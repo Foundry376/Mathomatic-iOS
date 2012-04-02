@@ -152,7 +152,6 @@
         heightAboveBaseline = minHeight;
      
     CGSize pSize = CGSizeMake(8, 10);
-    float pPadding = kParenthesisPadding;
     
     int height = fmax(heightAboveBaseline + heightBelowBaseline, minHeight);
     int parenthesis_width = fmin((height-kParenthesisPadding*2)/20.0, 1)*pSize.width;

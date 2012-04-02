@@ -1,0 +1,22 @@
+
+; Derivation of the mortgage payment formula.
+; Here are 3 related financial formulas that can be "read" into Mathomatic.
+
+set finance ; Enable money mode.
+
+; Compound Interest Future Value Formula:
+fv1 = pv*(1+interest_rate)^n
+
+; Annuity Formula:
+fv2 = payment*(((1+interest_rate)^n-1)/interest_rate)
+; Next we will combine these to produce the Amortized Loan Formula.
+pause
+; Set equal to produce the Amortized Loan Formula (Mortgage Payment Formula):
+fv1 = fv2
+eliminate all ; combine both formulas to produce the mortgage payment formula:
+solve verify payment ; solve for payment per period, verifying the result:
+; pv = present value
+; fv = future value (maturity value)
+; interest_rate = interest rate per period (1 = 100%)
+; n = number of periods
+pause End

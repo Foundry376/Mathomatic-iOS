@@ -1,0 +1,26 @@
+#!/usr/bin/python
+
+# Python program to multiply many integers separated by spaces or newlines.
+# Used by "primorial" with "matho-primes" to calculate large primorials.
+# Primorials are the product of all primes up to a given number.
+
+import string
+import sys
+
+prod = 1 # initialize product and make it an integer
+args = sys.argv[1:]
+if (args == []):
+	# read stdin if no command line args
+	input_line = raw_input()
+	while input_line:
+		for s in string.split(input_line):
+			prod *= int(s)
+		try:
+			input_line = raw_input()
+		except:
+			break;
+else:
+	# multiply together the command line args
+	for arg in args:
+		prod *= int(arg)
+print prod

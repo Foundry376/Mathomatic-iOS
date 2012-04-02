@@ -80,7 +80,7 @@
 - (void)cancel
 {
     [delegate equationSelectCancelled];
-    [self.parentViewController dismissModalViewControllerAnimated:YES];
+    [self dismissModalViewControllerAnimated:YES];
 }
 
 - (void)solve
@@ -91,7 +91,7 @@
         [alert release];
     } else {
         [delegate equationsSelected: activeEquations solveVariable: [variables objectAtIndex: activeVariable]];
-        [self.parentViewController dismissModalViewControllerAnimated:YES];
+        [self dismissModalViewControllerAnimated:YES];
     }
 }
 

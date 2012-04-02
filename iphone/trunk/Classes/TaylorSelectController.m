@@ -18,7 +18,7 @@
 
 - (IBAction)cancel 
 {
-    [self.parentViewController dismissModalViewControllerAnimated:YES];
+    [self dismissModalViewControllerAnimated:YES];
 }
 
 - (IBAction)ok 
@@ -40,7 +40,7 @@
         [alert release];
     } else {
         [operation parametersSelected: [[variable titleForSegmentAtIndex: [variable selectedSegmentIndex]] lowercaseString] point:point order:order];
-        [self.parentViewController dismissModalViewControllerAnimated:YES];
+        [self dismissModalViewControllerAnimated:YES];
     }
 }
 @end

@@ -1,0 +1,10 @@
+
+; General quadratic (2nd degree polynomial) formula.
+; Formula for the 2 roots (solutions for x)
+; of the general quadratic equation.
+;
+a x^2 + b x + c = 0 ; The general quadratic equation.
+solve verify x ; Mathomatic can solve that and verify the solution:
+; This is the quadratic formula.
+; Use the calculate command to temporarily plug in coefficients.
+; The coefficients may be any mathematical expression not containing x.

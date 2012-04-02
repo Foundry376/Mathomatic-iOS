@@ -22,4 +22,6 @@
 - (void)dealloc;
 - (void)fitToFrame:(CGRect)frame;
 
+- (float)equationHeight;
+
 @end

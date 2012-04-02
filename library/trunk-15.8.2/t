@@ -1,0 +1,3 @@
+#!/bin/sh
+# Shell script to test Mathomatic.
+make test

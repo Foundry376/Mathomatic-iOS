@@ -1,0 +1,33 @@
+# Makefile for compiling and testing Mathomatic with Cygwin for MS-Windows.
+
+VERSION		= `cat VERSION`
+CFLAGS		= -O2 -DCYGWIN -DVERSION=\"$(VERSION)\"
+LDFLAGS		= -s
+LDLIBS		= -lm
+
+CFLAGS		+= -DREADLINE
+LDLIBS		+= -lreadline -lcurses
+
+AOUT		= mathomatic.exe
+OBJECTS		= main.o globals.o am.o solve.o help.o parse.o cmds.o simplify.o factor.o super.o \
+		  unfactor.o poly.o diff.o integrate.o complex.o complex_lib.o list.o gcd.o factor_int.o
+
+all: $(AOUT)
+
+check test: all
+	cd tests && time ../$(AOUT) -t all 0<&- >test.out && diff -u all.out test.out
+	@rm tests/test.out
+	@echo All tests passed.
+
+baseline:
+	cd tests && ../$(AOUT) -t all 0<&- >all.out
+
+$(OBJECTS): includes.h am.h externs.h complex.h proto.h VERSION
+
+$(AOUT): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) $(LDLIBS) -o $(AOUT)
+
+clean:
+	rm -f *.o *.a
+	rm -f lib/*.o lib/*.a
+	rm -f tests/test.out

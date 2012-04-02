@@ -1,0 +1,8 @@
+; This Mathomatic input file contains the formula to
+; directly calculate the "n"th Fibonacci number.
+; A Fibonacci number is always the sum of the 2 previous Fibonacci numbers.
+phi = (1 + (5^(1/2)))/2 ; the golden ratio
+fibonacci = ((phi^n) - ((1 - phi)^n))/(5^(1/2))
+eliminate phi ; Fibonacci formula:
+simplify ; Note that Mathomatic rationalizes the denominator here.
+sum n=48 to 49 ; compute the 50th Fibonacci number

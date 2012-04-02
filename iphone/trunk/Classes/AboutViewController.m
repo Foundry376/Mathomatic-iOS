@@ -3,7 +3,7 @@
 @implementation AboutViewController
 
 - (IBAction)close {
-    [self.parentViewController dismissModalViewControllerAnimated: YES];
+    [self dismissModalViewControllerAnimated: YES];
 }
 
 - (IBAction)showLink {

@@ -1,0 +1,29 @@
+George Gesslein II <gesslein@linux.com>
+Chief Mathomatic creator, maintainer, and copyright holder.
+http://www.mathomatic.org
+
+David Moreno Garza
+Former maintainer of the Debian Mathomatic package
+and creator of the original Prime Number Tools man pages.
+http://log.damog.net/
+
+Sandro Tosi
+The current maintainer of the Debian Mathomatic package and doing a fine job.
+http://matrixhasu.altervista.org/ and http://wiki.debian.org/SandroTosi
+
+Gordon McKinney and Reini Urban
+Porters and maintainers of the Windows version using Cygwin DLLs.
+Currently inactive.
+
+There are many individuals maintaining Mathomatic ports.
+Thank you very much for creating and supporting the Mathomatic ports
+for all these years.
+
+Thanks to people who have contributed code to the Mathomatic project:
+  2010 Simon Geard for better code command code  :-)
+  2010 Michael Pogue of Sun Microsystems for help on compiling under Solaris.
+  2010 Jonathan Stark for cmake file "CMakeLists.txt".
+
+Thanks to all the wonderful people that have been contributing and donating
+to the Mathomatic project, many are not listed here.
+If you think you belong in this list, please let George Gesslein II know.

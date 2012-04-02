@@ -65,4 +65,22 @@
     [self scrollRectToVisible:CGRectMake(content_fit.size.width-10, 0, 10, 10) animated:YES];
 }
 
+- (float)equationHeight
+{
+    CGSize max = self.frame.size;
+    CGSize content = [[expressionImageView image] size];
+    CGSize padding = CGSizeMake(8,4);
+    
+    if (max.height == 0)
+        max.height = content.height + padding.height * 2;
+
+    float scaleFactor = fminf(1, (max.height - padding.height * 2) / content.height);
+    CGRect content_fit = CGRectMake(padding.width, 
+                                    padding.height + (max.height - padding.height * 2 - content.height * scaleFactor)/2,
+                                    content.width * scaleFactor, 
+                                    content.height * scaleFactor);
+
+    return content_fit.size.height;    
+}
+
 @end

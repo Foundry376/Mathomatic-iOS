@@ -1,0 +1,15 @@
+#!/bin/bash
+# Compile roots.c and move the executable to ~/bin if it exists.
+# roots is a command line numerical polynomial equation solver.
+# Requires the GNU Scientific Library (GSL) development files.
+
+set -e
+
+echo Compiling roots.c
+gcc -O -Wall $LDFLAGS $CFLAGS $CPPFLAGS -o roots roots.c `pkg-config --cflags --libs gsl` || exit
+if [ -d ~/bin ]
+then
+	echo Moving result to ~/bin
+	mv roots ~/bin || exit
+fi
+echo Done, type \"roots\" to run.

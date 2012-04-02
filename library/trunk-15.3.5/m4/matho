@@ -1,0 +1,19 @@
+#!/bin/sh
+# This shell script runs Mathomatic with the m4 macro pre-processor so that
+# standard math functions such as sqrt(x), sin(x), etc. may be easily entered.
+# Hyperbolic trig has "h" appended, like sinh(x) for hyperbolic sine.
+# Only works with GNU software.
+# See file "functions.m4" for the complete list of supported functions.
+#
+# Usage: matho [ input_files ]
+
+MATHOMATIC="${0}matic"
+MFUNCTIONS="${0%/matho}/functions.m4"
+MOPTIONS="-ru"
+
+if [ -x "$MATHOMATIC" ]
+then
+	m4 -eP -- "$MFUNCTIONS" "$@" - | time -p "$MATHOMATIC" $MOPTIONS
+else
+	m4 -eP -- "$MFUNCTIONS" "$@" - | time -p mathomatic $MOPTIONS
+fi

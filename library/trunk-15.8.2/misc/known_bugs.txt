@@ -1,0 +1,29 @@
+                           Known bugs in Mathomatic
+                           ------------------------
+
+Factorial bug:
+     Try "factor number 17!", 17! gives wrong answer 355687428096001, should
+be 355687428096000 (off by 1). This bug is because of slightly faulty gamma
+functions that come with the standard C math library. Can be fixed by
+compiling with -DNOGAMMA on the cc command line. This will make factorial
+integer only.
+     "factor number 18!" and higher don't work because the maximum safely
+representable integer for double precision floating point is 15 digits long.
+This is not a bug.
+
+Absolute values and complex number problems:
+     Absolute values and the imaginary unit (i) do not always remain intact
+after being manipulated with the standard rules of algebra. For example, 1/i
+correctly simplifies to -i, changing the sign of the result. So the fraction
+command and other possible operations may give wrong results due to differing
+sign after manipulations. The simplify command should always work, but it is
+not guaranteed for these.
+     The solve command may have a problem too, but using the verify option
+should check that the result of solving absolute value or complex number
+equations is 100% correct.
+
+Solving modulus equations:
+     May result in garbage, due to incomplete modulus operator solving code.
+I could just disable it, but I choose to research it at a later time, because
+it does sometimes work nicely. Again, the "solve verify" option tells if you
+should trust the results.

@@ -1,0 +1,26 @@
+clear all
+; Some symbolic differentiation examples follow.
+
+; Take the derivative of the absolute value function:
+|x|
+derivative
+
+; Take the derivative of an algebraic fraction:
+(2+3x)/(4+5x)
+derivative
+
+; A Taylor series demonstration:
+y=x_new^n
+taylor x_new 1 x_old ; build the (nth root of y) iterative approximation formula
+solve verify x_new ; solve for the output variable, verifying the result
+simplify ; convergent nth root approximation formula:
+replace x_old x_new with x ; make x_old (input) and x_new (output) the same
+x ; make sure the formula was correct by solving for x
+
+; Another Taylor series demo:
+e^x ; enter the exponential function
+taylor x 10 0 ; generate a 10th order taylor series of the exponential function
+laplace x ; do a Laplace transform on it
+simplify ; show the structure of the result
+laplace inverse x ; undo the Laplace transform
+compare with 8 ; check the result

@@ -1,0 +1,45 @@
+#!/bin/sh
+# Shell script for creating the Windows 32-bit executable "mathomatic.exe".
+# In Debian and Ubuntu, install the MinGW cross-compiler package gcc-mingw32 (tested)
+# or mingw32 (older version).
+#
+# The executables created here are very capable, work standalone or with Cygwin,
+# and do not require readline to recall and edit command-line history,
+# this already works in the Windows console (cmd.exe and command.com).
+
+# Abort on any errors:
+set -e
+
+# Define the C cross-compiler and flags we are using here:
+export CC=i586-mingw32msvc-cc
+export CFLAGS="-O3 -Wall -Wno-unused-variable -DMINGW -DWIN32_CONSOLE_COLORS -DBOLD_COLOR $CFLAGS" 
+
+echo Compiling Windows 32-bit Mathomatic...
+make clean
+cd icons
+i586-mingw32msvc-windres icon.rc icon.o
+cd ..
+AOUT=mathomatic.exe MATHOMATIC_OBJECTS="icons/icon.o" make -j
+make clean
+
+echo
+echo Compiling the Prime Number Tools...
+cd primes
+make flush
+CFLAGS="-DUSE_DOUBLES $CFLAGS" make -j
+make clean
+echo
+echo Prime Number Tools executables will need .exe appended to the filename.
+cd ..
+
+exit 0 # 64-bits isn't completely supported by MinGW yet.
+
+export CC=amd64-mingw32msvc-cc
+
+echo Compiling Windows 64-bit Mathomatic...
+make clean
+cd icons
+amd64-mingw32msvc-windres icon.rc icon.o
+cd ..
+AOUT=mathomatic64.exe MATHOMATIC_OBJECTS="icons/icon.o" make -j
+make clean

@@ -69,7 +69,7 @@
         NSString * eq = [self outputCleanup: [output objectAtIndex: ii]];
         
         [output replaceObjectAtIndex:ii withObject: eq];
-        [outputEquations addObject: [[[EquationView alloc] initWithEquation:eq andFrame:CGRectMake(0, 0, 320, 0) andFontSize:18] autorelease]];
+        [outputEquations addObject: [[[ExpressionScrollView alloc] initWithEquation:eq andFrame:CGRectMake(0, 0, 320, 0) andFontSize:18] autorelease]];
     }
     return YES;
 }
@@ -94,7 +94,7 @@
     
     for (int ii = 0; ii < [outputEquations count]; ii ++){
         NSString * line = [output objectAtIndex: ii];
-        if ([self output: line contains:@"="] && ([self output: line contains:@"x"] || [self output: line contains:@"y"]|| [self output: line contains:@"z"]));
+        if ([self output: line contains:@"="] && ([self output: line contains:@"x"] || [self output: line contains:@"y"]|| [self output: line contains:@"z"]))
             [oe addObject: [outputEquations objectAtIndex: ii]];
     }
     return oe;
@@ -110,7 +110,7 @@
 - (int)attachedHeight
 {
     int height = 0;
-    for (EquationView * v in outputEquations)
+    for (ExpressionScrollView * v in outputEquations)
         height += [v equationHeight];
     return height;
 }
@@ -118,7 +118,7 @@
 - (void)attachToView: (UIView*)view
 {
     int height = 0;
-    for (EquationView * v in outputEquations){
+    for (ExpressionScrollView * v in outputEquations){
         [v setFrame: CGRectMake(0, height, [view frame].size.width, [v equationHeight])];
         [view addSubview: v];
         

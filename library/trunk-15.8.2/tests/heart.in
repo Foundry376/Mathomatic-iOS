@@ -1,0 +1,4 @@
+
+; Plot a heart with gnuplot:
+plot [-2:2] acos(1-abs(x))-pi,sqrt(1-(abs(x)-1)^2)
+:push plot [-2:2] acos(1-abs(x))-pi,sqrt(1-(abs(x)-1)^2)

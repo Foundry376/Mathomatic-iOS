@@ -1,0 +1,11 @@
+#!/bin/sh
+# Shell script for creating the executable "mathomatic_secure",
+# which lacks the code for file I/O and shelling out.
+# The result can safely be used as an application on open public servers.
+# The Mathomatic run-time option -s4 performs exactly the same function,
+# so this script that makes a separate executable is no longer necessary.
+
+echo Compiling secure Mathomatic...
+set -v
+gcc -O3 -Wall -Wshadow -Wno-char-subscripts -Wno-unused-variable -fexceptions $LDFLAGS $CFLAGS $CPPFLAGS -DREADLINE -DUNIX -DVERSION=\"`cat VERSION`\" -DSECURE -DTIMEOUT_SECONDS=3600 *.c -lm -lreadline -o mathomatic_secure && echo ./mathomatic_secure created.
+make clean # for any subsequent makes

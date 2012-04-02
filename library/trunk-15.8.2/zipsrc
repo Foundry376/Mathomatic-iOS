@@ -1,0 +1,20 @@
+#!/bin/sh
+# Create a zip file containing the Mathomatic source distribution with no object files.
+# The current directory must be the Mathomatic build directory for this to work.
+# Uses Info-ZIP and its command line options.
+
+if [ ! -f "VERSION" ]
+then
+	echo 'zipsrc executed from an improper directory;'
+	echo 'Must only be invoked as "./zipsrc" from the Mathomatic source directory.'
+	exit 1
+fi
+
+set -e
+./makenews.sh
+make -s -C primes distclean
+make -s -C lib distclean
+rm -f ~/am.zip */*.o */*.pyc */*.pyo
+echo Mathomatic development source code and docs version `cat VERSION`+ \
+| zip -9rqzX ~/am.zip *.c *.h make* t update compile* *.txt VERSION AUTHORS COPYING NEWS *.1 zipsrc doc primes tests lib examples m4 misc icons menu \
+&& echo ~/am.zip created.
