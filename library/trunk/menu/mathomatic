@@ -1,7 +1,0 @@
-?package(mathomatic):\
-	needs="text"\
-	hints="Mathomatic"\
-	section="Applications/Science/Mathematics"\
-	title="Mathomatic"\
-	command="/usr/bin/mathomatic"
-	icon="/usr/share/pixmaps/mathomatic.xpm"

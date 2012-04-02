@@ -1,7 +1,0 @@
-#!/bin/bash
-# Shell script to test the Mathomatic prime number generator.
-
-set -e
-set -u
-
-make test bigtest

@@ -1,8 +1,0 @@
-//
-// Prefix header for all source files of the 'Mathomatic Simulator Test' target in the 'Mathomatic Simulator Test' project
-//
-
-#ifdef __OBJC__
-    #import <Foundation/Foundation.h>
-    #import <UIKit/UIKit.h>
-#endif
