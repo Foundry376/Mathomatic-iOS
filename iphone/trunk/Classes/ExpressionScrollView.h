@@ -17,6 +17,8 @@
 @property (nonatomic, retain, setter=setExpression:) MathomaticExpression * expression;
 @property (nonatomic, retain) UIImageView * expressionImageView;
 
+- (id)initWithEquation:(MathomaticExpression*)exp andFrame:(CGRect)r andFontSize:(int)fs;
+
 - (id)awakeFromNib;
 - (void)setExpression:(MathomaticExpression*)e;
 - (void)dealloc;

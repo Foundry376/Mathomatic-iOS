@@ -13,6 +13,15 @@
 @synthesize expression;
 @synthesize expressionImageView;
 
+- (id)initWithEquation:(MathomaticExpression*)exp andFrame:(CGRect)r andFontSize:(int)fs
+{
+    self = [super initWithFrame: r];
+    if (self) {
+        self.expression = exp;
+    }
+    return self;
+}
+
 - (id)awakeFromNib
 {
     [self setClipsToBounds: NO];

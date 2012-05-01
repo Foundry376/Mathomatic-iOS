@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		43099527154FAEA800D13C60 /* libmathomatic_iphone.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43099525154FAEA800D13C60 /* libmathomatic_iphone.a */; };
+		43099528154FAEA800D13C60 /* libmathomatic_iphonesimulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43099526154FAEA800D13C60 /* libmathomatic_iphonesimulator.a */; };
 		43347C131529725400BCBAE9 /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BDA1529725400BCBAE9 /* AboutViewController.m */; };
 		43347C141529725400BCBAE9 /* AboutViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43347BDB1529725400BCBAE9 /* AboutViewController.xib */; };
 		43347C151529725400BCBAE9 /* EquationAbstractView.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BDD1529725400BCBAE9 /* EquationAbstractView.m */; };
@@ -19,7 +21,6 @@
 		43347C1C1529725400BCBAE9 /* ExpressionButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BEB1529725400BCBAE9 /* ExpressionButtonView.m */; };
 		43347C1D1529725400BCBAE9 /* ExpressionScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BED1529725400BCBAE9 /* ExpressionScrollView.m */; };
 		43347C1E1529725400BCBAE9 /* KeyboardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BEF1529725400BCBAE9 /* KeyboardView.m */; };
-		43347C1F1529725400BCBAE9 /* MathCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BF11529725400BCBAE9 /* MathCommand.m */; };
 		43347C201529725400BCBAE9 /* MathomaticAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BF31529725400BCBAE9 /* MathomaticAppDelegate.m */; };
 		43347C211529725400BCBAE9 /* MathomaticExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BF51529725400BCBAE9 /* MathomaticExpression.m */; };
 		43347C221529725400BCBAE9 /* MathomaticExpressionTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 43347BF71529725400BCBAE9 /* MathomaticExpressionTableViewCell.m */; };
@@ -162,15 +163,15 @@
 		43347D2D1529727D00BCBAE9 /* viewLarger@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 43347CB61529727D00BCBAE9 /* viewLarger@2x.png */; };
 		43347D2F1529728100BCBAE9 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43347D2E1529728100BCBAE9 /* MainWindow.xib */; };
 		43347D311529728400BCBAE9 /* MathomaticViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43347D301529728400BCBAE9 /* MathomaticViewController.xib */; };
-		43347D331529728800BCBAE9 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 43347D321529728800BCBAE9 /* Info.plist */; };
-		43347D371529731B00BCBAE9 /* libmathomatic_iphone.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43347D351529731A00BCBAE9 /* libmathomatic_iphone.a */; };
-		43347D381529731B00BCBAE9 /* libmathomatic_iphonesimulator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43347D361529731B00BCBAE9 /* libmathomatic_iphonesimulator.a */; };
 		43423C9B1529723500FF6648 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43423C9A1529723500FF6648 /* UIKit.framework */; };
 		43423C9D1529723500FF6648 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43423C9C1529723500FF6648 /* Foundation.framework */; };
 		43423C9F1529723500FF6648 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43423C9E1529723500FF6648 /* CoreGraphics.framework */; };
+		43896C5F152981A2007E41F4 /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43896C5E152981A2007E41F4 /* libm.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		43099525154FAEA800D13C60 /* libmathomatic_iphone.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmathomatic_iphone.a; path = "../../library/trunk-15.8.3/libmathomatic_iphone.a"; sourceTree = "<group>"; };
+		43099526154FAEA800D13C60 /* libmathomatic_iphonesimulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmathomatic_iphonesimulator.a; path = "../../library/trunk-15.8.3/libmathomatic_iphonesimulator.a"; sourceTree = "<group>"; };
 		43347BD91529725400BCBAE9 /* AboutViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AboutViewController.h; sourceTree = "<group>"; };
 		43347BDA1529725400BCBAE9 /* AboutViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
 		43347BDB1529725400BCBAE9 /* AboutViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AboutViewController.xib; sourceTree = "<group>"; };
@@ -194,8 +195,6 @@
 		43347BED1529725400BCBAE9 /* ExpressionScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ExpressionScrollView.m; sourceTree = "<group>"; };
 		43347BEE1529725400BCBAE9 /* KeyboardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyboardView.h; sourceTree = "<group>"; };
 		43347BEF1529725400BCBAE9 /* KeyboardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyboardView.m; sourceTree = "<group>"; };
-		43347BF01529725400BCBAE9 /* MathCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathCommand.h; sourceTree = "<group>"; };
-		43347BF11529725400BCBAE9 /* MathCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathCommand.m; sourceTree = "<group>"; };
 		43347BF21529725400BCBAE9 /* MathomaticAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathomaticAppDelegate.h; sourceTree = "<group>"; };
 		43347BF31529725400BCBAE9 /* MathomaticAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MathomaticAppDelegate.m; sourceTree = "<group>"; };
 		43347BF41529725400BCBAE9 /* MathomaticExpression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathomaticExpression.h; sourceTree = "<group>"; };
@@ -358,12 +357,11 @@
 		43347D2E1529728100BCBAE9 /* MainWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		43347D301529728400BCBAE9 /* MathomaticViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MathomaticViewController.xib; sourceTree = "<group>"; };
 		43347D321529728800BCBAE9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		43347D351529731A00BCBAE9 /* libmathomatic_iphone.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmathomatic_iphone.a; path = "../../library/trunk-15.8.2/libmathomatic_iphone.a"; sourceTree = "<group>"; };
-		43347D361529731B00BCBAE9 /* libmathomatic_iphonesimulator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmathomatic_iphonesimulator.a; path = "../../library/trunk-15.8.2/libmathomatic_iphonesimulator.a"; sourceTree = "<group>"; };
 		43423C961529723500FF6648 /* Mathomatic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mathomatic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		43423C9A1529723500FF6648 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		43423C9C1529723500FF6648 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		43423C9E1529723500FF6648 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		43896C5E152981A2007E41F4 /* libm.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libm.dylib; path = usr/lib/libm.dylib; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -371,11 +369,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43347D371529731B00BCBAE9 /* libmathomatic_iphone.a in Frameworks */,
-				43347D381529731B00BCBAE9 /* libmathomatic_iphonesimulator.a in Frameworks */,
+				43896C5F152981A2007E41F4 /* libm.dylib in Frameworks */,
 				43423C9B1529723500FF6648 /* UIKit.framework in Frameworks */,
 				43423C9D1529723500FF6648 /* Foundation.framework in Frameworks */,
 				43423C9F1529723500FF6648 /* CoreGraphics.framework in Frameworks */,
+				43099527154FAEA800D13C60 /* libmathomatic_iphone.a in Frameworks */,
+				43099528154FAEA800D13C60 /* libmathomatic_iphonesimulator.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -410,8 +409,6 @@
 				43347BED1529725400BCBAE9 /* ExpressionScrollView.m */,
 				43347BEE1529725400BCBAE9 /* KeyboardView.h */,
 				43347BEF1529725400BCBAE9 /* KeyboardView.m */,
-				43347BF01529725400BCBAE9 /* MathCommand.h */,
-				43347BF11529725400BCBAE9 /* MathCommand.m */,
 				43347BF21529725400BCBAE9 /* MathomaticAppDelegate.h */,
 				43347BF31529725400BCBAE9 /* MathomaticAppDelegate.m */,
 				43347BF41529725400BCBAE9 /* MathomaticExpression.h */,
@@ -599,8 +596,9 @@
 		43423C8B1529723500FF6648 = {
 			isa = PBXGroup;
 			children = (
-				43347D351529731A00BCBAE9 /* libmathomatic_iphone.a */,
-				43347D361529731B00BCBAE9 /* libmathomatic_iphonesimulator.a */,
+				43896C5E152981A2007E41F4 /* libm.dylib */,
+				43099525154FAEA800D13C60 /* libmathomatic_iphone.a */,
+				43099526154FAEA800D13C60 /* libmathomatic_iphonesimulator.a */,
 				43423CA01529723500FF6648 /* Mathomatic */,
 				43347D341529729C00BCBAE9 /* Resources */,
 				43423C991529723500FF6648 /* Frameworks */,
@@ -812,7 +810,6 @@
 				43347D2D1529727D00BCBAE9 /* viewLarger@2x.png in Resources */,
 				43347D2F1529728100BCBAE9 /* MainWindow.xib in Resources */,
 				43347D311529728400BCBAE9 /* MathomaticViewController.xib in Resources */,
-				43347D331529728800BCBAE9 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,7 +831,6 @@
 				43347C1C1529725400BCBAE9 /* ExpressionButtonView.m in Sources */,
 				43347C1D1529725400BCBAE9 /* ExpressionScrollView.m in Sources */,
 				43347C1E1529725400BCBAE9 /* KeyboardView.m in Sources */,
-				43347C1F1529725400BCBAE9 /* MathCommand.m in Sources */,
 				43347C201529725400BCBAE9 /* MathomaticAppDelegate.m in Sources */,
 				43347C211529725400BCBAE9 /* MathomaticExpression.m in Sources */,
 				43347C221529725400BCBAE9 /* MathomaticExpressionTableViewCell.m in Sources */,
@@ -863,7 +859,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = (
+					armv7,
+					armv6,
+				);
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -889,7 +888,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = (
+					armv7,
+					armv6,
+				);
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -911,11 +913,13 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Mathomatic_Prefix.pch;
+				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../library/trunk-15.8.2\"",
+					"\"$(SRCROOT)/../../library/trunk-15.8.3\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -925,15 +929,19 @@
 		43423CB01529723500FF6648 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Ben Gotow";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Mathomatic_Prefix.pch;
+				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../library/trunk-15.8.2\"",
+					"\"$(SRCROOT)/../../library/trunk-15.8.3\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "BFE6E496-9EE8-4AD6-A782-BDF0367188A6";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
