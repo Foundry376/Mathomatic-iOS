@@ -16,10 +16,12 @@
 @synthesize viewController;
 
 
-- (void)applicationDidFinishLaunching:(UIApplication *)application {    
-    
-    // Override point for customization after app launch    
-    [window addSubview:viewController.view];
+- (void)applicationDidFinishLaunching:(UIApplication *)application
+{
+    self.viewController = [[MathomaticViewController alloc] init];
+
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    [window setRootViewController: self.viewController];
     [window makeKeyAndVisible];
     
     // call matho_init and make sure we're ready to start. This also clears any old steps and output,
@@ -32,7 +34,8 @@
     [viewController save];
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
     [viewController release];
     [window release];
     [super dealloc];
