@@ -124,7 +124,7 @@
     
     controller = [c retain];
     EquationSelectController * select = [[EquationSelectController alloc] initWithEquations:recentExpressions andOperation:self];
-    [c presentModalViewController:select animated:YES];
+    [c presentViewController:select animated:YES completion:NULL];
     [select release];
     
     return nil;

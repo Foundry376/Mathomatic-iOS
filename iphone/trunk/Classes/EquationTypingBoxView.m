@@ -33,7 +33,7 @@
 - (void)finalizeFrame
 {
     UIFont * font = [UIFont fontWithName:@"Courier" size: parentTextSize];
-    CGSize textSize = [[NSString stringWithString:@"0"] sizeWithFont: font];
+    CGSize textSize = [@"0" sizeWithFont: font];
     CGRect frame = CGRectMake(0,0, textSize.width, textSize.height);
     [self setFrame: frame];
 }

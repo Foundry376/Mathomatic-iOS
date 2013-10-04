@@ -29,7 +29,7 @@
 - (IBAction)aboutPressed:(id)sender
 {
     AboutViewController * about = [[AboutViewController alloc] initWithNibName:@"AboutViewController" bundle:[NSBundle mainBundle]];
-    [self presentModalViewController:about animated:YES];
+    [self presentViewController:about animated:YES completion:NULL];
     [about release];
 }
 
@@ -59,7 +59,7 @@
 
 - (void)keyboardSlideUpComplete
 {
-    [commandHistory setFrame: CGRectMake(0,0, self.view.frame.size.width, [keyboard frame].origin.y)];
+    [commandHistory setFrame: CGRectMake(0,0, self.view.frame.size.width, [keyboard frame].origin.y + 16)];
 }
 
 - (void)viewDidLoad 
@@ -132,8 +132,8 @@
 {   
     // if we are not just showing a sheet, the application is probably closing.
     // save all the items in the commandStack
-    if (self.modalViewController == nil)
-        [NSKeyedArchiver archiveRootObject:commandStack toFile:[[NSString stringWithString: @"~/Documents/commands.stack"] stringByExpandingTildeInPath]];
+    if (self.presentedViewController == nil)
+        [NSKeyedArchiver archiveRootObject:commandStack toFile:[@"~/Documents/commands.stack" stringByExpandingTildeInPath]];
 }
 
 
@@ -353,25 +353,7 @@
         // display the operations sheet
         UIActionSheet * operationSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Integral...", @"Derivative...", @"Solve...", @"Laplace...", @"Taylor...", @"Factor", @"Unfactor", @"Simplify", nil];
         [operationSheet showInView: self.view];
-        
-        // determine if the sheet contains a table view (OS 3.0)
-        BOOL isOS3 = NO;
-        for (UIView * subview in [operationSheet subviews]){
-            for (UIView * subview2 in [subview subviews])
-                if ([subview2 isKindOfClass: [UITableView class]])
-                    isOS3 = YES;
-        }
-        if (!isOS3){
-            int y = 52;
-            for (UIView * subview in [operationSheet subviews]){
-                CGRect f = [subview frame];
-                f.origin.y = y;
-                y += f.size.height + 6;
-                [subview setFrame: f];
-            }
-        }
         [operationSheet release];
-        
     }
 }
 

@@ -80,7 +80,7 @@
 - (void)cancel
 {
     [delegate equationSelectCancelled];
-    [self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
 - (void)solve
@@ -91,7 +91,7 @@
         [alert release];
     } else {
         [delegate equationsSelected: activeEquations solveVariable: [variables objectAtIndex: activeVariable]];
-        [self dismissModalViewControllerAnimated:YES];
+        [self dismissViewControllerAnimated:YES completion:NULL];
     }
 }
 
@@ -154,7 +154,7 @@
     {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier: @"variable_cell"];
         if (cell == nil)
-            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:@"variable_cell"] autorelease];
+            cell = [[[UITableViewCell alloc] initWithStyle: UITableViewCellStyleDefault reuseIdentifier:@"variable_cell"] autorelease];
     
         NSString * c = [variables objectAtIndex: index];
         if (activeVariable == index)

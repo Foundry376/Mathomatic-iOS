@@ -60,7 +60,7 @@
     NSArray * vars = [[c lastExpression] equationVariables];
     if ([vars count] > 0){
         TaylorSelectController * select = [[TaylorSelectController alloc] initWithNibName:@"TaylorSelectController" bundle:[NSBundle mainBundle]];
-        [c presentModalViewController: select animated:YES];
+        [c presentViewController:select animated:YES completion:NULL];
         [select setOperation: self];
         [select setAvailableVariables: vars];
         [select release];

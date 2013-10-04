@@ -51,7 +51,7 @@
 {
     CGSize max = CGSizeMake(310, 110);
     CGSize content = [[expressionImageView image] size];
-    CGSize padding = CGSizeMake(8,4);
+    CGSize padding = CGSizeMake(12,8);
     
     max.height = fmin(max.height, content.height + padding.height * 2);
     
