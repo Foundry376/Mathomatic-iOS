@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>C3DA4FD1-9009-4879-958A-587F6DAC30D2</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Mathomatic</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>677F8017-9285-4E87-B648-69433C49E6E1</key>
+		<string>ssh://github.com/Foundry376/Mathomatic.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>iphone/trunk/Mathomatic.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>677F8017-9285-4E87-B648-69433C49E6E1</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/Foundry376/Mathomatic.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>677F8017-9285-4E87-B648-69433C49E6E1</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>677F8017-9285-4E87-B648-69433C49E6E1</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Mathomatic</string>
+		</dict>
+	</array>
+</dict>
+</plist>

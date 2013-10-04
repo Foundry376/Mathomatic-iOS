@@ -29,7 +29,7 @@
 - (void)setOperation:(MathomaticOperation*)op
 {
     // remove all our current subviews
-    [[self subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [[self.contentView subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     [operation release];
     operation = [op retain];
@@ -60,13 +60,13 @@
     
     UIImageView * divider = [[[UIImageView alloc] initWithImage:[UIImage imageNamed: @"divider.png"]] autorelease];
     [divider setFrame: CGRectMake(6, height+rect.height/2, 320, 2)];
-    [self addSubview: divider];
+    [self.contentView addSubview: divider];
     
     UILabel * nameLabel = [[[UILabel alloc] initWithFrame: CGRectMake((310-rect.width), height, rect.width, rect.height)] autorelease];
     [nameLabel setText: text];
     [nameLabel setFont: font];
     [nameLabel setTextColor: color];
-    [self addSubview: nameLabel];
+    [self.contentView addSubview: nameLabel];
 
     height += rect.height;
 }
@@ -81,7 +81,7 @@
         ExpressionButtonView * button = [[ExpressionButtonView alloc] initWithExpression: expression];
         [button addTarget:self action:@selector(expressionClicked:) forControlEvents:UIControlEventTouchUpInside];
         [buttons addObject: button];
-        [self addSubview: button];
+        [self.contentView addSubview: button];
         [button release];
     }
     

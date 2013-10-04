@@ -40,8 +40,8 @@
         [UIView setAnimationDuration: 0.3];
         [UIView setAnimationCurve: UIViewAnimationCurveEaseOut];
         [UIView setAnimationDelegate: self];
-        [keyboard setFrame: CGRectMake(0, 480, keyboard.frame.size.width, keyboard.frame.size.height)];
-        [commandHistory setFrame: CGRectMake(0,0, 320, 462-[keyboardSlideButton frame].size.height)];
+        [keyboard setFrame: CGRectMake(0, self.view.frame.size.height, keyboard.frame.size.width, keyboard.frame.size.height)];
+        [commandHistory setFrame: CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height-[keyboardSlideButton frame].size.height)];
         [keyboardSlideButton setImage:[UIImage imageNamed: @"slideUp.png"] forState:UIControlStateNormal];
         [UIView commitAnimations];
     } else {
@@ -50,7 +50,7 @@
         [UIView setAnimationDelegate: self];
         [UIView setAnimationDidStopSelector:@selector(keyboardSlideUpComplete)];
         [keyboardSlideButton setImage:[UIImage imageNamed: @"slideDown.png"] forState:UIControlStateNormal];
-        [keyboard setFrame: CGRectMake(0, 110, keyboard.frame.size.width, keyboard.frame.size.height)];
+        [keyboard setFrame: CGRectMake(0, self.view.frame.size.height - keyboard.frame.size.height, keyboard.frame.size.width, keyboard.frame.size.height)];
         [UIView commitAnimations];
     }
     
@@ -59,7 +59,7 @@
 
 - (void)keyboardSlideUpComplete
 {
-    [commandHistory setFrame: CGRectMake(0,0, 320, 126)];
+    [commandHistory setFrame: CGRectMake(0,0, self.view.frame.size.width, [keyboard frame].origin.y)];
 }
 
 - (void)viewDidLoad 
@@ -67,10 +67,9 @@
     [super viewDidLoad];
     
     keyboardVisible = YES;
-    [keyboardSlideButton setFrame: CGRectMake([keyboardSlideButton frame].origin.x, 417, [keyboardSlideButton frame].size.width, [keyboardSlideButton frame].size.height)];
 
     // load the command stack from the saved archive, if one exists
-    commandStack = [[NSKeyedUnarchiver unarchiveObjectWithFile: [[NSString stringWithString: @"~/Documents/commands.stack"] stringByExpandingTildeInPath]] retain];
+    commandStack = [[NSKeyedUnarchiver unarchiveObjectWithFile: [@"~/Documents/commands.stack" stringByExpandingTildeInPath]] retain];
     if (!commandStack)
         commandStack = [[NSMutableArray alloc] init];
 
@@ -92,12 +91,16 @@
         [commandHistory setAllowsSelectionDuringEditing: NO];
     
     // create the table view header with the delete / edit buttons
-    UIImageView * h = [[UIImageView alloc] initWithFrame: CGRectMake(0,0,320,49)];
+    float topOffset = 0;
+    if ([[[UIDevice currentDevice] systemVersion] doubleValue] >= 7.0)
+        topOffset = 20;
+    
+    UIImageView * h = [[UIImageView alloc] initWithFrame: CGRectMake(0,0,320,49 + topOffset)];
     [h setImage: [UIImage imageNamed: @"header_background.png"]];
     [h setUserInteractionEnabled: YES];
     
     editButton = [[UIButton buttonWithType: UIButtonTypeCustom] retain];
-    [editButton setFrame: CGRectMake(0,0,160,49)];
+    [editButton setFrame: CGRectMake(0,topOffset,160,49)];
     [editButton setAdjustsImageWhenHighlighted: NO];
     [editButton setImage:[UIImage imageNamed:@"history_edit.png"] forState:UIControlStateNormal];
     [editButton setImage:[UIImage imageNamed:@"history_edit_down.png"] forState:UIControlStateHighlighted];
@@ -105,7 +108,7 @@
     [editButton addTarget:self action:@selector(historyEdit) forControlEvents:UIControlEventTouchUpInside];
     
     clearButton = [[UIButton buttonWithType: UIButtonTypeCustom] retain];
-    [clearButton setFrame: CGRectMake(160,0,160,49)];
+    [clearButton setFrame: CGRectMake(160,topOffset,160,49)];
     [clearButton setAdjustsImageWhenHighlighted: NO];
     [clearButton setImage:[UIImage imageNamed:@"history_clear.png"] forState:UIControlStateNormal];
     [clearButton setImage:[UIImage imageNamed:@"history_clear_down.png"] forState:UIControlStateHighlighted];

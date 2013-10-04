@@ -1,2 +1,12 @@
 iphone/trunk/build/Debug-iphonesimulator/.DS_Store
 iphone/trunk/build
+/iphone/trunk/DerivedData
+/iphone/trunk/Mathomatic.xcodeproj/xcuserdata
+/iphone/trunk/Mathomatic.xcodeproj/project.xcworkspace/xcuserdata
+*.DS_Store
+/iphone/trunk/.DS_Store
+/iphone/BGAlgebraicEquationView/.DS_Store
+/iphone/.DS_Store
+/library/.DS_Store
+/library/trunk-15.8.3/.DS_Store
+/library/trunk-15.8.3/lib

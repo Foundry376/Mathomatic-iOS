@@ -17,7 +17,7 @@
     if (self = [super initWithStyle: UITableViewStyleGrouped reuseIdentifier:reuseIdentifier]) {
         expression = nil;
         expressionImageView = [[UIImageView alloc] initWithFrame: CGRectZero];
-        [self addSubview: expressionImageView];
+        [self.contentView addSubview: expressionImageView];
     }
     return self;
 }
@@ -46,7 +46,8 @@
     // Configure the view for the selected state
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
     [expressionImageView release];
     [expression release];
     [super dealloc];
