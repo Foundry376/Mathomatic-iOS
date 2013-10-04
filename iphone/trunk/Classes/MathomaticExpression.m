@@ -37,7 +37,7 @@
 {
     if (self = [super init]){
         [self setEquationText: [decoder decodeObject]];
-        equationImage = [[UIImage imageWithData: [decoder decodeObject]] retain];
+        equationImage = [[UIImage imageWithData: [decoder decodeObject] scale: [[UIScreen mainScreen] scale]] retain];
     }
     return self;
 }

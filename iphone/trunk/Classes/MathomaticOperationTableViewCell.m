@@ -66,6 +66,7 @@
     [nameLabel setText: text];
     [nameLabel setFont: font];
     [nameLabel setTextColor: color];
+    [nameLabel setBackgroundColor: [UIColor whiteColor]];
     [self.contentView addSubview: nameLabel];
 
     height += rect.height;

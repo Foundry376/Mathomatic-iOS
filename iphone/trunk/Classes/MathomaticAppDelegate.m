@@ -34,6 +34,11 @@
     [viewController save];
 }
 
+- (void)applicationWillResignActive:(UIApplication *)application
+{
+    [viewController save];
+}
+
 - (void)dealloc
 {
     [viewController release];
