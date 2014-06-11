@@ -1,0 +1,9 @@
+
+
+                                   Licenses
+                                   --------
+
+All Mathomatic software and documentation in this archive are copyrighted.
+
+The Mathomatic software and all else are licensed under the GNU Lesser
+General Public License (LGPL) version 3.0.
